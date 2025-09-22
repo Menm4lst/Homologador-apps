@@ -6,7 +6,7 @@ Maneja roles, contraseñas con Argon2 y seed de datos inicial.
 import logging
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, HashingError
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, cast
 from datetime import datetime
 
 from core.storage import get_user_repository, get_audit_repository
@@ -47,7 +47,7 @@ class AuthService:
             logger.error(f"Error verificando contraseña: {e}")
             return False
     
-    def authenticate(self, username: str, password: str, ip_address: str = None) -> Dict[str, Any]:
+    def authenticate(self, username: str, password: str, ip_address: Optional[str] = None) -> Dict[str, Any]:
         """
         Autentica un usuario y retorna información de la sesión.
         
@@ -60,7 +60,7 @@ class AuthService:
             if not user:
                 logger.warning(f"Intento de login con usuario inexistente: {username}")
                 self.audit_repo.log_action(
-                    user_id=None,
+                    user_id=0,  # Usuario especial para intentos fallidos
                     action="LOGIN_FAILED",
                     new_values={"username": username, "reason": "user_not_found"},
                     ip_address=ip_address
@@ -109,7 +109,7 @@ class AuthService:
             logger.error(f"Error durante autenticación: {e}")
             raise AuthenticationError("Error interno durante autenticación")
     
-    def logout(self, user_id: int = None, ip_address: str = None):
+    def logout(self, user_id: Optional[int] = None, ip_address: Optional[str] = None):
         """Cierra la sesión del usuario actual."""
         if self.current_user:
             self.audit_repo.log_action(
@@ -121,7 +121,7 @@ class AuthService:
             self.current_user = None
     
     def change_password(self, user_id: int, old_password: str, new_password: str, 
-                       ip_address: str = None) -> bool:
+                       ip_address: Optional[str] = None) -> bool:
         """Cambia la contraseña de un usuario."""
         try:
             # Obtener usuario actual
@@ -172,8 +172,8 @@ class AuthService:
         # Ejemplo: requerir mayúsculas, números, símbolos, etc.
     
     def create_user(self, username: str, password: str, role: str, 
-                   full_name: str = None, email: str = None,
-                   must_change_password: bool = False, creator_id: int = None) -> int:
+                   full_name: Optional[str] = None, email: Optional[str] = None,
+                   must_change_password: bool = False, creator_id: Optional[int] = None) -> int:
         """Crea un nuevo usuario."""
         try:
             # Validar role
@@ -196,7 +196,7 @@ class AuthService:
                 'must_change_password': must_change_password
             }
             
-            user_id = self.user_repo.create(user_data)
+            user_id = self.user_repo.create(cast(Dict[str, Any], user_data))
             
             # Log de creación de usuario
             if creator_id:
@@ -219,7 +219,7 @@ class AuthService:
             logger.error(f"Error creando usuario: {e}")
             raise AuthenticationError(f"Error creando usuario: {e}")
     
-    def has_permission(self, action: str, role: str = None) -> bool:
+    def has_permission(self, action: str, role: Optional[str] = None) -> bool:
         """
         Verifica si el usuario actual tiene permisos para una acción.
         
@@ -273,7 +273,7 @@ def create_seed_data():
             'must_change_password': True  # Forzar cambio en primer login
         }
         
-        admin_id = user_repo.create(admin_user_data)
+        admin_id = user_repo.create(cast(Dict[str, Any], admin_user_data))
         
         # Log de creación del seed
         audit_repo.log_action(

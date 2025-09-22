@@ -334,8 +334,10 @@ class WhiteBlackLoginWindow(QWidget):
             self.status_label.setProperty("success", "true")
         
         # Refrescar el estilo
-        self.status_label.style().unpolish(self.status_label)
-        self.status_label.style().polish(self.status_label)
+        style = self.status_label.style()
+        if style:
+            style.unpolish(self.status_label)
+            style.polish(self.status_label)
     
     def reset_login_state(self):
         """Resetea el estado del botón de login."""

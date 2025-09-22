@@ -1210,7 +1210,7 @@ def set_widget_style_class(widget, style_class: str):
     
     # Aplicar estilo a la aplicación
     app = QApplication.instance()
-    if app:
+    if app and isinstance(app, QApplication):
         if style_class == "dark":
             apply_dark_palette(app)
             app.setStyleSheet(DarkTheme.get_stylesheet())

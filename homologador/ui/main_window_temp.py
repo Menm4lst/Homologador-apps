@@ -69,8 +69,9 @@ class HomologationTableWidget(QTableWidget):
         
         # Configurar cabecera
         header = self.horizontalHeader()
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # Nombre estira
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Nombre lógico estira
+        if header:
+            header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # Nombre estira
+            header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Nombre lógico estira
         
         # Configurar comportamiento
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -143,7 +144,10 @@ class HomologationTableWidget(QTableWidget):
     
     def get_selected_record(self):
         """Obtiene el registro seleccionado completo."""
-        selected_rows = self.selectionModel().selectedRows()
+        selected_rows = []
+        selection_model = self.selectionModel()
+        if selection_model:
+            selected_rows = selection_model.selectedRows()
         if not selected_rows:
             return None
             

@@ -40,7 +40,7 @@ def test_base_datos():
     print("\n=== Probando Base de Datos ===")
     try:
         settings = Settings()
-        db_manager = DatabaseManager(settings)
+        db_manager = DatabaseManager()
         
         with db_manager.get_connection() as conn:
             cursor = conn.cursor()
@@ -76,7 +76,7 @@ def test_autenticacion():
     print("\n=== Probando Autenticación ===")
     try:
         settings = Settings()
-        db_manager = DatabaseManager(settings)
+        db_manager = DatabaseManager()
         user_repo = db_manager.get_user_repository()
         
         # Verificar autenticación del admin
@@ -97,7 +97,7 @@ def test_homologaciones():
     print("\n=== Probando Homologaciones ===")
     try:
         settings = Settings()
-        db_manager = DatabaseManager(settings)
+        db_manager = DatabaseManager()
         homol_repo = db_manager.get_homologation_repository()
         
         # Crear una homologación de prueba
@@ -149,7 +149,7 @@ def test_auditoria():
     print("\n=== Probando Auditoría ===")
     try:
         settings = Settings()
-        db_manager = DatabaseManager(settings)
+        db_manager = DatabaseManager()
         audit_repo = db_manager.get_audit_repository()
         
         # Obtener registros de auditoría

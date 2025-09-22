@@ -35,8 +35,8 @@ class DataExporter:
         self.audit_repo = get_audit_repository()
         self.audit_logger = get_audit_logger()
     
-    def export_homologations_to_csv(self, filename: str, filters: Dict[str, Any] = None, 
-                                   user_id: int = None) -> bool:
+    def export_homologations_to_csv(self, filename: str, filters: Optional[Dict[str, Any]] = None, 
+                                   user_id: Optional[int] = None) -> bool:
         """Exporta homologaciones a CSV usando el módulo csv estándar."""
         try:
             # Obtener datos
@@ -104,8 +104,8 @@ class DataExporter:
             logger.error(f"Error exportando a CSV: {e}")
             raise ExportError(f"Error exportando a CSV: {e}")
     
-    def export_homologations_to_excel(self, filename: str, filters: Dict[str, Any] = None,
-                                     user_id: int = None) -> bool:
+    def export_homologations_to_excel(self, filename: str, filters: Optional[Dict[str, Any]] = None,
+                                     user_id: Optional[int] = None) -> bool:
         """Exporta homologaciones a Excel usando pandas."""
         if not PANDAS_AVAILABLE:
             raise ExportError("pandas no está disponible. Use exportación CSV.")
@@ -174,7 +174,8 @@ class DataExporter:
                     worksheet.column_dimensions[column_letter].width = adjusted_width
                 
                 # Formatear header
-                header_font = workbook.create_font(bold=True)
+                from openpyxl.styles import Font
+                header_font = Font(bold=True)
                 for cell in worksheet[1]:
                     cell.font = header_font
             
@@ -194,8 +195,8 @@ class DataExporter:
             logger.error(f"Error exportando a Excel: {e}")
             raise ExportError(f"Error exportando a Excel: {e}")
     
-    def export_audit_trail_to_csv(self, filename: str, filters: Dict[str, Any] = None,
-                                 user_id: int = None) -> bool:
+    def export_audit_trail_to_csv(self, filename: str, filters: Optional[Dict[str, Any]] = None,
+                                 user_id: Optional[int] = None) -> bool:
         """Exporta trail de auditoría a CSV."""
         try:
             # Obtener datos de auditoría
@@ -322,7 +323,7 @@ class DataExporter:
                     import json
                     data = json.loads(processed[json_field])
                     # Convertir a string legible
-                    formatted_items = []
+                    formatted_items: List[str] = []
                     for key, value in data.items():
                         formatted_items.append(f"{key}: {value}")
                     processed[json_field] = "; ".join(formatted_items)
@@ -371,22 +372,22 @@ class DataExporter:
         }
 
 
-def export_homologations_csv(filename: str, filters: Dict[str, Any] = None, 
-                           user_id: int = None) -> bool:
+def export_homologations_csv(filename: str, filters: Optional[Dict[str, Any]] = None, 
+                           user_id: Optional[int] = None) -> bool:
     """Función utilitaria para exportar homologaciones a CSV."""
     exporter = DataExporter()
     return exporter.export_homologations_to_csv(filename, filters, user_id)
 
 
-def export_homologations_excel(filename: str, filters: Dict[str, Any] = None,
-                             user_id: int = None) -> bool:
+def export_homologations_excel(filename: str, filters: Optional[Dict[str, Any]] = None,
+                             user_id: Optional[int] = None) -> bool:
     """Función utilitaria para exportar homologaciones a Excel."""
     exporter = DataExporter()
     return exporter.export_homologations_to_excel(filename, filters, user_id)
 
 
-def export_audit_trail_csv(filename: str, filters: Dict[str, Any] = None,
-                          user_id: int = None) -> bool:
+def export_audit_trail_csv(filename: str, filters: Optional[Dict[str, Any]] = None,
+                          user_id: Optional[int] = None) -> bool:
     """Función utilitaria para exportar trail de auditoría a CSV."""
     exporter = DataExporter()
     return exporter.export_audit_trail_to_csv(filename, filters, user_id)

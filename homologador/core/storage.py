@@ -11,7 +11,7 @@ import logging
 import portalocker
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any, Tuple, cast
 from contextlib import contextmanager
 
 from .settings import get_settings
@@ -158,7 +158,7 @@ class DatabaseManager:
             finally:
                 self._lock_file = None
     
-    def create_backup(self, suffix: str = None) -> str:
+    def create_backup(self, suffix: Optional[str] = None) -> Optional[str]:
         """Crea un backup de la base de datos."""
         if not os.path.exists(self.db_path):
             logger.warning("No se puede hacer backup: base de datos no existe")
@@ -214,13 +214,16 @@ class DatabaseManager:
         except Exception as e:
             logger.warning(f"Error limpiando backups antiguos: {e}")
     
-    def execute_query(self, query: str, params: tuple = None) -> List[sqlite3.Row]:
+    def execute_query(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> List[sqlite3.Row]:
         """Ejecuta una consulta SELECT y retorna los resultados."""
         with self.get_connection() as conn:
-            cursor = conn.execute(query, params or ())
+            if params:
+                cursor = conn.execute(query, params)
+            else:
+                cursor = conn.execute(query)
             return cursor.fetchall()
     
-    def execute_non_query(self, query: str, params: tuple = None) -> int:
+    def execute_non_query(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> int:
         """Ejecuta una consulta INSERT/UPDATE/DELETE y retorna rowcount."""
         # Crear backup automático antes de modificaciones
         if self.settings.is_auto_backup_enabled() and any(
@@ -229,20 +232,26 @@ class DatabaseManager:
             self.create_backup("auto")
         
         with self.get_connection() as conn:
-            cursor = conn.execute(query, params or ())
+            if params:
+                cursor = conn.execute(query, params)
+            else:
+                cursor = conn.execute(query)
             conn.commit()
             return cursor.rowcount
     
-    def execute_insert(self, query: str, params: tuple = None) -> int:
+    def execute_insert(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> int:
         """Ejecuta un INSERT y retorna el ID del registro insertado."""
         # Crear backup automático
         if self.settings.is_auto_backup_enabled():
             self.create_backup("auto")
         
         with self.get_connection() as conn:
-            cursor = conn.execute(query, params or ())
+            if params:
+                cursor = conn.execute(query, params)
+            else:
+                cursor = conn.execute(query)
             conn.commit()
-            return cursor.lastrowid
+            return cursor.lastrowid or 0
 
 
 class HomologationRepository:
@@ -280,10 +289,10 @@ class HomologationRepository:
         results = self.db.execute_query(query, (homologation_id,))
         return results[0] if results else None
     
-    def get_all(self, filters: Dict[str, Any] = None) -> List[sqlite3.Row]:
+    def get_all(self, filters: Optional[Dict[str, Any]] = None) -> List[sqlite3.Row]:
         """Obtiene todas las homologaciones con filtros opcionales."""
         query = "SELECT * FROM v_homologations_with_user"
-        params = []
+        params: List[Any] = []
         where_clauses = []
         
         if filters:
@@ -308,7 +317,7 @@ class HomologationRepository:
                 params.append(filters['repository_location'])
         
         if where_clauses:
-            query += " WHERE " + " AND ".join(where_clauses)
+            query += " WHERE " + " AND ".join(cast(List[str], where_clauses))
         
         query += " ORDER BY created_at DESC"
         
@@ -318,7 +327,7 @@ class HomologationRepository:
         """Actualiza una homologación."""
         # Construir query dinámicamente basado en los campos a actualizar
         set_clauses = []
-        params = []
+        params: List[Any] = []
         
         updatable_fields = [
             'real_name', 'logical_name', 'kb_url', 'kb_sync', 'homologation_date',
@@ -333,7 +342,7 @@ class HomologationRepository:
         if not set_clauses:
             return False
         
-        query = f"UPDATE homologations SET {', '.join(set_clauses)} WHERE id = ?"
+        query = f"UPDATE homologations SET {', '.join(cast(List[str], set_clauses))} WHERE id = ?"
         params.append(homologation_id)
         
         return self.db.execute_non_query(query, tuple(params)) > 0
@@ -430,9 +439,9 @@ class AuditRepository:
     def __init__(self, db_manager: DatabaseManager):
         self.db = db_manager
     
-    def log_action(self, user_id: int, action: str, table_name: str = None, 
-                   record_id: int = None, old_values: Dict = None, 
-                   new_values: Dict = None, ip_address: str = None) -> int:
+    def log_action(self, user_id: int, action: str, table_name: Optional[str] = None,
+                   record_id: Optional[int] = None, old_values: Optional[Dict] = None,
+                   new_values: Optional[Dict] = None, ip_address: Optional[str] = None) -> int:
         """Registra una acción en el log de auditoría."""
         query = """
         INSERT INTO audit_logs 
@@ -452,10 +461,10 @@ class AuditRepository:
         
         return self.db.execute_insert(query, params)
     
-    def get_audit_trail(self, filters: Dict[str, Any] = None) -> List[sqlite3.Row]:
+    def get_audit_trail(self, filters: Optional[Dict[str, Any]] = None) -> List[sqlite3.Row]:
         """Obtiene el trail de auditoría con filtros opcionales."""
         query = "SELECT * FROM v_audit_with_user"
-        params = []
+        params: List[Any] = []
         where_clauses = []
         
         if filters:
@@ -480,7 +489,7 @@ class AuditRepository:
                 params.append(filters['date_to'])
         
         if where_clauses:
-            query += " WHERE " + " AND ".join(where_clauses)
+            query += " WHERE " + " AND ".join(cast(List[str], where_clauses))
         
         query += " ORDER BY timestamp DESC LIMIT 1000"
         

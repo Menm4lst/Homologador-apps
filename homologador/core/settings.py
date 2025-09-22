@@ -8,7 +8,7 @@ import json
 import argparse
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -151,11 +151,11 @@ class Settings:
                 # Para rutas con wildcard, usar glob
                 if "*" in path:
                     import glob
-                    matches = glob.glob(path)
-                    if matches and os.path.isdir(matches[0]):
+                    matches = glob.glob(cast(str, path))
+                    if matches and os.path.isdir(cast(str, matches[0])):
                         logger.info(f"OneDrive detectado (glob): {matches[0]}")
                         return matches[0]
-                elif os.path.isdir(path):
+                elif os.path.isdir(cast(str, path)):
                     logger.info(f"OneDrive detectado: {path}")
                     return path
             except Exception as e:

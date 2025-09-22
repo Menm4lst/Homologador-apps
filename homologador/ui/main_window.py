@@ -7,7 +7,7 @@ import sys
 import logging
 import csv
 from datetime import datetime, date
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, cast
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
@@ -29,8 +29,26 @@ from .theme import (
 from .homologation_form import HomologationFormDialog
 from .details_view import show_homologation_details
 from .notifications import show_info, show_success, show_warning, show_error
+from .metrics_panel import MetricsPanel
+from .tooltips import setup_tooltips, setup_widget_tooltips, get_help_system
+from .user_guide import UserGuideManager
+from .user_guide import start_user_tour
 
 logger = logging.getLogger(__name__)
+
+try:
+    from advanced_search import AdvancedSearchWidget
+    ADVANCED_SEARCH_AVAILABLE = True
+except ImportError:
+    ADVANCED_SEARCH_AVAILABLE = False
+    logger.warning("Módulo de búsqueda avanzada no disponible")
+
+try:
+    from accessibility import AccessibilityManager
+    ACCESSIBILITY_AVAILABLE = True
+except ImportError:
+    ACCESSIBILITY_AVAILABLE = False
+    logger.warning("Módulo de accesibilidad no disponible")
 
 
 class DataLoadWorker(QThread):
@@ -59,8 +77,8 @@ class HomologationTableWidget(QTableWidget):
     # Señales
     total_records_changed = pyqtSignal(int)  # Emitida cuando cambia el total de registros
     
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(cast(QWidget, parent))
         # Almacena todos los datos (incluso los que no se muestran en la página actual)
         self.all_record_data = []
         # Almacena solo los registros de la página actual
@@ -86,8 +104,9 @@ class HomologationTableWidget(QTableWidget):
         
         # Configurar cabecera
         header = self.horizontalHeader()
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # Nombre estira
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Nombre lógico estira
+        if header:
+            header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # Nombre estira
+            header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # Nombre lógico estira
         
         # Configurar comportamiento
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
@@ -97,7 +116,8 @@ class HomologationTableWidget(QTableWidget):
         
         # Configurar ordenamiento personalizado (no usar el de Qt)
         self.setSortingEnabled(False)  # Desactivar el sorting automático
-        header.sectionClicked.connect(self.on_header_clicked)
+        if header:
+            header.sectionClicked.connect(self.on_header_clicked)
         
         # Deshabilitar edición
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -121,6 +141,8 @@ class HomologationTableWidget(QTableWidget):
     def update_sort_indicators(self):
         """Actualiza indicadores visuales de ordenamiento en la cabecera."""
         header = self.horizontalHeader()
+        if not header:
+            return
         
         # Limpiar indicadores existentes
         for i in range(self.columnCount()):
@@ -128,7 +150,7 @@ class HomologationTableWidget(QTableWidget):
         
         # Establecer nuevo indicador
         if self.sort_column >= 0:
-            header.setSortIndicator(self.sort_column, self.sort_order)
+            header.setSortIndicator(cast(int, self.sort_column), cast(Qt.SortOrder, self.sort_order))
     
     def sort_data(self):
         """Ordena los datos según la columna y dirección actual."""
@@ -138,7 +160,7 @@ class HomologationTableWidget(QTableWidget):
         # Función para obtener la clave de ordenamiento para cada columna
         def get_sort_key(item, col_idx):
             if col_idx == 0:  # ID
-                return int(item['id'])
+                return int(cast(str, item['id']))
             elif col_idx == 1:  # Nombre
                 return item['real_name'].lower()
             elif col_idx == 2:  # Nombre Lógico
@@ -159,13 +181,13 @@ class HomologationTableWidget(QTableWidget):
             reverse=(self.sort_order == Qt.SortOrder.DescendingOrder)
         )
     
-    def load_data(self, data_rows):
+    def load_data(self, data_rows: List[Any]):
         """Carga todos los datos y actualiza la vista con la página actual."""
         # Convertir sqlite3.Row a diccionarios y guardar todos los registros
-        self.all_record_data = [dict(row) for row in data_rows]
+        self.all_record_data = [cast(Dict[str, Any], dict(row)) for row in data_rows]
         
         # Emitir señal con el total de registros
-        self.total_records_changed.emit(len(self.all_record_data))
+        self.total_records_changed.emit(len(cast(List[Dict[str, Any]], self.all_record_data)))
         
         # Si hay ordenamiento activo, aplicarlo
         if self.sort_column >= 0:
@@ -185,7 +207,7 @@ class HomologationTableWidget(QTableWidget):
         if page_size != self.page_size and page_size > 0:
             self.page_size = page_size
             # Verificar que la página actual sigue siendo válida
-            max_page = max(1, (len(self.all_record_data) + self.page_size - 1) // self.page_size)
+            max_page = max(1, (len(cast(List[Dict[str, Any]], self.all_record_data)) + self.page_size - 1) // self.page_size)
             if self.current_page > max_page:
                 self.current_page = max_page
             self.update_view()
@@ -194,13 +216,13 @@ class HomologationTableWidget(QTableWidget):
         """Actualiza la vista para mostrar sólo los registros de la página actual."""
         # Calcular rango de registros para la página actual
         start_idx = (self.current_page - 1) * self.page_size
-        end_idx = min(start_idx + self.page_size, len(self.all_record_data))
+        end_idx = min(start_idx + self.page_size, len(cast(List[Dict[str, Any]], self.all_record_data)))
         
         # Obtener solo los registros de la página actual
         self.record_data = self.all_record_data[start_idx:end_idx]
         
         # Limpiar tabla y agregar filas
-        self.setRowCount(len(self.record_data))
+        self.setRowCount(len(cast(List[Dict[str, Any]], self.record_data)))
         
         for row_idx, row_data in enumerate(self.record_data):
             # ID
@@ -267,7 +289,11 @@ class HomologationTableWidget(QTableWidget):
     
     def get_selected_record(self):
         """Obtiene el registro seleccionado completo."""
-        selected_rows = self.selectionModel().selectedRows()
+        selection_model = self.selectionModel()
+        if not selection_model:
+            return None
+            
+        selected_rows = selection_model.selectedRows()
         if not selected_rows:
             return None
             
@@ -297,7 +323,7 @@ class PaginationWidget(QWidget):
     page_changed = pyqtSignal(int)  # Emite nueva página
     page_size_changed = pyqtSignal(int)  # Emite nuevo tamaño de página
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.current_page = 1
         self.total_pages = 1
@@ -446,7 +472,7 @@ class FilterWidget(QFrame):
     
     filter_changed = pyqtSignal(dict)
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setup_ui()
@@ -651,6 +677,10 @@ class MainWindow(QMainWindow):
         self.data_worker = None
         self.current_filters = {}
         
+        # Inicializar nuevas funcionalidades
+        self.advanced_search_widget = None
+        self.accessibility_manager = None
+        
         # Aplicar tema desde configuraciones guardadas
         apply_theme_from_settings(self)
         
@@ -662,6 +692,9 @@ class MainWindow(QMainWindow):
         self.setup_styles()
         self.setup_actions()
         self.setup_signals()
+        
+        # Configurar nuevas funcionalidades
+        self.setup_advanced_features()
         
         # Cargar datos iniciales
         self.refresh_data()
@@ -712,32 +745,44 @@ class MainWindow(QMainWindow):
         if is_editor:
             new_button = QPushButton("Nueva Homologación")
             new_button.clicked.connect(self.new_homologation)
+            setup_widget_tooltips(new_button, 'btn_new')
             button_layout.addWidget(new_button)
             
             edit_button = QPushButton("Editar")
             edit_button.clicked.connect(self.edit_homologation)
+            setup_widget_tooltips(edit_button, 'btn_edit')
             button_layout.addWidget(edit_button)
             
             if is_admin:
                 delete_button = QPushButton("Eliminar")
                 delete_button.clicked.connect(self.delete_homologation)
+                setup_widget_tooltips(delete_button, 'btn_delete')
                 button_layout.addWidget(delete_button)
         
         details_button = QPushButton("Ver Detalles")
         details_button.clicked.connect(self.view_details)
+        setup_widget_tooltips(details_button, 'btn_details')
         button_layout.addWidget(details_button)
         
         # Espaciador
         button_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
         
+        # Botón de métricas
+        metrics_button = QPushButton("📊 Métricas")
+        metrics_button.clicked.connect(self.show_metrics_panel)
+        setup_widget_tooltips(metrics_button, 'btn_metrics')
+        button_layout.addWidget(metrics_button)
+        
         # Botón de actualizar
         refresh_button = QPushButton("Actualizar")
         refresh_button.clicked.connect(self.refresh_data)
+        setup_widget_tooltips(refresh_button, 'btn_refresh')
         button_layout.addWidget(refresh_button)
         
         # Botón de exportar
         export_button = QPushButton("Exportar")
         export_button.clicked.connect(self.export_data)
+        setup_widget_tooltips(export_button, 'btn_export')
         button_layout.addWidget(export_button)
         
         main_layout.addLayout(button_layout)
@@ -754,9 +799,13 @@ class MainWindow(QMainWindow):
     def setup_menu(self):
         """Configura el menú principal."""
         menubar = self.menuBar()
+        if not menubar:
+            return
         
         # Menú Archivo
         file_menu = menubar.addMenu('&Archivo')
+        if not file_menu:
+            return
         
         is_editor = self.user_info and self.user_info.get('role') in ('admin', 'editor')
         if is_editor:
@@ -780,6 +829,8 @@ class MainWindow(QMainWindow):
         
         # Menú Ver
         view_menu = menubar.addMenu('&Ver')
+        if not view_menu:
+            return
         
         refresh_action = QAction("Actualizar", self)
         refresh_action.setShortcut("F5")
@@ -788,8 +839,18 @@ class MainWindow(QMainWindow):
         
         view_menu.addSeparator()
         
+        # Panel de métricas
+        metrics_action = QAction("📊 Panel de Métricas", self)
+        metrics_action.setShortcut("Ctrl+M")
+        metrics_action.triggered.connect(self.show_metrics_panel)
+        view_menu.addAction(metrics_action)
+        
+        view_menu.addSeparator()
+        
         # Opciones de tema
         theme_menu = view_menu.addMenu("Tema")
+        if not theme_menu:
+            return
         
         theme_toggle_action = QAction("Cambiar Tema", self)
         theme_toggle_action.setShortcut("Ctrl+T")
@@ -812,12 +873,57 @@ class MainWindow(QMainWindow):
         system_theme_action.triggered.connect(lambda: self.set_theme("system"))
         theme_menu.addAction(system_theme_action)
         
+        # Menú Buscar (si está disponible)
+        if ADVANCED_SEARCH_AVAILABLE:
+            search_menu = menubar.addMenu('&Buscar')
+            if search_menu:
+                search_action = QAction("🔍 Búsqueda Avanzada", self)
+                search_action.setShortcut("Ctrl+F")
+                search_action.triggered.connect(self.show_advanced_search)
+                search_menu.addAction(search_action)
+                
+                search_menu.addSeparator()
+                
+                clear_search_action = QAction("Limpiar Búsqueda", self)
+                clear_search_action.setShortcut("Ctrl+Shift+F")
+                clear_search_action.triggered.connect(self.clear_search)
+                search_menu.addAction(clear_search_action)
+        
+        # Menú Accesibilidad (si está disponible)
+        if ACCESSIBILITY_AVAILABLE:
+            accessibility_menu = menubar.addMenu('&Accesibilidad')
+            if accessibility_menu:
+                accessibility_settings_action = QAction("♿ Configuración de Accesibilidad", self)
+                accessibility_settings_action.setShortcut("Ctrl+Alt+A")
+                accessibility_settings_action.triggered.connect(self.show_accessibility_settings)
+                accessibility_menu.addAction(accessibility_settings_action)
+                
+                accessibility_menu.addSeparator()
+                
+                high_contrast_action = QAction("Alternar Alto Contraste", self)
+                high_contrast_action.setShortcut("Ctrl+Alt+H")
+                high_contrast_action.triggered.connect(self.toggle_high_contrast)
+                accessibility_menu.addAction(high_contrast_action)
+                
+                large_text_action = QAction("Alternar Texto Grande", self)
+                large_text_action.setShortcut("Ctrl+Alt+L")
+                large_text_action.triggered.connect(self.toggle_large_text)
+                accessibility_menu.addAction(large_text_action)
+        
         # Menú Ayuda
         help_menu = menubar.addMenu('A&yuda')
-        
-        about_action = QAction("Acerca de", self)
-        about_action.triggered.connect(self.show_about)
-        help_menu.addAction(about_action)
+        if help_menu:
+            # Tour de usuario
+            tour_action = QAction("🎯 Tour de Usuario", self)
+            tour_action.setShortcut("F1")
+            tour_action.triggered.connect(self.start_user_tour)
+            help_menu.addAction(tour_action)
+            
+            help_menu.addSeparator()
+            
+            about_action = QAction("Acerca de", self)
+            about_action.triggered.connect(self.show_about)
+            help_menu.addAction(about_action)
     
     def setup_toolbar(self):
         """Configura la barra de herramientas."""
@@ -1018,15 +1124,17 @@ class MainWindow(QMainWindow):
         """
         
         # Aplicar estilos a los botones principales
-        for child in self.centralWidget().findChildren(QPushButton):
-            child.setStyleSheet(button_style)
-            
-        # Aplicar estilo al widget central
-        self.centralWidget().setStyleSheet("""
-            QWidget {
-                background-color: #222222;
-                color: #ffffff;
-            }
+        central_widget = self.centralWidget()
+        if central_widget:
+            for child in central_widget.findChildren(QPushButton):
+                child.setStyleSheet(button_style)
+                
+            # Aplicar estilo al widget central
+            central_widget.setStyleSheet("""
+                QWidget {
+                    background-color: #222222;
+                    color: #ffffff;
+                }
         """)
     
     def setup_actions(self):
@@ -1037,6 +1145,37 @@ class MainWindow(QMainWindow):
         """Conecta señales y slots."""
         pass
     
+    def setup_advanced_features(self):
+        """Configura las funcionalidades avanzadas."""
+        # Configurar búsqueda avanzada
+        if ADVANCED_SEARCH_AVAILABLE:
+            try:
+                self.advanced_search_widget = AdvancedSearchWidget()
+                self.advanced_search_widget.search_requested.connect(self.on_advanced_search)
+                self.advanced_search_widget.result_selected.connect(self.on_search_result_selected)
+                # Ocultar por defecto
+                self.advanced_search_widget.hide()
+                logger.info("Búsqueda avanzada configurada correctamente")
+            except Exception as e:
+                logger.error(f"Error configurando búsqueda avanzada: {e}")
+                self.advanced_search_widget = None
+        
+        # Configurar accesibilidad
+        if ACCESSIBILITY_AVAILABLE:
+            try:
+                app_instance = QApplication.instance()
+                if app_instance and isinstance(app_instance, QApplication):
+                    self.accessibility_manager = AccessibilityManager(
+                        app_instance, self
+                    )
+                    logger.info("Gestor de accesibilidad configurado correctamente")
+                else:
+                    logger.warning("No se pudo obtener la instancia de QApplication")
+                    self.accessibility_manager = None
+            except Exception as e:
+                logger.error(f"Error configurando accesibilidad: {e}")
+                self.accessibility_manager = None
+    
     def on_filter_changed(self, filters):
         """Maneja cambios en los filtros."""
         self.current_filters = filters
@@ -1044,15 +1183,15 @@ class MainWindow(QMainWindow):
         self.pagination_widget.reset()
         self.refresh_data()
     
-    def on_page_changed(self, page):
+    def on_page_changed(self, page: int):
         """Maneja cambios de página en la paginación."""
         self.table_widget.set_page(page)
     
-    def on_page_size_changed(self, page_size):
+    def on_page_size_changed(self, page_size: int):
         """Maneja cambios en el tamaño de página."""
         self.table_widget.set_page_size(page_size)
     
-    def on_total_records_changed(self, total_records):
+    def on_total_records_changed(self, total_records: int):
         """Actualiza el contador de registros en la paginación."""
         self.pagination_widget.set_total_records(total_records)
         
@@ -1078,7 +1217,7 @@ class MainWindow(QMainWindow):
     
     def new_homologation(self):
         """Abre formulario para nueva homologación."""
-        dialog = HomologationFormDialog(self, user_info=self.user_info)
+        dialog = HomologationFormDialog(self, user_info=cast(Dict[str, Any], self.user_info) if self.user_info else {})
         dialog.homologation_saved.connect(self.on_homologation_saved)
         dialog.exec()
     
@@ -1089,7 +1228,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Advertencia", "Seleccione una homologación")
             return
         
-        dialog = show_homologation_details(self, homologation_data=dict(record), user_info=self.user_info)
+        dialog = show_homologation_details(self, homologation_data=cast(Dict[str, Any], dict(record)), user_info=cast(Dict[str, Any], self.user_info))
         dialog.exec()
     
     def edit_homologation(self):
@@ -1099,7 +1238,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Advertencia", "Seleccione una homologación")
             return
         
-        dialog = HomologationFormDialog(self, homologation_data=dict(record), user_info=self.user_info)
+        dialog = HomologationFormDialog(self, homologation_data=cast(Dict[str, Any], dict(record)), user_info=cast(Dict[str, Any], self.user_info) if self.user_info else {})
         dialog.homologation_saved.connect(self.on_homologation_saved)
         dialog.exec()
     
@@ -1149,7 +1288,7 @@ class MainWindow(QMainWindow):
         self.data_worker.error.connect(self.on_data_error)
         self.data_worker.start()
     
-    def on_data_loaded(self, data):
+    def on_data_loaded(self, data: List[Any]):
         """Maneja datos cargados exitosamente."""
         # El control de registros totales ahora lo maneja la tabla
         # y se actualiza a través de la señal total_records_changed
@@ -1219,6 +1358,47 @@ class MainWindow(QMainWindow):
             "© 2024-2025 Empresa S.A.\n\n"
             "Sistema para gestión y documentación de homologaciones."
         )
+    
+    def show_metrics_panel(self):
+        """Muestra el panel de métricas y estadísticas."""
+        # Crear ventana secundaria para métricas
+        metrics_window = QWidget()
+        metrics_window.setWindowTitle("📊 Panel de Métricas y Estadísticas")
+        metrics_window.setMinimumSize(1000, 700)
+        metrics_window.resize(1200, 800)
+        
+        # Layout principal
+        layout = QVBoxLayout(metrics_window)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Crear panel de métricas
+        metrics_panel = MetricsPanel()
+        layout.addWidget(metrics_panel)
+        
+        # Hacer que la ventana sea modal
+        metrics_window.setWindowModality(Qt.WindowModality.ApplicationModal)
+        
+        # Posicionar relativo a la ventana principal
+        if self.geometry().isValid():
+            x = self.geometry().x() + 50
+            y = self.geometry().y() + 50
+            metrics_window.move(x, y)
+        
+        # Mostrar ventana
+        metrics_window.show()
+        
+        # Guardar referencia para evitar garbage collection
+        self.metrics_window = metrics_window
+    
+    def start_user_tour(self):
+        """Inicia el tour de usuario para la ventana principal."""
+        tour = start_user_tour('main_window_tour', self)
+        if tour:
+            # Conectar señales del tour
+            tour.tour_completed.connect(lambda: show_success(self, "¡Tour completado! Ya conoce las funciones principales."))
+            tour.tour_cancelled.connect(lambda: show_info(self, "Tour cancelado. Puede reiniciarlo desde el menú Ayuda."))
+        else:
+            show_warning(self, "No se pudo iniciar el tour de usuario.")
         
     def toggle_theme(self):
         """Cambia entre tema claro y oscuro."""
@@ -1316,8 +1496,141 @@ class MainWindow(QMainWindow):
                 except ImportError:
                     # Fallback: cambio instantáneo si no está disponible el efecto
                     set_widget_style_class(self, actual_theme)
+                
+                # Actualizar sistema de ayuda
+                help_system = get_help_system()
+                help_system.update_theme()
                     
                 self.refresh_data()  # Actualizar estilos de datos
+    
+    # Métodos para funcionalidades avanzadas
+    
+    def show_advanced_search(self):
+        """Muestra el widget de búsqueda avanzada."""
+        if not self.advanced_search_widget:
+            show_warning(self, "Búsqueda avanzada no disponible")
+            return
+        
+        # Configurar datos para la búsqueda
+        all_data = self.repo.get_all({})
+        # Convertir Row objects a diccionarios
+        dict_data = [dict(row) for row in all_data]
+        self.advanced_search_widget.set_data(dict_data)
+        
+        # Mostrar en un diálogo
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("🔍 Búsqueda Avanzada")
+        dialog.setModal(False)  # No modal para permitir interacción con la ventana principal
+        dialog.resize(800, 600)
+        
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(self.advanced_search_widget)
+        
+        # Mostrar diálogo
+        dialog.show()
+        
+        # Enfocar el campo de búsqueda
+        if hasattr(self.advanced_search_widget, 'search_input'):
+            self.advanced_search_widget.search_input.setFocus()
+    
+    def clear_search(self):
+        """Limpia la búsqueda actual."""
+        if self.advanced_search_widget:
+            self.advanced_search_widget.clear_search()
+        
+        # También limpiar filtros locales
+        self.filter_widget.clear_filters()
+        self.refresh_data()
+    
+    def on_advanced_search(self, query: str, filters: dict):
+        """Maneja una búsqueda avanzada."""
+        logger.info(f"Búsqueda avanzada: '{query}' con filtros: {filters}")
+        
+        # Combinar con filtros existentes
+        combined_filters = {**self.current_filters, **filters}
+        
+        # Si hay una consulta de texto, agregar a los filtros
+        if query.strip():
+            # En una implementación real, esto podría usar un motor de búsqueda
+            # Por ahora, simulamos aplicando los filtros
+            combined_filters['search_query'] = query
+        
+        # Aplicar filtros y actualizar tabla
+        self.current_filters = combined_filters
+        self.refresh_data()
+        
+        # Mostrar mensaje de estado
+        self.status_bar.showMessage(f"Búsqueda: '{query}' - Filtros aplicados")
+    
+    def on_search_result_selected(self, result_data: dict):
+        """Maneja la selección de un resultado de búsqueda."""
+        homolog_id = result_data.get('id')
+        if homolog_id:
+            # Seleccionar el elemento en la tabla principal
+            for row in range(self.table_widget.rowCount()):
+                item = self.table_widget.item(row, 0)  # Columna ID
+                if item and item.text() == str(cast(int, homolog_id)):
+                    self.table_widget.selectRow(row)
+                    # Mostrar detalles
+                    self.view_details()
+                    break
+    
+    def show_accessibility_settings(self):
+        """Muestra la configuración de accesibilidad."""
+        if not self.accessibility_manager:
+            show_warning(self, "Gestor de accesibilidad no disponible")
+            return
+        
+        self.accessibility_manager.show_accessibility_settings()
+    
+    def toggle_high_contrast(self):
+        """Alterna el modo de alto contraste."""
+        if not self.accessibility_manager:
+            show_warning(self, "Gestor de accesibilidad no disponible")
+            return
+        
+        self.accessibility_manager.toggle_high_contrast()
+        
+        # Mostrar notificación
+        from accessibility import AccessibilityMode
+        current_mode = self.accessibility_manager.theme_manager.current_mode
+        if current_mode == AccessibilityMode.HIGH_CONTRAST:
+            show_info(self, "Modo alto contraste activado")
+        else:
+            show_info(self, "Modo alto contraste desactivado")
+    
+    def toggle_large_text(self):
+        """Alterna el modo de texto grande."""
+        if not self.accessibility_manager:
+            show_warning(self, "Gestor de accesibilidad no disponible")
+            return
+        
+        # Alternar entre texto normal y grande
+        from accessibility import AccessibilityMode
+        current_mode = self.accessibility_manager.theme_manager.current_mode
+        app = QApplication.instance()
+        
+        if app and isinstance(app, QApplication):
+            if current_mode == AccessibilityMode.LARGE_TEXT:
+                self.accessibility_manager.theme_manager.set_mode(AccessibilityMode.NORMAL, app)
+                show_info(self, "Modo texto normal activado")
+            else:
+                self.accessibility_manager.theme_manager.set_mode(AccessibilityMode.LARGE_TEXT, app)
+                show_info(self, "Modo texto grande activado")
+        else:
+            show_warning(self, "No se pudo cambiar el modo de texto")
+    
+    def setup_widget_accessibility(self, widget: QWidget, name: str, description: str = ""):
+        """Configura la accesibilidad de un widget."""
+        if self.accessibility_manager:
+            self.accessibility_manager.setup_widget_accessibility(widget, name, description)
+    
+    def announce_to_screen_reader(self, text: str):
+        """Anuncia texto al lector de pantalla."""
+        if self.accessibility_manager:
+            self.accessibility_manager.announce_to_screen_reader(text)
     
     def closeEvent(self, event):
         """Maneja el cierre de la ventana."""

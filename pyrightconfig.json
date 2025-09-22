@@ -1,0 +1,40 @@
+{
+    "include": [
+        "homologador"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        ".venv",
+        "**/test_*.py",
+        "**/*_temp.py",
+        "test_nuevas_funcionalidades.py",
+        "simple_test_window.py",
+        "demo_funcionalidades.py"
+    ],
+    "ignore": [],
+    "defineConstant": {},
+    "stubPath": "",
+    "venvPath": ".",
+    "venv": ".venv",
+    "pythonVersion": "3.13",
+    "pythonPlatform": "Windows",
+    "extraPaths": [
+        "./homologador"
+    ],
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "reportMissingImports": "warning",
+    "reportMissingTypeStubs": false,
+    "reportOptionalMemberAccess": "none",
+    "reportGeneralTypeIssues": "warning",
+    "reportOptionalOperand": "none",
+    "reportOptionalCall": "none",
+    "reportAttributeAccessIssue": "none",
+    "reportUnknownMemberType": "none",
+    "reportUnknownArgumentType": "warning",
+    "reportUnknownVariableType": "none",
+    "reportUntypedFunctionDecorator": "none",
+    "reportUnknownParameterType": "none",
+    "reportMissingParameterType": "none"
+}

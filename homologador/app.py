@@ -12,7 +12,7 @@ import sys
 import os
 import logging
 import traceback
-from typing import Optional
+from typing import Optional, Dict, Any, cast
 
 # Agregar el directorio actual al path para imports relativos
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -117,6 +117,9 @@ class HomologadorApplication:
     
     def setup_application_style(self):
         """Configura el estilo global de la aplicación."""
+        if self.app is None:
+            return
+            
         self.app.setStyle('Fusion')
         
         # NO aplicar ningún stylesheet global para evitar conflictos
@@ -243,9 +246,13 @@ class HomologadorApplication:
     def show_new_homologation_form(self):
         """Muestra formulario para nueva homologación."""
         try:
+            if self.current_user is None:
+                logger.error("No hay usuario logueado")
+                return
+                
             dialog = HomologationFormDialog(
                 parent=self.main_window,
-                user_info=self.current_user
+                user_info=cast(Dict[str, Any], self.current_user) if self.current_user else {}
             )
             
             # Aplicar efectos de diálogo
@@ -272,8 +279,8 @@ class HomologadorApplication:
             
             dialog = HomologationFormDialog(
                 parent=self.main_window,
-                homologation_data=record,
-                user_info=self.current_user
+                homologation_data=cast(Dict[str, Any], record) if record else {},
+                user_info=cast(Dict[str, Any], self.current_user) if self.current_user else {}
             )
             
             # Aplicar efectos de diálogo
@@ -290,7 +297,9 @@ class HomologadorApplication:
     def show_homologation_details(self):
         """Muestra detalles de homologación."""
         try:
-            if not self.main_window:
+            if not self.main_window or self.current_user is None:
+                if self.current_user is None:
+                    logger.error("No hay usuario logueado")
                 return
             
             record = self.main_window.table_widget.get_selected_record()
@@ -300,8 +309,8 @@ class HomologadorApplication:
             
             dialog = HomologationDetailsDialog(
                 parent=self.main_window,
-                homologation_data=record,
-                user_info=self.current_user
+                homologation_data=cast(Dict[str, Any], record) if record else {},
+                user_info=cast(Dict[str, Any], self.current_user) if self.current_user else {}
             )
             
             dialog.edit_requested.connect(self.on_edit_requested_from_details)
@@ -320,10 +329,14 @@ class HomologadorApplication:
     def on_edit_requested_from_details(self, homologation_data):
         """Maneja solicitud de edición desde vista de detalles."""
         try:
+            if self.current_user is None:
+                logger.error("No hay usuario logueado")
+                return
+                
             dialog = HomologationFormDialog(
                 parent=self.main_window,
-                homologation_data=homologation_data,
-                user_info=self.current_user
+                homologation_data=cast(Dict[str, Any], homologation_data) if homologation_data else {},
+                user_info=cast(Dict[str, Any], self.current_user) if self.current_user else {}
             )
             
             dialog.homologation_saved.connect(self.on_homologation_saved)
@@ -365,7 +378,7 @@ class HomologadorApplication:
         try:
             if self.current_user:
                 auth_service = get_auth_service()
-                auth_service.logout(self.current_user.get('user_id'))
+                auth_service.logout(cast(Dict[str, Any], self.current_user).get('user_id'))
             
             logger.info("Limpieza de recursos completada")
             
@@ -412,7 +425,7 @@ def check_dependencies():
         missing_deps.append("pandas")
     
     if missing_deps:
-        error_msg = f"Dependencias faltantes: {', '.join(missing_deps)}\n\n"
+        error_msg = f"Dependencias faltantes: {', '.join(cast(list[str], missing_deps))}\n\n"
         error_msg += "Instale las dependencias con:\n"
         error_msg += "pip install -r requirements.txt"
         

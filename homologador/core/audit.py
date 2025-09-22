@@ -19,14 +19,14 @@ class AuditEvent:
     """Clase para representar un evento de auditoría."""
     user_id: int
     action: str
-    table_name: str = None
-    record_id: int = None
-    old_values: Dict[str, Any] = None
-    new_values: Dict[str, Any] = None
-    ip_address: str = None
-    user_agent: str = None
-    session_id: str = None
-    details: str = None
+    table_name: Optional[str] = None
+    record_id: Optional[int] = None
+    old_values: Optional[Dict[str, Any]] = None
+    new_values: Optional[Dict[str, Any]] = None
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    session_id: Optional[str] = None
+    details: Optional[str] = None
 
 
 class AuditLogger:
@@ -36,8 +36,8 @@ class AuditLogger:
         self.audit_repo = get_audit_repository()
         self.user_repo = get_user_repository()
     
-    def log_login_attempt(self, username: str, success: bool, ip_address: str = None, 
-                         failure_reason: str = None):
+    def log_login_attempt(self, username: str, success: bool, ip_address: Optional[str] = None, 
+                         failure_reason: Optional[str] = None):
         """Registra intentos de login."""
         user = self.user_repo.get_by_username(username)
         user_id = user['id'] if user else None
@@ -48,14 +48,15 @@ class AuditLogger:
         if not success and failure_reason:
             details["failure_reason"] = failure_reason
         
-        self.audit_repo.log_action(
-            user_id=user_id,
-            action=action,
-            new_values=details,
-            ip_address=ip_address
-        )
+        if user_id is not None:
+            self.audit_repo.log_action(
+                user_id=user_id,
+                action=action,
+                new_values=details,
+                ip_address=ip_address
+            )
     
-    def log_password_change(self, user_id: int, forced: bool = False, ip_address: str = None):
+    def log_password_change(self, user_id: int, forced: bool = False, ip_address: Optional[str] = None):
         """Registra cambios de contraseña."""
         self.audit_repo.log_action(
             user_id=user_id,
@@ -65,7 +66,7 @@ class AuditLogger:
         )
     
     def log_data_export(self, user_id: int, export_type: str, record_count: int, 
-                       filters: Dict[str, Any] = None, ip_address: str = None):
+                       filters: Optional[Dict[str, Any]] = None, ip_address: Optional[str] = None):
         """Registra exportaciones de datos."""
         details = {
             "export_type": export_type,
@@ -80,17 +81,18 @@ class AuditLogger:
             ip_address=ip_address
         )
     
-    def log_system_event(self, event_type: str, details: Dict[str, Any] = None, 
-                        user_id: int = None):
+    def log_system_event(self, event_type: str, details: Optional[Dict[str, Any]] = None, 
+                        user_id: Optional[int] = None):
         """Registra eventos del sistema."""
-        self.audit_repo.log_action(
-            user_id=user_id,
-            action=f"SYSTEM_{event_type}",
-            new_values=details or {},
-        )
+        if user_id is not None:
+            self.audit_repo.log_action(
+                user_id=user_id,
+                action=f"SYSTEM_{event_type}",
+                new_values=details or {},
+            )
     
     def log_permission_denied(self, user_id: int, attempted_action: str, 
-                            resource: str = None, ip_address: str = None):
+                            resource: Optional[str] = None, ip_address: Optional[str] = None):
         """Registra intentos de acceso denegados."""
         details = {
             "attempted_action": attempted_action,
@@ -127,7 +129,7 @@ class AuditReporter:
         failed_logins = self.audit_repo.get_audit_trail(filters)
         
         # Estadísticas por usuario
-        user_stats = {}
+        user_stats: Dict[int, Dict[str, Any]] = {}
         
         for login in successful_logins:
             user_id = login['user_id']
@@ -170,8 +172,8 @@ class AuditReporter:
         activities = self.audit_repo.get_audit_trail(filters)
         
         # Categorizar actividades
-        activity_counts = {}
-        recent_activities = []
+        activity_counts: Dict[str, int] = {}
+        recent_activities: List[Any] = []
         
         for activity in activities:
             action = activity['action']
@@ -182,8 +184,8 @@ class AuditReporter:
                 recent_activities.append({
                     'action': action,
                     'timestamp': activity['timestamp'],
-                    'table_name': activity.get('table_name'),
-                    'record_id': activity.get('record_id')
+                    'table_name': activity['table_name'] if 'table_name' in activity else None,
+                    'record_id': activity['record_id'] if 'record_id' in activity else None
                 })
         
         user = self.user_repo.get_by_id(user_id)
@@ -211,9 +213,9 @@ class AuditReporter:
         changes = self.audit_repo.get_audit_trail(filters)
         
         # Estadísticas por tipo de acción
-        action_stats = {}
-        records_affected = set()
-        users_involved = set()
+        action_stats: Dict[str, int] = {}
+        records_affected: set[int] = set()
+        users_involved: set[int] = set()
         
         for change in changes:
             action = change['action']
@@ -232,7 +234,7 @@ class AuditReporter:
             'action_breakdown': action_stats,
             'unique_records_affected': len(records_affected),
             'users_involved': len(users_involved),
-            'changes_by_day': self._group_changes_by_day(changes),
+            'changes_by_day': self._group_changes_by_day([dict(change) for change in changes]),
             'generated_at': datetime.now().isoformat()
         }
     
@@ -275,8 +277,8 @@ class AuditReporter:
         user_failed_attempts = {}
         
         for login in failed_logins:
-            ip = login.get('ip_address', 'Unknown')
-            user = login.get('username', 'Unknown')
+            ip = login['ip_address'] if 'ip_address' in login and login['ip_address'] else 'Unknown'
+            user = login['username'] if 'username' in login and login['username'] else 'Unknown'
             
             ip_failed_attempts[ip] = ip_failed_attempts.get(ip, 0) + 1
             user_failed_attempts[user] = user_failed_attempts.get(user, 0) + 1
@@ -316,7 +318,7 @@ class AuditAnalyzer:
         
         activities = self.audit_repo.get_audit_trail(filters)
         
-        anomalies = []
+        anomalies: List[Dict[str, Any]] = []
         
         # Detectar actividad fuera del horario normal (ejemplo: noches/fines de semana)
         for activity in activities:
@@ -345,7 +347,7 @@ class AuditAnalyzer:
                 continue
         
         # Detectar acciones múltiples en poco tiempo (posible script)
-        action_times = {}
+        action_times: Dict[str, List[str]] = {}
         for activity in activities:
             action = activity['action']
             if action not in action_times:
@@ -375,8 +377,8 @@ class AuditAnalyzer:
         
         # Análisis por hora del día
         hourly_activity = [0] * 24
-        daily_activity = {}
-        user_activity = {}
+        daily_activity: Dict[str, int] = {}
+        user_activity: Dict[int, int] = {}
         
         for activity in activities:
             try:

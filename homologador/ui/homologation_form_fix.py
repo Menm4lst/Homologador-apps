@@ -442,6 +442,8 @@ class HomologationFormDialog(QDialog):
     def load_data(self):
         """Carga los datos existentes en el formulario."""
         data = self.homologation_data
+        if not data:
+            return
         
         # Campos básicos
         self.real_name_edit.setText(data.get('real_name', ''))
@@ -525,7 +527,7 @@ class HomologationFormDialog(QDialog):
             'details': self.details_edit.toPlainText().strip() or None
         }
         
-        if self.is_edit_mode:
+        if self.is_edit_mode and self.homologation_data:
             # Para edición, mantener el ID original
             data['id'] = self.homologation_data['id']
         

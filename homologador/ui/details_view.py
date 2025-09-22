@@ -5,7 +5,7 @@ Interfaz de solo lectura con información completa y auditoría.
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, cast
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout,
@@ -40,7 +40,7 @@ class AuditLoadWorker(QThread):
                 'table_name': 'homologations',
                 'record_id': self.homologation_id
             }
-            results = self.audit_repo.get_audit_trail(filters)
+            results = self.audit_repo.get_audit_trail(cast(Dict[str, Any], filters))
             self.audit_loaded.emit([dict(row) for row in results])
             
         except Exception as e:
@@ -70,14 +70,16 @@ class AuditTableWidget(QTableWidget):
         
         # Configurar anchos
         header = self.horizontalHeader()
-        for i, (_, width) in enumerate(columns):
-            header.resizeSection(i, width)
+        if header:
+            for i, (_, width) in enumerate(columns):
+                header.resizeSection(i, width)
         
         # Configuraciones
         self.setAlternatingRowColors(True)
         self.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.setSortingEnabled(True)
-        header.setStretchLastSection(True)
+        if header:
+            header.setStretchLastSection(True)
         
         # Sin edición
         self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -163,7 +165,7 @@ class AuditTableWidget(QTableWidget):
             except:
                 changes.append("Registro eliminado")
         
-        return "; ".join(changes) if changes else "Sin cambios detectados"
+        return "; ".join(cast(List[str], changes)) if changes else "Sin cambios detectados"
 
 
 class HomologationDetailsDialog(QDialog):
@@ -171,8 +173,8 @@ class HomologationDetailsDialog(QDialog):
     
     edit_requested = pyqtSignal(dict)
     
-    def __init__(self, parent=None, homologation_data: Dict[str, Any] = None, user_info: Dict[str, Any] = None):
-        super().__init__(parent)
+    def __init__(self, parent: Optional[QWidget] = None, homologation_data: Optional[Dict[str, Any]] = None, user_info: Optional[Dict[str, Any]] = None):
+        super().__init__(cast(QWidget, parent))
         self.homologation_data = homologation_data
         self.user_info = user_info
         self.audit_worker = None
@@ -473,7 +475,7 @@ class HomologationDetailsDialog(QDialog):
         if data.get('homologation_date'):
             info_parts.append(f"Homologado: {data['homologation_date']}")
         
-        self.info_label.setText(" | ".join(info_parts))
+        self.info_label.setText(" | ".join(cast(List[str], info_parts)))
         
         # Información básica
         self.real_name_label.setText(data.get('real_name', 'N/A'))
@@ -518,7 +520,7 @@ class HomologationDetailsDialog(QDialog):
         )
         self.id_label.setText(str(data.get('id', 'N/A')))
     
-    def format_date(self, date_str: str) -> str:
+    def format_date(self, date_str: Optional[str]) -> str:
         """Formatea una fecha para mostrar."""
         if not date_str:
             return ''
@@ -529,7 +531,7 @@ class HomologationDetailsDialog(QDialog):
         except:
             return date_str
     
-    def format_datetime(self, datetime_str: str) -> str:
+    def format_datetime(self, datetime_str: Optional[str]) -> str:
         """Formatea una fecha y hora para mostrar."""
         if not datetime_str:
             return ''
@@ -559,7 +561,7 @@ class HomologationDetailsDialog(QDialog):
     @pyqtSlot(list)
     def on_audit_loaded(self, audit_data):
         """Maneja auditoría cargada exitosamente."""
-        self.audit_table.load_audit_data(audit_data)
+        self.audit_table.load_audit_data(cast(List[Dict[str, Any]], audit_data))
     
     @pyqtSlot(str)
     def on_audit_error(self, error_message):
@@ -591,7 +593,7 @@ class HomologationDetailsDialog(QDialog):
         text_info.append(f"Fecha creación: {self.format_datetime(data.get('created_at'))}")
         text_info.append(f"ID: {data.get('id')}")
         
-        clipboard_text = "\n".join(text_info)
+        clipboard_text = "\n".join(cast(List[str], text_info))
         
         # Copiar al portapapeles
         clipboard = QClipboard()
@@ -612,9 +614,9 @@ class HomologationDetailsDialog(QDialog):
         event.accept()
 
 
-def show_homologation_details(parent=None, homologation_data=None, user_info=None):
+def show_homologation_details(parent: Optional[QWidget] = None, homologation_data: Optional[Dict[str, Any]] = None, user_info: Optional[Dict[str, Any]] = None):
     """Función utilitaria para mostrar detalles de homologación."""
-    dialog = HomologationDetailsDialog(parent, homologation_data, user_info)
+    dialog = HomologationDetailsDialog(cast(QWidget, parent), homologation_data, user_info)
     return dialog
 
 
@@ -651,7 +653,7 @@ if __name__ == "__main__":
         'role': 'admin'
     }
     
-    dialog = show_homologation_details(homologation_data=mock_data, user_info=user_info)
+    dialog = show_homologation_details(homologation_data=cast(Dict[str, Any], mock_data), user_info=cast(Dict[str, Any], user_info))
     dialog.exec()
     
     sys.exit(0)

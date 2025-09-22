@@ -5,6 +5,7 @@ Interfaz gráfica con PyQt6 para autenticación de usuarios.
 
 import sys
 import logging
+from typing import Dict, Any, cast, Optional
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QPushButton, QMessageBox, QDialog,
@@ -46,7 +47,7 @@ class LoginWorker(QThread):
 class ChangePasswordDialog(QDialog):
     """Dialog para cambio obligatorio de contraseña."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setWindowTitle("Cambio de Contraseña Requerido")
         self.setFixedSize(400, 250)
@@ -283,7 +284,7 @@ class LoginWindow(QWidget):
         
         # Verificar si debe cambiar contraseña
         if user_info.get('must_change_password'):
-            if self.handle_password_change(user_info):
+            if self.handle_password_change(cast(Dict[str, Any], user_info)):
                 # Contraseña cambiada exitosamente
                 user_info['must_change_password'] = False
             else:
@@ -299,7 +300,7 @@ class LoginWindow(QWidget):
     def on_login_failed(self, error_message):
         """Maneja error de login."""
         logger.warning(f"Login fallido: {error_message}")
-        self.show_status(error_message, is_error=True)
+        self.show_status(cast(str, error_message), is_error=True)
         self.reset_login_state()
         
         # Limpiar contraseña y dar foco
@@ -315,7 +316,7 @@ class LoginWindow(QWidget):
             
             try:
                 success = self.auth_service.change_password(
-                    user_info['user_id'], 
+                    cast(int, user_info['user_id']), 
                     old_password, 
                     new_password
                 )
@@ -346,7 +347,7 @@ class LoginWindow(QWidget):
         
         return False
     
-    def show_status(self, message, is_error=False):
+    def show_status(self, message: str, is_error: bool = False):
         """Muestra un mensaje de estado."""
         self.status_label.setText(message)
         if is_error:
@@ -354,8 +355,10 @@ class LoginWindow(QWidget):
         else:
             self.status_label.setProperty("class", "success")
         # Refrescar el estilo
-        self.status_label.style().unpolish(self.status_label)
-        self.status_label.style().polish(self.status_label)
+        style = self.status_label.style()
+        if style:
+            style.unpolish(self.status_label)
+            style.polish(self.status_label)
     
     def reset_login_state(self):
         """Resetea el estado del botón de login."""
@@ -372,12 +375,15 @@ class LoginWindow(QWidget):
 
 def show_login_window():
     """Función utilitaria para mostrar la ventana de login."""
+    from PyQt6.QtWidgets import QApplication
+    
     app = QApplication.instance()
     if app is None:
         app = QApplication(sys.argv)
     
     # Configurar tema de la aplicación
-    app.setStyle('Fusion')
+    if isinstance(app, QApplication):
+        app.setStyle('Fusion')
     
     login_window = LoginWindow()
     login_window.show()
