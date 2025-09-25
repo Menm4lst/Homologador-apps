@@ -98,61 +98,115 @@ class ThemeSettings:
             return ThemeType.DARK
 
 class DarkTheme:
-    """Tema oscuro profesional para la aplicación."""
+    """Tema oscuro profesional con tonalidades negros y azules para toda la aplicación."""
     
-    # Colores principales
-    BACKGROUND_PRIMARY = "#1e1e1e"      # Fondo principal muy oscuro
-    BACKGROUND_SECONDARY = "#2d2d2d"    # Fondo secundario
-    BACKGROUND_TERTIARY = "#3c3c3c"     # Fondo de controles
-    BACKGROUND_HOVER = "#404040"        # Hover sobre controles
-    BACKGROUND_SELECTED = "#0078d4"     # Selección (azul Microsoft)
+    # Colores principales - Negro con toques azules
+    BACKGROUND_PRIMARY = "#0d1117"      # Negro profundo (GitHub dark)
+    BACKGROUND_SECONDARY = "#161b22"    # Negro azulado secundario
+    BACKGROUND_TERTIARY = "#21262d"     # Gris azulado para controles
+    BACKGROUND_HOVER = "#30363d"        # Hover con toque azul
+    BACKGROUND_SELECTED = "#1f6feb"     # Azul vibrante para selección
+    BACKGROUND_ACCENT = "#0969da"       # Azul de acento
+    BACKGROUND_SIDEBAR = "#010409"      # Negro puro para sidebars
     
-    # Texto
-    TEXT_PRIMARY = "#ffffff"            # Texto principal blanco
-    TEXT_SECONDARY = "#e0e0e0"          # Texto secundario
-    TEXT_DISABLED = "#808080"           # Texto deshabilitado
-    TEXT_PLACEHOLDER = "#a0a0a0"        # Placeholder
+    # Texto con mejores contrastes
+    TEXT_PRIMARY = "#f0f6fc"            # Blanco azulado suave
+    TEXT_SECONDARY = "#7d8590"          # Gris azulado para texto secundario
+    TEXT_DISABLED = "#484f58"           # Gris deshabilitado
+    TEXT_PLACEHOLDER = "#6e7681"        # Placeholder azulado
+    TEXT_ACCENT = "#58a6ff"             # Texto de acento azul
     
-    # Bordes y separadores
-    BORDER_PRIMARY = "#555555"          # Bordes principales
-    BORDER_SECONDARY = "#404040"        # Bordes secundarios
-    BORDER_FOCUS = "#0078d4"           # Borde cuando tiene foco
+    # Bordes y separadores azulados
+    BORDER_PRIMARY = "#30363d"          # Borde principal gris azulado
+    BORDER_SECONDARY = "#21262d"        # Borde secundario
+    BORDER_FOCUS = "#1f6feb"           # Borde de foco azul
+    BORDER_ACCENT = "#388bfd"          # Borde de acento
     
-    # Estados de botones
-    BUTTON_PRIMARY = "#0078d4"          # Botón primario
-    BUTTON_PRIMARY_HOVER = "#106ebe"    # Botón primario hover
-    BUTTON_PRIMARY_PRESSED = "#005a9e"  # Botón primario presionado
-    BUTTON_SECONDARY = "#404040"        # Botón secundario
-    BUTTON_DANGER = "#d13438"           # Botón de eliminar
-    BUTTON_SUCCESS = "#107c10"          # Botón de éxito
+    # Estados de botones con gradientes azules
+    BUTTON_PRIMARY = "#238636"          # Verde GitHub para acciones principales
+    BUTTON_PRIMARY_HOVER = "#2ea043"    # Verde hover
+    BUTTON_PRIMARY_PRESSED = "#1a7f37"  # Verde presionado
+    BUTTON_SECONDARY = "#21262d"        # Botón secundario
+    BUTTON_SECONDARY_HOVER = "#30363d"  # Hover secundario
+    BUTTON_DANGER = "#da3633"           # Rojo para eliminar
+    BUTTON_DANGER_HOVER = "#f85149"     # Rojo hover
+    BUTTON_INFO = "#1f6feb"             # Azul información
+    BUTTON_INFO_HOVER = "#388bfd"       # Azul información hover
     
-    # Estados especiales
-    WARNING = "#ff8c00"                 # Advertencia
-    ERROR = "#d13438"                   # Error
-    SUCCESS = "#107c10"                 # Éxito
-    INFO = "#0078d4"                    # Información
+    # Estados especiales con paleta azul
+    WARNING = "#d29922"                 # Amarillo anaranjado
+    ERROR = "#f85149"                   # Rojo vibrante
+    SUCCESS = "#238636"                 # Verde GitHub
+    INFO = "#1f6feb"                    # Azul información
+    
+    # Gradientes especiales
+    GRADIENT_PRIMARY = "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #161b22, stop: 1 #0d1117)"
+    GRADIENT_SECONDARY = "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #30363d, stop: 1 #21262d)"
+    GRADIENT_BLUE = "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #1f6feb, stop: 1 #0969da)"
+    GRADIENT_DARK = "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #21262d, stop: 1 #161b22)"
 
     @staticmethod
     def get_stylesheet():
-        """Retorna el stylesheet completo para la aplicación."""
+        """Retorna el stylesheet completo para la aplicación con tema negro-azul."""
         return f"""
         /* ===== CONFIGURACIÓN GLOBAL ===== */
         QWidget {{
-            background-color: {DarkTheme.BACKGROUND_PRIMARY};
+            background: {DarkTheme.GRADIENT_PRIMARY};
             color: {DarkTheme.TEXT_PRIMARY};
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'San Francisco', 'Helvetica Neue', Arial, sans-serif;
             font-size: 9pt;
             selection-background-color: {DarkTheme.BACKGROUND_SELECTED};
+            border: none;
         }}
         
         /* ===== VENTANAS PRINCIPALES ===== */
         QMainWindow {{
-            background-color: {DarkTheme.BACKGROUND_PRIMARY};
+            background: {DarkTheme.GRADIENT_PRIMARY};
+            border: 2px solid {DarkTheme.BORDER_ACCENT};
         }}
         
         QDialog {{
-            background-color: {DarkTheme.BACKGROUND_PRIMARY};
-            border: 1px solid {DarkTheme.BORDER_PRIMARY};
+            background: {DarkTheme.GRADIENT_DARK};
+            border: 2px solid {DarkTheme.BORDER_FOCUS};
+            border-radius: 8px;
+        }}
+        
+        /* ===== BARRAS DE TÍTULO Y MENÚS ===== */
+        QMenuBar {{
+            background: {DarkTheme.BACKGROUND_SIDEBAR};
+            color: {DarkTheme.TEXT_PRIMARY};
+            border-bottom: 2px solid {DarkTheme.BORDER_ACCENT};
+            padding: 4px;
+        }}
+        
+        QMenuBar::item {{
+            background-color: transparent;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 2px;
+        }}
+        
+        QMenuBar::item:selected {{
+            background: {DarkTheme.GRADIENT_BLUE};
+            color: white;
+        }}
+        
+        QMenu {{
+            background: {DarkTheme.BACKGROUND_SECONDARY};
+            border: 2px solid {DarkTheme.BORDER_FOCUS};
+            border-radius: 6px;
+            padding: 4px;
+        }}
+        
+        QMenu::item {{
+            padding: 8px 20px;
+            border-radius: 4px;
+            margin: 1px;
+        }}
+        
+        QMenu::item:selected {{
+            background: {DarkTheme.GRADIENT_BLUE};
+            color: white;
         }}
         
         /* ===== ETIQUETAS ===== */
@@ -160,44 +214,65 @@ class DarkTheme:
             color: {DarkTheme.TEXT_PRIMARY};
             background-color: transparent;
             border: none;
+            font-weight: 500;
         }}
         
         QLabel[styleClass="title"] {{
-            font-size: 14pt;
+            font-size: 16pt;
             font-weight: bold;
-            color: {DarkTheme.TEXT_PRIMARY};
-            margin-bottom: 10px;
+            color: {DarkTheme.TEXT_ACCENT};
+            margin-bottom: 12px;
+            text-shadow: 0px 1px 2px rgba(31, 111, 235, 0.3);
         }}
         
         QLabel[styleClass="subtitle"] {{
-            font-size: 11pt;
+            font-size: 12pt;
             color: {DarkTheme.TEXT_SECONDARY};
             margin-bottom: 8px;
+            font-weight: 600;
         }}
         
         QLabel[styleClass="error"] {{
             color: {DarkTheme.ERROR};
             font-weight: bold;
+            background-color: rgba(248, 81, 73, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid {DarkTheme.ERROR};
         }}
         
         QLabel[styleClass="success"] {{
             color: {DarkTheme.SUCCESS};
             font-weight: bold;
+            background-color: rgba(35, 134, 54, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid {DarkTheme.SUCCESS};
+        }}
+        
+        QLabel[styleClass="info"] {{
+            color: {DarkTheme.TEXT_ACCENT};
+            background-color: rgba(31, 111, 235, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid {DarkTheme.BORDER_FOCUS};
         }}
         
         /* ===== CAMPOS DE TEXTO ===== */
         QLineEdit {{
-            background-color: {DarkTheme.BACKGROUND_TERTIARY};
-            border: 1px solid {DarkTheme.BORDER_SECONDARY};
-            border-radius: 4px;
-            padding: 8px;
+            background: {DarkTheme.GRADIENT_DARK};
+            border: 2px solid {DarkTheme.BORDER_SECONDARY};
+            border-radius: 6px;
+            padding: 10px 12px;
             color: {DarkTheme.TEXT_PRIMARY};
-            font-size: 9pt;
+            font-size: 10pt;
+            min-height: 16px;
         }}
         
         QLineEdit:focus {{
             border: 2px solid {DarkTheme.BORDER_FOCUS};
-            background-color: {DarkTheme.BACKGROUND_SECONDARY};
+            background: {DarkTheme.BACKGROUND_SECONDARY};
+            box-shadow: 0px 0px 8px rgba(31, 111, 235, 0.3);
         }}
         
         QLineEdit:disabled {{
@@ -222,166 +297,262 @@ class DarkTheme:
             border: 2px solid {DarkTheme.BORDER_FOCUS};
         }}
         
-        /* ===== BOTONES ===== */
+        /* ===== BOTONES MODERNOS ===== */
         QPushButton {{
-            background-color: {DarkTheme.BUTTON_PRIMARY};
-            color: {DarkTheme.TEXT_PRIMARY};
-            border: none;
-            border-radius: 4px;
-            padding: 8px 16px;
+            background: {DarkTheme.GRADIENT_BLUE};
+            color: white;
+            border: 2px solid {DarkTheme.BORDER_ACCENT};
+            border-radius: 8px;
+            padding: 12px 20px;
             font-weight: bold;
-            min-width: 80px;
+            font-size: 10pt;
+            min-width: 100px;
+            min-height: 20px;
         }}
         
         QPushButton:hover {{
-            background-color: {DarkTheme.BUTTON_PRIMARY_HOVER};
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #388bfd, stop: 1 #1f6feb);
+            border: 2px solid {DarkTheme.TEXT_ACCENT};
+            transform: translateY(-1px);
         }}
         
         QPushButton:pressed {{
-            background-color: {DarkTheme.BUTTON_PRIMARY_PRESSED};
+            background: {DarkTheme.BACKGROUND_ACCENT};
+            border: 2px solid {DarkTheme.BORDER_FOCUS};
+            transform: translateY(1px);
         }}
         
         QPushButton:disabled {{
-            background-color: {DarkTheme.BACKGROUND_TERTIARY};
+            background: {DarkTheme.BACKGROUND_TERTIARY};
             color: {DarkTheme.TEXT_DISABLED};
+            border: 2px solid {DarkTheme.BORDER_SECONDARY};
         }}
         
+        /* Botón secundario con estilo negro-azul */
         QPushButton[styleClass="secondary"] {{
-            background-color: {DarkTheme.BUTTON_SECONDARY};
+            background: {DarkTheme.GRADIENT_DARK};
             color: {DarkTheme.TEXT_PRIMARY};
+            border: 2px solid {DarkTheme.BORDER_PRIMARY};
         }}
         
         QPushButton[styleClass="secondary"]:hover {{
-            background-color: {DarkTheme.BACKGROUND_HOVER};
+            background: {DarkTheme.BACKGROUND_HOVER};
+            border: 2px solid {DarkTheme.BORDER_FOCUS};
+            color: {DarkTheme.TEXT_ACCENT};
         }}
         
+        /* Botón de peligro */
         QPushButton[styleClass="danger"] {{
-            background-color: {DarkTheme.BUTTON_DANGER};
-            color: {DarkTheme.TEXT_PRIMARY};
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #f85149, stop: 1 #da3633);
+            color: white;
+            border: 2px solid #b62324;
         }}
         
         QPushButton[styleClass="danger"]:hover {{
-            background-color: #b71c21;
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ff7875, stop: 1 #f85149);
+            border: 2px solid #da3633;
         }}
         
+        /* Botón de éxito */
         QPushButton[styleClass="success"] {{
-            background-color: {DarkTheme.BUTTON_SUCCESS};
-            color: {DarkTheme.TEXT_PRIMARY};
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #2ea043, stop: 1 #238636);
+            color: white;
+            border: 2px solid #1a7f37;
         }}
         
         QPushButton[styleClass="success"]:hover {{
-            background-color: #0e6e0e;
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #46954a, stop: 1 #2ea043);
+            border: 2px solid #238636;
         }}
         
-        /* ===== COMBOBOX ===== */
+        /* Botón de información */
+        QPushButton[styleClass="info"] {{
+            background: {DarkTheme.GRADIENT_BLUE};
+            color: white;
+            border: 2px solid {DarkTheme.BUTTON_INFO};
+        }}
+        
+        QPushButton[styleClass="info"]:hover {{
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #58a6ff, stop: 1 #388bfd);
+            border: 2px solid {DarkTheme.BUTTON_INFO_HOVER};
+        }}
+        
+        /* ===== COMBOBOX MODERNO ===== */
         QComboBox {{
-            background-color: {DarkTheme.BACKGROUND_TERTIARY};
-            border: 1px solid {DarkTheme.BORDER_SECONDARY};
-            border-radius: 4px;
-            padding: 6px;
+            background: {DarkTheme.GRADIENT_SECONDARY};
+            border: 2px solid {DarkTheme.BORDER_ACCENT};
+            border-radius: 8px;
+            padding: 8px 12px;
             color: {DarkTheme.TEXT_PRIMARY};
             min-width: 120px;
+            font-weight: 500;
+        }}
+        
+        QComboBox:hover {{
+            background: {DarkTheme.GRADIENT_BLUE};
+            border: 2px solid {DarkTheme.TEXT_ACCENT};
+            color: white;
         }}
         
         QComboBox:focus {{
-            border: 2px solid {DarkTheme.BORDER_FOCUS};
+            border: 2px solid {DarkTheme.TEXT_ACCENT};
+            background: {DarkTheme.GRADIENT_BLUE};
+            color: white;
         }}
         
         QComboBox::drop-down {{
             subcontrol-origin: padding;
             subcontrol-position: top right;
-            width: 20px;
-            border-left: 1px solid {DarkTheme.BORDER_SECONDARY};
-            border-top-right-radius: 4px;
-            border-bottom-right-radius: 4px;
-            background-color: {DarkTheme.BACKGROUND_SECONDARY};
+            width: 25px;
+            border-left: 2px solid {DarkTheme.BORDER_ACCENT};
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 6px;
+            background: {DarkTheme.GRADIENT_DARK};
+        }}
+        
+        QComboBox::drop-down:hover {{
+            background: {DarkTheme.GRADIENT_BLUE};
         }}
         
         QComboBox::down-arrow {{
             image: none;
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-top: 4px solid {DarkTheme.TEXT_PRIMARY};
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid {DarkTheme.TEXT_ACCENT};
             width: 0px;
             height: 0px;
         }}
         
         QComboBox QAbstractItemView {{
-            background-color: {DarkTheme.BACKGROUND_SECONDARY};
-            border: 1px solid {DarkTheme.BORDER_PRIMARY};
-            selection-background-color: {DarkTheme.BACKGROUND_SELECTED};
+            background: {DarkTheme.GRADIENT_PRIMARY};
+            border: 2px solid {DarkTheme.BORDER_ACCENT};
+            border-radius: 8px;
+            selection-background-color: {DarkTheme.GRADIENT_BLUE};
             color: {DarkTheme.TEXT_PRIMARY};
+            padding: 4px;
         }}
         
-        /* ===== TABLAS ===== */
-        QTableWidget {{
-            background-color: {DarkTheme.BACKGROUND_PRIMARY};
-            alternate-background-color: {DarkTheme.BACKGROUND_SECONDARY};
-            gridline-color: {DarkTheme.BORDER_SECONDARY};
-            color: {DarkTheme.TEXT_PRIMARY};
-            border: 1px solid {DarkTheme.BORDER_PRIMARY};
+        QComboBox QAbstractItemView::item {{
+            padding: 8px;
             border-radius: 4px;
         }}
         
+        QComboBox QAbstractItemView::item:hover {{
+            background: {DarkTheme.BACKGROUND_HOVER};
+            color: {DarkTheme.TEXT_ACCENT};
+        }}
+        
+        QComboBox QAbstractItemView::item:selected {{
+            background: {DarkTheme.GRADIENT_BLUE};
+            color: white;
+        }}
+        
+        /* ===== TABLAS MODERNAS ===== */
+        QTableWidget {{
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #161b22, stop: 1 #0d1117);
+            alternate-background-color: #21262d;
+            gridline-color: #30363d;
+            color: #f0f6fc;
+            border: 2px solid {DarkTheme.BORDER_FOCUS};
+            border-radius: 8px;
+            selection-background-color: #1f6feb;
+            font-size: 10pt;
+            font-weight: 500;
+        }}
+        
         QTableWidget::item {{
-            padding: 8px;
-            border-bottom: 1px solid {DarkTheme.BORDER_SECONDARY};
+            padding: 12px 8px;
+            border-bottom: 1px solid #30363d;
+            border-right: 1px solid #30363d;
+            color: #f0f6fc;
+            background: transparent;
         }}
         
         QTableWidget::item:selected {{
-            background-color: {DarkTheme.BACKGROUND_SELECTED};
-            color: {DarkTheme.TEXT_PRIMARY};
-        }}
-        
-        QTableWidget::item:hover {{
-            background-color: {DarkTheme.BACKGROUND_HOVER};
-        }}
-        
-        QTableWidget::item:focus {{
-            background-color: {DarkTheme.BACKGROUND_SELECTED};
-            border: 1px solid {DarkTheme.BORDER_FOCUS};
-        }}
-        
-        QHeaderView::section {{
-            background-color: {DarkTheme.BACKGROUND_SECONDARY};
-            color: {DarkTheme.TEXT_PRIMARY};
-            padding: 8px;
-            border: none;
-            border-right: 1px solid {DarkTheme.BORDER_PRIMARY};
-            border-bottom: 1px solid {DarkTheme.BORDER_PRIMARY};
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #1f6feb, stop: 1 #0969da);
+            color: #ffffff;
+            border: 1px solid #58a6ff;
             font-weight: bold;
         }}
         
-        QHeaderView::section:hover {{
-            background-color: {DarkTheme.BACKGROUND_HOVER};
+        QTableWidget::item:hover {{
+            background-color: rgba(88, 166, 255, 0.2);
+            border: 1px solid #58a6ff;
+            color: #ffffff;
         }}
         
-        /* Estilos para celdas de tabla alternadas */
+        QTableWidget::item:focus {{
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #1f6feb, stop: 1 #0969da);
+            border: 2px solid #58a6ff;
+            color: #ffffff;
+            font-weight: bold;
+        }}
+        
+        QHeaderView::section {{
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #30363d, stop: 1 #21262d);
+            color: #ffffff;
+            padding: 12px 8px;
+            border: none;
+            border-right: 2px solid #58a6ff;
+            border-bottom: 2px solid #1f6feb;
+            font-weight: bold;
+            font-size: 11pt;
+        }}
+        
+        QHeaderView::section:hover {{
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #1f6feb, stop: 1 #0969da);
+            color: #ffffff;
+        }}
+        
+        QHeaderView::section:first {{
+            border-top-left-radius: 6px;
+        }}
+        
+        QHeaderView::section:last {{
+            border-top-right-radius: 6px;
+        }}
+        
+        /* Estilos para filas alternadas */
         QTableWidget::item:alternate {{
-            background-color: {DarkTheme.BACKGROUND_SECONDARY};
+            background-color: rgba(33, 38, 45, 0.8);
+            color: #f0f6fc;
         }}
         
         QTableWidget::item:alternate:selected {{
-            background-color: {DarkTheme.BACKGROUND_SELECTED};
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #1f6feb, stop: 1 #0969da);
+            color: #ffffff;
+            font-weight: bold;
         }}
         
-        /* ===== SCROLLBARS ===== */
+        QTableWidget::item:alternate:hover {{
+            background-color: rgba(88, 166, 255, 0.3);
+            color: #ffffff;
+        }}
+        
+        /* ===== SCROLLBARS MODERNOS ===== */
         QScrollBar:vertical {{
-            background-color: {DarkTheme.BACKGROUND_SECONDARY};
-            width: 12px;
-            margin: 0px;
-            border-radius: 6px;
+            background: {DarkTheme.BACKGROUND_SECONDARY};
+            width: 14px;
+            margin: 2px;
+            border-radius: 7px;
+            border: 1px solid {DarkTheme.BORDER_SECONDARY};
         }}
         
         QScrollBar::handle:vertical {{
-            background-color: {DarkTheme.BACKGROUND_HOVER};
-            min-height: 20px;
+            background: {DarkTheme.GRADIENT_BLUE};
+            min-height: 30px;
             border-radius: 6px;
             margin: 2px;
+            border: 1px solid {DarkTheme.BORDER_ACCENT};
         }}
         
         QScrollBar::handle:vertical:hover {{
-            background-color: {DarkTheme.BORDER_PRIMARY};
+            background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #4fc3f7, stop: 1 #29b6f6);
+            border: 1px solid {DarkTheme.TEXT_ACCENT};
+        }}
+        
+        QScrollBar::handle:vertical:pressed {{
+            background: {DarkTheme.GRADIENT_DARK};
         }}
         
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
@@ -389,25 +560,36 @@ class DarkTheme:
         }}
         
         QScrollBar:horizontal {{
-            background-color: {DarkTheme.BACKGROUND_SECONDARY};
-            height: 12px;
-            margin: 0px;
-            border-radius: 6px;
+            background: {DarkTheme.BACKGROUND_SECONDARY};
+            height: 14px;
+            margin: 2px;
+            border-radius: 7px;
+            border: 1px solid {DarkTheme.BORDER_SECONDARY};
         }}
         
         QScrollBar::handle:horizontal {{
-            background-color: {DarkTheme.BACKGROUND_HOVER};
-            min-width: 20px;
+            background: {DarkTheme.GRADIENT_BLUE};
+            min-width: 30px;
             border-radius: 6px;
             margin: 2px;
+            border: 1px solid {DarkTheme.BORDER_ACCENT};
         }}
         
         QScrollBar::handle:horizontal:hover {{
-            background-color: {DarkTheme.BORDER_PRIMARY};
+            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4fc3f7, stop: 1 #29b6f6);
+            border: 1px solid {DarkTheme.TEXT_ACCENT};
+        }}
+        
+        QScrollBar::handle:horizontal:pressed {{
+            background: {DarkTheme.GRADIENT_DARK};
         }}
         
         QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
             width: 0px;
+        }}
+        
+        QScrollBar::corner {{
+            background: {DarkTheme.BACKGROUND_SECONDARY};
         }}
         
         /* ===== CHECKBOX Y RADIOBUTTON ===== */
@@ -596,18 +778,21 @@ class DarkTheme:
             border-radius: 4px;
         }}
         
-        /* ===== PROGRESS BAR ===== */
+        /* ===== PROGRESS BAR MODERNO ===== */
         QProgressBar {{
-            background-color: {DarkTheme.BACKGROUND_TERTIARY};
-            border: 1px solid {DarkTheme.BORDER_SECONDARY};
-            border-radius: 4px;
+            background: {DarkTheme.BACKGROUND_SECONDARY};
+            border: 2px solid {DarkTheme.BORDER_ACCENT};
+            border-radius: 8px;
             text-align: center;
-            color: {DarkTheme.TEXT_PRIMARY};
+            color: {DarkTheme.TEXT_ACCENT};
+            font-weight: bold;
+            padding: 2px;
         }}
         
         QProgressBar::chunk {{
-            background-color: {DarkTheme.BUTTON_PRIMARY};
-            border-radius: 3px;
+            background: {DarkTheme.GRADIENT_BLUE};
+            border-radius: 6px;
+            margin: 1px;
         }}
         
         /* ===== SPINBOX ===== */
@@ -666,6 +851,60 @@ class DarkTheme:
         
         QSlider::handle:horizontal:hover {{
             background: {DarkTheme.BUTTON_PRIMARY_HOVER};
+        }}
+        
+        /* ===== SPLITTER MODERNO ===== */
+        QSplitter {{
+            background: {DarkTheme.BACKGROUND_PRIMARY};
+        }}
+        
+        QSplitter::handle {{
+            background: {DarkTheme.BORDER_ACCENT};
+            border: 1px solid {DarkTheme.BORDER_SECONDARY};
+        }}
+        
+        QSplitter::handle:horizontal {{
+            width: 3px;
+            margin: 2px 0px;
+        }}
+        
+        QSplitter::handle:vertical {{
+            height: 3px;
+            margin: 0px 2px;
+        }}
+        
+        QSplitter::handle:hover {{
+            background: {DarkTheme.TEXT_ACCENT};
+        }}
+        
+        /* ===== DOCK WIDGET ===== */
+        QDockWidget {{
+            background: {DarkTheme.BACKGROUND_PRIMARY};
+            border: 2px solid {DarkTheme.BORDER_ACCENT};
+            border-radius: 8px;
+            titlebar-close-icon: none;
+            titlebar-normal-icon: none;
+        }}
+        
+        QDockWidget::title {{
+            background: {DarkTheme.GRADIENT_DARK};
+            color: {DarkTheme.TEXT_ACCENT};
+            padding: 8px;
+            font-weight: bold;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }}
+        
+        /* ===== STATUS BAR ===== */
+        QStatusBar {{
+            background: {DarkTheme.GRADIENT_DARK};
+            color: {DarkTheme.TEXT_PRIMARY};
+            border-top: 2px solid {DarkTheme.BORDER_ACCENT};
+        }}
+        
+        QStatusBar::item {{
+            border: none;
+            padding: 4px 8px;
         }}
         """
 

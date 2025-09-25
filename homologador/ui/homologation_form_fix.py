@@ -14,7 +14,7 @@ from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QFont
 
 from .theme import get_current_theme, ThemeType
-from .notifications import show_warning, show_error
+from .notification_system import send_warning, send_error
 
 logger = logging.getLogger(__name__)
 
@@ -499,13 +499,13 @@ class HomologationFormDialog(QDialog):
                     color: #333333;
                 }
             """)
-            show_warning(self, "Nombre Real es un campo obligatorio.")
+            send_warning("Advertencia", "Nombre Real es un campo obligatorio.", "main_window")
             return False
         
         # Validar URL de KB si está presente
         url = self.kb_url_edit.text().strip()
         if url and not (url.startswith('http://') or url.startswith('https://')):
-            show_warning(self, "La URL de documentación debe comenzar con http:// o https://")
+            send_warning("Advertencia", "La URL de documentación debe comenzar con http:// o https://", "main_window")
             return False
         
         return True

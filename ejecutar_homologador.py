@@ -19,6 +19,10 @@ os.chdir(homologador_path)
 def main():
     """Función principal para ejecutar la aplicación."""
     try:
+        # Configurar manejo global de errores
+        from homologador.core.error_handler import get_error_handler, ErrorSeverity
+        error_handler = get_error_handler()
+        
         # Importar PyQt6
         from PyQt6.QtWidgets import QApplication, QMessageBox
         from PyQt6.QtCore import Qt
@@ -30,80 +34,28 @@ def main():
         print("   ✓ Sistema de exportación")
         print("   ✓ Tooltips contextuales")
         print("   ✓ Tour guiado")
+        print("   ✓ Sistema de manejo de errores")
+        print("   ✓ Validación de formularios mejorada")
         print()
         
-        # Crear aplicación
-        app = QApplication(sys.argv)
-        app.setApplicationName("Homologador")
-        app.setApplicationVersion("1.0.0")
-        
-        # Configurar estilo básico
-        app.setStyleSheet("""
-            QMainWindow {
-                background-color: #f5f5f5;
-            }
-            QMenuBar {
-                background-color: #e0e0e0;
-                border: 1px solid #c0c0c0;
-            }
-            QMenuBar::item {
-                padding: 4px 8px;
-            }
-            QMenuBar::item:selected {
-                background-color: #d0d0d0;
-            }
-            QPushButton {
-                background-color: #007acc;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #005a9e;
-            }
-            QPushButton:pressed {
-                background-color: #004578;
-            }
-            QToolTip {
-                background-color: #2b2b2b;
-                color: white;
-                border: 1px solid #555;
-                padding: 4px;
-                border-radius: 3px;
-            }
-        """)
-        
-        # Importar y crear la ventana principal
+        # Importar y crear la aplicación completa con sistema de login
         try:
-            from homologador.ui.main_window import MainWindow
-            print("✓ MainWindow importada correctamente")
+            from homologador.app import HomologadorApplication
+            print("✓ HomologadorApplication importada correctamente")
             
-            # Crear la ventana principal
-            window = MainWindow()
-            print("✓ Ventana principal creada")
+            # Crear la aplicación con sistema de autenticación
+            homologador_app = HomologadorApplication()
+            print("✓ Aplicación creada con sistema de login")
+            print("✓ Sistema de manejo de errores configurado")
             
-            # Verificar que las nuevas funcionalidades estén disponibles
-            new_features = []
-            if hasattr(window, 'show_metrics_panel'):
-                new_features.append("Panel de métricas")
-            if hasattr(window, 'show_export_dialog'):
-                new_features.append("Sistema de exportación")
-            if hasattr(window, 'show_user_tour'):
-                new_features.append("Tour guiado")
-            
-            if new_features:
-                print(f"✓ Nuevas funcionalidades disponibles: {', '.join(new_features)}")
-            
-            # Mostrar la ventana
-            window.show()
+            # Ejecutar la aplicación (esto mostrará el login primero)
+            result = homologador_app.run()
             print("✓ Aplicación iniciada exitosamente!")
             print()
             print("🎉 ¡Disfruta probando las nuevas funcionalidades!")
-            print("💡 Tip: Busca el menú 'Métricas' y 'Ayuda' para acceder a las nuevas features")
+            print("💡 Tip: Ingresa con admin/admin123 para probar las notificaciones")
             
-            # Ejecutar la aplicación
-            return app.exec()
+            return result
             
         except ImportError as e:
             print(f"❌ Error importando MainWindow: {e}")
@@ -113,24 +65,16 @@ def main():
             sys.path.insert(0, os.path.join(project_root, 'homologador'))
             
             try:
-                from ui.main_window import MainWindow
-                from core.settings import setup_logging
-                from core.storage import get_database_manager
+                from app import HomologadorApplication
                 
-                # Configurar logging
-                setup_logging()
+                print("✓ HomologadorApplication importada con método alternativo")
                 
-                # Inicializar base de datos
-                db_manager = get_database_manager()
-                
-                print("✓ Módulos importados con método alternativo")
-                
-                # Crear la ventana principal
-                window = MainWindow()
-                window.show()
+                # Crear la aplicación con sistema de autenticación
+                homologador_app = HomologadorApplication()
+                result = homologador_app.run()
                 
                 print("✓ Aplicación iniciada exitosamente!")
-                return app.exec()
+                return result
                 
             except Exception as e2:
                 print(f"❌ Error en importación alternativa: {e2}")

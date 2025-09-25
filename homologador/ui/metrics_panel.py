@@ -1,6 +1,6 @@
 """
-Panel de métricas y estadísticas para el dashboard.
-Muestra gráficos y estadísticas de homologaciones con indicadores visuales.
+Panel de métricas y estadísticas optimizado para el dashboard.
+Versión completamente corregida con consultas SQL optimizadas y mejor rendimiento.
 """
 
 import logging
@@ -16,21 +16,21 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread, pyqtSlot
 from PyQt6.QtGui import QFont, QPalette, QColor
 
-from core.storage import get_homologation_repository
-from .theme import get_current_theme, ThemeType
+from homologador.core.storage import get_homologation_repository
+from homologador.ui.theme import get_current_theme, ThemeType
 
 logger = logging.getLogger(__name__)
 
 
 class MetricsDataWorker(QThread):
-    """Worker thread para calcular métricas sin bloquear la UI."""
+    """Worker optimizado para calcular métricas sin bloquear la UI."""
     
     metrics_calculated = pyqtSignal(dict)
     error_occurred = pyqtSignal(str)
     
     def __init__(self, date_range: str = "30"):
         super().__init__()
-        self.date_range = date_range
+        self.date_range = int(date_range)
         self.repo = get_homologation_repository()
     
     def run(self):
@@ -43,176 +43,228 @@ class MetricsDataWorker(QThread):
             self.error_occurred.emit(str(e))
     
     def calculate_metrics(self) -> Dict[str, Any]:
-        """Calcula todas las métricas necesarias."""
-        # Calcular fecha límite
-        days_back = int(self.date_range)
-        date_limit = datetime.now() - timedelta(days=days_back)
+        """Calcula métricas optimizadas usando consultas SQL directas."""
         
-        # Obtener datos básicos
-        all_homologations_raw = self.repo.get_all()
-        all_homologations = [dict(h) for h in all_homologations_raw]
-        recent_homologations = [
-            h for h in all_homologations 
-            if datetime.fromisoformat(h.get('created_at', '2000-01-01')) >= date_limit
-        ]
+        # Fechas para los cálculos
+        days_back = self.date_range
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days_back)
+        prev_start_date = start_date - timedelta(days=days_back)
         
-        # Métricas básicas
-        total_count = len(all_homologations)
-        recent_count = len(recent_homologations)
+        # Formatear fechas para SQL
+        start_date_str = start_date.strftime('%Y-%m-%d %H:%M:%S')
+        prev_start_date_str = prev_start_date.strftime('%Y-%m-%d %H:%M:%S')
         
-        # Calcular métricas de estado
-        status_counts = {}
-        for h in all_homologations:
-            status = h.get('status', 'unknown')
-            status_counts[status] = status_counts.get(status, 0) + 1
+        db = self.repo.db
         
-        # Métricas de repositorio
-        repo_counts = {}
-        for h in all_homologations:
-            repo = h.get('repository_url', 'Sin repositorio')
-            if repo and repo.strip():
-                # Extraer nombre del repositorio
-                repo_name = repo.split('/')[-1] if '/' in repo else repo
-                repo_counts[repo_name] = repo_counts.get(repo_name, 0) + 1
+        # 1. Contar totales
+        total_query = "SELECT COUNT(*) as total FROM homologations"
+        total_result = db.execute_query(total_query)
+        total_count = total_result[0]['total'] if total_result else 0
         
-        # Top 5 repositorios
-        top_repos = sorted(repo_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        # 2. Contar recientes
+        recent_query = """
+        SELECT COUNT(*) as recent 
+        FROM homologations 
+        WHERE created_at >= ?
+        """
+        recent_result = db.execute_query(recent_query, (start_date_str,))
+        recent_count = recent_result[0]['recent'] if recent_result else 0
         
-        # Tendencias por día (últimos 7 días)
-        daily_counts = {}
-        for i in range(7):
-            day = datetime.now() - timedelta(days=i)
-            day_str = day.strftime('%Y-%m-%d')
-            daily_counts[day_str] = 0
+        # 3. Contar período anterior para growth rate
+        prev_query = """
+        SELECT COUNT(*) as prev_count 
+        FROM homologations 
+        WHERE created_at >= ? AND created_at < ?
+        """
+        prev_result = db.execute_query(prev_query, (prev_start_date_str, start_date_str))
+        prev_count = prev_result[0]['prev_count'] if prev_result else 0
         
-        for h in recent_homologations:
-            created_date = datetime.fromisoformat(h.get('created_at', '2000-01-01'))
-            day_str = created_date.strftime('%Y-%m-%d')
-            if day_str in daily_counts:
-                daily_counts[day_str] += 1
-        
-        # Calcular tasa de crecimiento
-        if len(all_homologations) > 0:
-            # Comparar con período anterior
-            prev_date_limit = date_limit - timedelta(days=days_back)
-            prev_homologations = [
-                h for h in all_homologations 
-                if prev_date_limit <= datetime.fromisoformat(h.get('created_at', '2000-01-01')) < date_limit
-            ]
-            prev_count = len(prev_homologations)
-            
-            if prev_count > 0:
-                growth_rate = ((recent_count - prev_count) / prev_count) * 100
-            else:
-                growth_rate = 100.0 if recent_count > 0 else 0.0
+        # Calcular growth rate
+        if prev_count > 0:
+            growth_rate = ((recent_count - prev_count) / prev_count) * 100
         else:
-            growth_rate = 0.0
+            growth_rate = 100.0 if recent_count > 0 else 0.0
+        
+        # 4. Estadísticas de finalización
+        status_counts = self._calculate_completion_stats(db)
+        
+        # 5. Estadísticas de repositorio
+        top_repos = self._calculate_repository_stats(db)
+        
+        # 6. Tendencias diarias
+        daily_counts = self._calculate_daily_trends(db, days_back)
         
         return {
             'total_count': total_count,
             'recent_count': recent_count,
-            'growth_rate': growth_rate,
+            'growth_rate': round(growth_rate, 2),
             'status_counts': status_counts,
             'top_repositories': top_repos,
             'daily_trends': daily_counts,
             'date_range': days_back
         }
+    
+    def _calculate_completion_stats(self, db) -> Dict[str, int]:
+        """Calcula estadísticas de finalización basadas en campos reales."""
+        
+        stats_query = """
+        SELECT 
+            SUM(CASE WHEN homologation_date IS NOT NULL AND homologation_date != '' THEN 1 ELSE 0 END) as completed,
+            SUM(CASE WHEN kb_sync = 1 THEN 1 ELSE 0 END) as synced,
+            SUM(CASE WHEN has_previous_versions = 1 THEN 1 ELSE 0 END) as with_versions,
+            SUM(CASE WHEN repository_location IS NOT NULL AND repository_location != '' THEN 1 ELSE 0 END) as with_repo,
+            COUNT(*) as total
+        FROM homologations
+        """
+        
+        result = db.execute_query(stats_query)
+        if result:
+            row = result[0]
+            return {
+                'Completadas': row['completed'],
+                'Sincronizadas': row['synced'], 
+                'Con Versiones Previas': row['with_versions'],
+                'Con Repositorio': row['with_repo'],
+                'Pendientes': row['total'] - row['completed']
+            }
+        
+        return {'Sin datos': 0}
+    
+    def _calculate_repository_stats(self, db) -> List[tuple]:
+        """Calcula estadísticas de repositorio usando el campo correcto."""
+        
+        repo_query = """
+        SELECT 
+            repository_location,
+            COUNT(*) as count
+        FROM homologations 
+        WHERE repository_location IS NOT NULL 
+            AND repository_location != ''
+        GROUP BY repository_location
+        ORDER BY count DESC
+        LIMIT 5
+        """
+        
+        result = db.execute_query(repo_query)
+        repo_stats = []
+        
+        for row in result:
+            repo_name = row['repository_location']
+            # Extraer nombre limpio
+            if '/' in repo_name:
+                repo_name = repo_name.split('/')[-1]
+            elif '\\' in repo_name:
+                repo_name = repo_name.split('\\')[-1]
+            
+            repo_name = repo_name.replace('.git', '').strip()
+            if repo_name:
+                repo_stats.append((repo_name, row['count']))
+        
+        return repo_stats
+    
+    def _calculate_daily_trends(self, db, days: int) -> Dict[str, int]:
+        """Calcula tendencias diarias."""
+        
+        trends = {}
+        
+        # Limitar a 30 días máximo para rendimiento
+        max_days = min(days, 30)
+        
+        for i in range(max_days):
+            day = datetime.now() - timedelta(days=i)
+            day_key = day.strftime('%Y-%m-%d')
+            trends[day_key] = 0
+        
+        trends_query = """
+        SELECT 
+            DATE(created_at) as day,
+            COUNT(*) as count
+        FROM homologations 
+        WHERE created_at >= DATE('now', '-{} days')
+        GROUP BY DATE(created_at)
+        ORDER BY day DESC
+        """.format(max_days)
+        
+        result = db.execute_query(trends_query)
+        
+        for row in result:
+            day_key = row['day']
+            if day_key in trends:
+                trends[day_key] = row['count']
+        
+        return trends
 
 
 class MetricCard(QFrame):
-    """Tarjeta individual para mostrar una métrica."""
+    """Tarjeta mejorada para mostrar una métrica."""
     
-    def __init__(self, title: str, value: str, subtitle: str = "", trend: Optional[float] = None):
+    def __init__(self, title: str, value: str, description: str = "", 
+                 trend: Optional[float] = None, color: str = "#3498db"):
         super().__init__()
-        self.setup_ui(title, value, subtitle, trend)
+        self.setup_ui(title, value, description, trend, color)
     
-    def setup_ui(self, title: str, value: str, subtitle: str, trend: Optional[float]):
-        """Configura la interfaz de la tarjeta de métrica."""
+    def setup_ui(self, title: str, value: str, description: str, 
+                 trend: Optional[float], color: str):
+        """Configura la UI de la tarjeta."""
+        
         self.setFrameStyle(QFrame.Shape.Box)
-        self.setLineWidth(1)
+        self.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {color};
+                border-radius: 8px;
+                background-color: rgba(255, 255, 255, 0.1);
+                padding: 15px;
+                margin: 5px;
+            }}
+            QLabel {{
+                border: none;
+                background-color: transparent;
+            }}
+        """)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(15, 10, 15, 10)
-        layout.setSpacing(5)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(10)
         
         # Título
         title_label = QLabel(title)
         title_font = QFont()
-        title_font.setPointSize(9)
+        title_font.setPointSize(11)
         title_font.setBold(True)
         title_label.setFont(title_font)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet(f"color: {color};")
         layout.addWidget(title_label)
         
         # Valor principal
-        value_label = QLabel(value)
+        value_label = QLabel(str(value))
         value_font = QFont()
-        value_font.setPointSize(24)
+        value_font.setPointSize(28)
         value_font.setBold(True)
         value_label.setFont(value_font)
         value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(value_label)
         
-        # Subtítulo
-        if subtitle:
-            subtitle_label = QLabel(subtitle)
-            subtitle_font = QFont()
-            subtitle_font.setPointSize(8)
-            subtitle_label.setFont(subtitle_font)
-            subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(subtitle_label)
-        
-        # Indicador de tendencia
-        if trend is not None:
-            trend_label = QLabel(f"{trend:+.1f}%")
-            trend_font = QFont()
-            trend_font.setPointSize(10)
-            trend_font.setBold(True)
-            trend_label.setFont(trend_font)
-            trend_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Descripción y tendencia
+        if description or trend is not None:
+            desc_layout = QHBoxLayout()
             
-            # Color según tendencia
-            if trend > 0:
-                trend_label.setStyleSheet("color: #28a745;")  # Verde
-            elif trend < 0:
-                trend_label.setStyleSheet("color: #dc3545;")  # Rojo
-            else:
-                trend_label.setStyleSheet("color: #6c757d;")  # Gris
+            if description:
+                desc_label = QLabel(description)
+                desc_label.setStyleSheet("color: #666666; font-size: 10px;")
+                desc_layout.addWidget(desc_label)
             
-            layout.addWidget(trend_label)
+            if trend is not None:
+                trend_text = f"{'↗' if trend >= 0 else '↘'} {abs(trend):.1f}%"
+                trend_color = "#27ae60" if trend >= 0 else "#e74c3c"
+                trend_label = QLabel(trend_text)
+                trend_label.setStyleSheet(f"color: {trend_color}; font-weight: bold; font-size: 10px;")
+                desc_layout.addWidget(trend_label)
+            
+            desc_layout.addStretch()
+            layout.addLayout(desc_layout)
         
-        self.apply_theme_styles()
-    
-    def apply_theme_styles(self):
-        """Aplica estilos según el tema actual."""
-        current_theme = get_current_theme()
-        
-        if current_theme == ThemeType.DARK:
-            self.setStyleSheet("""
-                MetricCard {
-                    background-color: #2d2d2d;
-                    border: 1px solid #555555;
-                    border-radius: 8px;
-                    color: #ffffff;
-                }
-                QLabel {
-                    color: #ffffff;
-                    background-color: transparent;
-                }
-            """)
-        else:
-            self.setStyleSheet("""
-                MetricCard {
-                    background-color: #ffffff;
-                    border: 1px solid #e0e0e0;
-                    border-radius: 8px;
-                    color: #333333;
-                }
-                QLabel {
-                    color: #333333;
-                    background-color: transparent;
-                }
-            """)
+        layout.addStretch()
 
 
 class StatusChart(QWidget):
@@ -224,78 +276,38 @@ class StatusChart(QWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz del gráfico de estados."""
+        """Configura la UI del gráfico de estados."""
         layout = QVBoxLayout(self)
         
         # Título
-        title = QLabel("Distribución por Estado")
+        title = QLabel("📊 Estado de Homologaciones")
         title_font = QFont()
+        title_font.setPointSize(14)
         title_font.setBold(True)
-        title_font.setPointSize(12)
         title.setFont(title_font)
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
         
-        # Lista de estados con barras de progreso
-        total = sum(self.status_data.values()) if self.status_data else 1
-        
+        # Lista de estados
         for status, count in self.status_data.items():
-            row_layout = QHBoxLayout()
+            status_layout = QHBoxLayout()
             
-            # Etiqueta del estado
             status_label = QLabel(f"{status}:")
-            status_label.setMinimumWidth(80)
-            row_layout.addWidget(status_label)
+            status_label.setMinimumWidth(150)
+            status_layout.addWidget(status_label)
             
-            # Barra de progreso
+            count_label = QLabel(str(count))
+            count_label.setStyleSheet("font-weight: bold; color: #3498db;")
+            status_layout.addWidget(count_label)
+            
+            # Barra visual simple
             progress = QProgressBar()
-            progress.setMaximum(total)
+            progress.setMaximum(max(self.status_data.values()) if self.status_data.values() else 1)
             progress.setValue(count)
-            progress.setFormat(f"{count} ({count/total*100:.1f}%)")
-            row_layout.addWidget(progress)
+            progress.setTextVisible(False)
+            progress.setMaximumHeight(10)
+            status_layout.addWidget(progress)
             
-            layout.addLayout(row_layout)
-        
-        self.apply_theme_styles()
-    
-    def apply_theme_styles(self):
-        """Aplica estilos según el tema actual."""
-        current_theme = get_current_theme()
-        
-        if current_theme == ThemeType.DARK:
-            self.setStyleSheet("""
-                QLabel {
-                    color: #ffffff;
-                    background-color: transparent;
-                }
-                QProgressBar {
-                    border: 1px solid #555555;
-                    border-radius: 4px;
-                    background-color: #2d2d2d;
-                    color: #ffffff;
-                }
-                QProgressBar::chunk {
-                    background-color: #0078d4;
-                    border-radius: 3px;
-                }
-            """)
-        else:
-            self.setStyleSheet("""
-                QLabel {
-                    color: #333333;
-                    background-color: transparent;
-                }
-                QProgressBar {
-                    border: 1px solid #d0d0d0;
-                    border-radius: 4px;
-                    background-color: #f8f8f8;
-                    color: #333333;
-                }
-                QProgressBar::chunk {
-                    background-color: #0078d4;
-                    border-radius: 3px;
-                }
-            """)
+            layout.addLayout(status_layout)
 
 
 class TopRepositoriesWidget(QWidget):
@@ -307,91 +319,39 @@ class TopRepositoriesWidget(QWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        """Configura la interfaz del widget de repositorios."""
+        """Configura la UI de repositorios."""
         layout = QVBoxLayout(self)
         
         # Título
-        title = QLabel("Top 5 Repositorios")
+        title = QLabel("🗂️ Top Repositorios")
         title_font = QFont()
+        title_font.setPointSize(14)
         title_font.setBold(True)
-        title_font.setPointSize(12)
         title.setFont(title_font)
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
         
-        # Tabla simple
+        if not self.repo_data:
+            no_data = QLabel("No hay datos de repositorio disponibles")
+            no_data.setStyleSheet("color: #666666; font-style: italic;")
+            layout.addWidget(no_data)
+            return
+        
+        # Tabla de repositorios
         table = QTableWidget(len(self.repo_data), 2)
-        table.setHorizontalHeaderLabels(["Repositorio", "Cantidad"])
+        table.setHorizontalHeaderLabels(["Repositorio", "Uso"])
+        table.horizontalHeader().setStretchLastSection(True)
+        table.verticalHeader().setVisible(False)
+        table.setMaximumHeight(150)
         
-        # Configurar headers si existen
-        h_header = table.horizontalHeader()
-        if h_header:
-            h_header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-            h_header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        
-        v_header = table.verticalHeader()
-        if v_header:
-            v_header.setVisible(False)
-            
-        table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        
-        # Llenar datos
         for i, (repo_name, count) in enumerate(self.repo_data):
-            table.setItem(i, 0, QTableWidgetItem(repo_name))
+            table.setItem(i, 0, QTableWidgetItem(str(repo_name)))
             table.setItem(i, 1, QTableWidgetItem(str(count)))
         
-        table.setMaximumHeight(200)
         layout.addWidget(table)
-        
-        self.apply_theme_styles()
-    
-    def apply_theme_styles(self):
-        """Aplica estilos según el tema actual."""
-        current_theme = get_current_theme()
-        
-        if current_theme == ThemeType.DARK:
-            self.setStyleSheet("""
-                QLabel {
-                    color: #ffffff;
-                    background-color: transparent;
-                }
-                QTableWidget {
-                    background-color: #2d2d2d;
-                    border: 1px solid #555555;
-                    color: #ffffff;
-                    gridline-color: #555555;
-                }
-                QHeaderView::section {
-                    background-color: #3d3d3d;
-                    color: #ffffff;
-                    border: 1px solid #555555;
-                    padding: 4px;
-                }
-            """)
-        else:
-            self.setStyleSheet("""
-                QLabel {
-                    color: #333333;
-                    background-color: transparent;
-                }
-                QTableWidget {
-                    background-color: #ffffff;
-                    border: 1px solid #d0d0d0;
-                    color: #333333;
-                    gridline-color: #d0d0d0;
-                }
-                QHeaderView::section {
-                    background-color: #f8f8f8;
-                    color: #333333;
-                    border: 1px solid #d0d0d0;
-                    padding: 4px;
-                }
-            """)
 
 
 class MetricsPanel(QWidget):
-    """Panel principal de métricas y estadísticas."""
+    """Panel principal de métricas optimizado."""
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -402,18 +362,18 @@ class MetricsPanel(QWidget):
         # Timer para actualización automática (cada 5 minutos)
         self.refresh_timer = QTimer()
         self.refresh_timer.timeout.connect(self.load_metrics)
-        self.refresh_timer.start(300000)  # 5 minutos en milisegundos
+        self.refresh_timer.start(300000)
     
     def setup_ui(self):
         """Configura la interfaz del panel de métricas."""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(15)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(20)
         
         # Header con controles
         header_layout = QHBoxLayout()
         
-        title = QLabel("📊 Panel de Métricas")
+        title = QLabel("📊 Panel de Métricas Optimizado")
         title_font = QFont()
         title_font.setPointSize(16)
         title_font.setBold(True)
@@ -435,6 +395,19 @@ class MetricsPanel(QWidget):
         # Botón de actualizar
         refresh_button = QPushButton("🔄 Actualizar")
         refresh_button.clicked.connect(self.load_metrics)
+        refresh_button.setStyleSheet("""
+            QPushButton {
+                background-color: #0078d4;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 16px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #106ebe;
+            }
+        """)
         header_layout.addWidget(refresh_button)
         
         layout.addLayout(header_layout)
@@ -461,11 +434,9 @@ class MetricsPanel(QWidget):
         """Muestra mensaje de carga."""
         self.clear_metrics()
         
-        loading_label = QLabel("🔄 Cargando métricas...")
+        loading_label = QLabel("⏳ Calculando métricas...")
         loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        loading_font = QFont()
-        loading_font.setPointSize(14)
-        loading_label.setFont(loading_font)
+        loading_label.setStyleSheet("font-size: 14px; color: #666666; margin: 40px;")
         
         self.metrics_layout.addWidget(loading_label)
     
@@ -473,10 +444,8 @@ class MetricsPanel(QWidget):
         """Limpia las métricas actuales."""
         while self.metrics_layout.count():
             child = self.metrics_layout.takeAt(0)
-            if child and child.widget():
-                widget = child.widget()
-                if widget:
-                    widget.deleteLater()
+            if child.widget():
+                child.widget().deleteLater()
     
     def on_period_changed(self):
         """Maneja cambios en el período seleccionado."""
@@ -518,7 +487,8 @@ class MetricsPanel(QWidget):
         total_card = MetricCard(
             "Total de Homologaciones",
             str(metrics['total_count']),
-            "Todas las homologaciones"
+            "Todas las homologaciones",
+            color="#3498db"
         )
         cards_layout.addWidget(total_card, 0, 0)
         
@@ -527,7 +497,8 @@ class MetricsPanel(QWidget):
             f"Últimos {metrics['date_range']} días",
             str(metrics['recent_count']),
             "Homologaciones recientes",
-            metrics.get('growth_rate', 0)
+            metrics.get('growth_rate', 0),
+            color="#27ae60"
         )
         cards_layout.addWidget(recent_card, 0, 1)
         
@@ -536,7 +507,8 @@ class MetricsPanel(QWidget):
         avg_card = MetricCard(
             "Promedio Diario",
             f"{avg_daily:.1f}",
-            f"Últimos {metrics['date_range']} días"
+            f"Últimos {metrics['date_range']} días",
+            color="#f39c12"
         )
         cards_layout.addWidget(avg_card, 0, 2)
         
@@ -559,9 +531,16 @@ class MetricsPanel(QWidget):
             charts_layout.addWidget(repos_widget)
         
         # Widget contenedor para gráficos
-        charts_widget = QWidget()
-        charts_widget.setLayout(charts_layout)
-        self.metrics_layout.addWidget(charts_widget)
+        if charts_layout.count() > 0:
+            charts_widget = QWidget()
+            charts_widget.setLayout(charts_layout)
+            self.metrics_layout.addWidget(charts_widget)
+        
+        # Información de actualización
+        info_label = QLabel(f"📊 Métricas actualizadas • {datetime.now().strftime('%H:%M:%S')}")
+        info_label.setStyleSheet("color: #666666; font-size: 10px; margin: 10px;")
+        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.metrics_layout.addWidget(info_label)
         
         # Espacio flexible
         self.metrics_layout.addStretch()
@@ -597,52 +576,30 @@ class MetricsPanel(QWidget):
                     color: #ffffff;
                     background-color: transparent;
                 }
-                QPushButton {
-                    background-color: #0078d4;
-                    color: #ffffff;
-                    border: none;
-                    border-radius: 4px;
-                    padding: 8px 16px;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #106ebe;
-                }
-                QComboBox {
+                QTableWidget {
                     background-color: #2d2d2d;
-                    border: 1px solid #555555;
-                    border-radius: 4px;
-                    padding: 4px;
+                    gridline-color: #444444;
                     color: #ffffff;
+                }
+                QHeaderView::section {
+                    background-color: #404040;
+                    color: #ffffff;
+                    border: 1px solid #555555;
                 }
             """)
         else:
             self.setStyleSheet("""
                 MetricsPanel {
-                    background-color: #f8f8f8;
-                    color: #333333;
-                }
-                QLabel {
-                    color: #333333;
-                    background-color: transparent;
-                }
-                QPushButton {
-                    background-color: #0078d4;
-                    color: #ffffff;
-                    border: none;
-                    border-radius: 4px;
-                    padding: 8px 16px;
-                    font-weight: bold;
-                }
-                QPushButton:hover {
-                    background-color: #106ebe;
-                }
-                QComboBox {
                     background-color: #ffffff;
-                    border: 1px solid #d0d0d0;
-                    border-radius: 4px;
-                    padding: 4px;
                     color: #333333;
+                }
+                QTableWidget {
+                    background-color: #ffffff;
+                    gridline-color: #e0e0e0;
+                }
+                QHeaderView::section {
+                    background-color: #f5f5f5;
+                    border: 1px solid #cccccc;
                 }
             """)
     

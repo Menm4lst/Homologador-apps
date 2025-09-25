@@ -1,0 +1,108 @@
+2025-09-24 10:41:12,844 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:41:12,870 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:41:12,871 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:41:13,253 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:41:13,255 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:41:13,255 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:41:13,415 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 10:41:13,428 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_104113_pre_init.db
+2025-09-24 10:41:13,453 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 10:44:48,513 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:44:48,520 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:44:48,520 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:44:48,674 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:44:48,675 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:44:48,676 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:44:48,696 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 10:44:48,700 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_104448_pre_init.db
+2025-09-24 10:44:48,743 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 10:45:14,800 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:45:14,808 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:45:14,808 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:45:14,905 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:45:14,906 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:45:14,907 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:45:14,921 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 10:45:14,926 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_104514_pre_init.db
+2025-09-24 10:45:14,943 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 10:46:54,854 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:46:54,861 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:46:54,861 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:46:55,125 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:46:55,127 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:46:55,127 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:46:55,143 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 10:46:55,146 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_104655_pre_init.db
+2025-09-24 10:46:55,164 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 10:50:12,506 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:50:12,513 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:50:12,514 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:50:12,872 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:50:12,874 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:50:12,874 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:50:12,916 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 10:50:12,922 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_105012_pre_init.db
+2025-09-24 10:50:12,951 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 10:50:41,465 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:50:41,472 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:50:41,473 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:50:41,574 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:50:41,575 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:50:41,576 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:50:41,592 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 10:50:41,597 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_105041_pre_init.db
+2025-09-24 10:50:41,616 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 10:59:08,694 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:59:08,701 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:59:08,702 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:59:08,814 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:59:08,816 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:59:08,816 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:59:08,835 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 10:59:08,839 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_105908_pre_init.db
+2025-09-24 10:59:08,862 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 10:59:32,637 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:59:32,645 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:59:32,645 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:59:32,752 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 10:59:32,753 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 10:59:32,754 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:59:32,771 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 10:59:32,775 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_105932_pre_init.db
+2025-09-24 10:59:32,793 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 11:00:15,174 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 11:00:15,181 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 11:00:15,181 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 11:00:15,291 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 11:00:15,293 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 11:00:15,293 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 11:00:15,310 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 11:00:15,314 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_110015_pre_init.db
+2025-09-24 11:00:15,334 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 11:00:44,284 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 11:00:44,294 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 11:00:44,294 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 11:00:44,406 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 11:00:44,407 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 11:00:44,408 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 11:00:44,426 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 11:00:44,429 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_110044_pre_init.db
+2025-09-24 11:00:44,449 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 11:00:48,001 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 11:00:48,011 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 11:00:48,011 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 11:00:48,115 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 11:00:48,116 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 11:00:48,117 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 11:00:48,134 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 11:00:48,138 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_110048_pre_init.db
+2025-09-24 11:00:48,157 - core.storage - INFO - Base de datos inicializada correctamente
+2025-09-24 11:00:49,832 - core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 11:00:49,841 - core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 11:00:49,842 - core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 11:00:49,951 - homologador.core.settings - INFO - Configuración cargada desde config.json
+2025-09-24 11:00:49,952 - homologador.core.settings - INFO - OneDrive detectado: C:\Users\Antware\OneDrive
+2025-09-24 11:00:49,952 - homologador.core.settings - INFO - DB autodetectada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 11:00:49,970 - ui.main_window - WARNING - Módulo de accesibilidad no disponible
+2025-09-24 11:00:49,975 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_110049_pre_init.db
+2025-09-24 11:00:49,994 - core.storage - INFO - Base de datos inicializada correctamente

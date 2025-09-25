@@ -60,28 +60,110 @@ class DatabaseManager:
             raise DatabaseError(f"Error inicializando base de datos: {e}")
     
     def _apply_migrations(self, conn):
-        """Aplica las migraciones disponibles en la carpeta de migraciones."""
+        """Aplica las migraciones disponibles en la carpeta de migraciones de forma inteligente."""
         try:
             migrations_dir = Path(__file__).parent.parent / "data" / "migrations"
             if not migrations_dir.exists():
                 migrations_dir.mkdir(parents=True, exist_ok=True)
                 return
+
+            # Crear tabla de control de migraciones si no existe
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS applied_migrations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    filename TEXT UNIQUE NOT NULL,
+                    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
             
             for migration_file in sorted(migrations_dir.glob("*.sql")):
+                # Verificar si la migración ya fue aplicada
+                cursor = conn.execute(
+                    "SELECT filename FROM applied_migrations WHERE filename = ?", 
+                    (migration_file.name,)
+                )
+                if cursor.fetchone():
+                    logger.debug(f"Migración {migration_file.name} ya aplicada, omitiendo")
+                    continue
+                
                 logger.info(f"Aplicando migración: {migration_file.name}")
                 with open(migration_file, 'r', encoding='utf-8') as f:
                     migration_sql = f.read()
                 
-                try:
-                    conn.executescript(migration_sql)
+                # Aplicar migración inteligente
+                if self._apply_smart_migration(conn, migration_file.name, migration_sql):
+                    # Marcar migración como aplicada
+                    conn.execute(
+                        "INSERT INTO applied_migrations (filename) VALUES (?)",
+                        (migration_file.name,)
+                    )
                     conn.commit()
                     logger.info(f"Migración {migration_file.name} aplicada con éxito")
-                except sqlite3.Error as e:
-                    # Si falla una migración, logueamos pero seguimos con las demás
-                    logger.warning(f"Error al aplicar migración {migration_file.name}: {e}")
                     
         except Exception as e:
             logger.error(f"Error al aplicar migraciones: {e}")
+
+    def _apply_smart_migration(self, conn, filename: str, migration_sql: str) -> bool:
+        """Aplica una migración de forma inteligente, evitando errores de columnas duplicadas."""
+        try:
+            # Para migraciones que agregan columnas, verificar si ya existen
+            if "ADD COLUMN" in migration_sql.upper():
+                return self._apply_column_migration(conn, filename, migration_sql)
+            else:
+                # Migración regular
+                conn.executescript(migration_sql)
+                return True
+        except sqlite3.Error as e:
+            if "duplicate column name" in str(e).lower():
+                logger.info(f"Columna ya existe en {filename}, migración omitida")
+                return True  # Consideramos éxito si la columna ya existe
+            else:
+                logger.warning(f"Error al aplicar migración {filename}: {e}")
+                return False
+
+    def _apply_column_migration(self, conn, filename: str, migration_sql: str) -> bool:
+        """Aplica migración de columnas verificando si ya existen."""
+        try:
+            lines = migration_sql.strip().split('\n')
+            for line in lines:
+                line = line.strip()
+                if line.startswith('--') or not line:
+                    continue
+                    
+                if "ADD COLUMN" in line.upper():
+                    # Extraer nombre de tabla y columna
+                    parts = line.split()
+                    table_name = parts[2] if len(parts) > 2 else None
+                    column_info = ' '.join(parts[5:]) if len(parts) > 5 else ''
+                    column_name = parts[5] if len(parts) > 5 else None
+                    
+                    if table_name and column_name:
+                        # Verificar si la columna existe
+                        if not self._column_exists(conn, table_name, column_name):
+                            conn.execute(line)
+                            logger.info(f"Columna {column_name} agregada a {table_name}")
+                        else:
+                            logger.info(f"Columna {column_name} ya existe en {table_name}")
+                else:
+                    # Ejecutar otras líneas normalmente
+                    conn.execute(line)
+            
+            conn.commit()
+            return True
+            
+        except sqlite3.Error as e:
+            logger.warning(f"Error en migración de columna {filename}: {e}")
+            return False
+
+    def _column_exists(self, conn, table_name: str, column_name: str) -> bool:
+        """Verifica si una columna existe en una tabla."""
+        try:
+            cursor = conn.execute(f"PRAGMA table_info({table_name})")
+            columns = [row[1] for row in cursor.fetchall()]
+            return column_name in columns
+        except sqlite3.Error:
+            return False
     
     @contextmanager
     def get_connection(self):
@@ -431,6 +513,148 @@ class UserRepository:
         """Obtiene todos los usuarios activos."""
         query = "SELECT * FROM users WHERE is_active = 1 ORDER BY username"
         return self.db.execute_query(query)
+    
+    def get_all_users(self, include_inactive: bool = False) -> List[sqlite3.Row]:
+        """Obtiene todos los usuarios."""
+        if include_inactive:
+            # Para administración completa - mostrar todos
+            query = """
+            SELECT id, username, full_name, email, role, is_active, 
+                   last_login, created_at, COALESCE(department, '') as department, 
+                   COALESCE(must_change_password, 0) as force_password_change
+            FROM users 
+            ORDER BY is_active DESC, username
+            """
+        else:
+            # Por defecto - solo mostrar usuarios activos
+            query = """
+            SELECT id, username, full_name, email, role, is_active, 
+                   last_login, created_at, COALESCE(department, '') as department, 
+                   COALESCE(must_change_password, 0) as force_password_change
+            FROM users 
+            WHERE is_active = 1
+            ORDER BY username
+            """
+        return self.db.execute_query(query)
+    
+    def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """Obtiene un usuario por nombre de usuario (para administración)."""
+        query = """
+        SELECT id, username, password_hash as password, full_name, email, role, is_active, 
+               last_login, created_at, COALESCE(department, '') as department, 
+               COALESCE(must_change_password, 0) as force_password_change
+        FROM users 
+        WHERE username = ?
+        """
+        results = self.db.execute_query(query, (username,))
+        if results:
+            row = results[0]
+            return {
+                'id': row['id'],
+                'username': row['username'],
+                'password': row['password'],
+                'full_name': row['full_name'],
+                'email': row['email'],
+                'role': row['role'],
+                'is_active': bool(row['is_active']),
+                'last_login': row['last_login'],
+                'created_at': row['created_at'],
+                'department': row['department'],
+                'force_password_change': bool(row['force_password_change'])
+            }
+        return None
+    
+    def create_user(self, user_data: Dict[str, Any]) -> Optional[int]:
+        """Crea un nuevo usuario (para administración)."""
+        query = """
+        INSERT INTO users 
+        (username, password_hash, full_name, email, role, is_active, department, 
+         must_change_password, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        
+        try:
+            params = (
+                user_data['username'],
+                user_data['password'],  # Será mapeado a password_hash
+                user_data.get('full_name', ''),
+                user_data.get('email', ''),
+                user_data['role'],
+                user_data.get('is_active', True),
+                user_data.get('department', ''),
+                user_data.get('force_password_change', False),
+                user_data.get('created_at', datetime.now().isoformat())
+            )
+            
+            return self.db.execute_insert(query, params)
+        except Exception as e:
+            logger.error(f"Error creando usuario: {e}")
+            return None
+    
+    def update_user(self, user_data: Dict[str, Any]) -> bool:
+        """Actualiza un usuario existente."""
+        # Construir query dinámicamente basado en los campos presentes
+        update_fields: List[str] = []
+        params: List[Any] = []
+        
+        field_mappings = {
+            'full_name': 'full_name',
+            'email': 'email',
+            'role': 'role',
+            'is_active': 'is_active',
+            'department': 'department',
+            'force_password_change': 'must_change_password',  # Mapear a la columna real
+            'password': 'password_hash',  # Mapear a la columna real
+            'last_login': 'last_login',
+            'updated_at': 'updated_at'
+        }
+        
+        for key, db_field in field_mappings.items():
+            if key in user_data:
+                update_fields.append(f"{db_field} = ?")
+                params.append(user_data[key])
+        
+        if not update_fields:
+            return False
+        
+        query = f"UPDATE users SET {', '.join(update_fields)} WHERE id = ?"
+        params.append(user_data['id'])
+        
+        try:
+            return self.db.execute_non_query(query, cast(Tuple[Any, ...], tuple(params))) > 0
+        except Exception as e:
+            logger.error(f"Error actualizando usuario: {e}")
+            return False
+    
+    def delete_user(self, user_id: int, permanent: bool = False) -> bool:
+        """Elimina un usuario (soft delete por defecto, hard delete opcional)."""
+        try:
+            if permanent:
+                # Eliminación permanente - CUIDADO: esto no se puede deshacer
+                query = "DELETE FROM users WHERE id = ?"
+                return self.db.execute_non_query(query, (user_id,)) > 0
+            else:
+                # Eliminación suave - solo desactivar
+                query = "UPDATE users SET is_active = 0, updated_at = ? WHERE id = ?"
+                return self.db.execute_non_query(
+                    query, 
+                    (datetime.now().isoformat(), user_id)
+                ) > 0
+        except Exception as e:
+            logger.error(f"Error eliminando usuario (permanent={permanent}): {e}")
+            return False
+            
+    def reactivate_user(self, user_id: int) -> bool:
+        """Reactiva un usuario que fue desactivado."""
+        query = "UPDATE users SET is_active = 1, updated_at = ? WHERE id = ?"
+        try:
+            return self.db.execute_non_query(
+                query, 
+                (datetime.now().isoformat(), user_id)
+            ) > 0
+        except Exception as e:
+            logger.error(f"Error reactivando usuario: {e}")
+            return False
 
 
 class AuditRepository:
@@ -494,6 +718,197 @@ class AuditRepository:
         query += " ORDER BY timestamp DESC LIMIT 1000"
         
         return self.db.execute_query(query, tuple(params))
+    
+    def get_logs_filtered(self, date_from: Optional[Any] = None, date_to: Optional[Any] = None,
+                         user_id: Optional[int] = None, action: Optional[str] = None,
+                         table_name: Optional[str] = None, limit: int = 1000) -> List[sqlite3.Row]:
+        """Obtiene logs filtrados para el panel de auditoría."""
+        query = """
+        SELECT 
+            al.id,
+            al.timestamp,
+            al.action,
+            al.table_name,
+            al.record_id,
+            al.ip_address,
+            al.old_values,
+            al.new_values,
+            COALESCE(u.full_name || ' (' || u.username || ')', 'Sistema') as user_info,
+            CASE 
+                WHEN al.old_values IS NOT NULL AND al.new_values IS NOT NULL THEN 'Modificación'
+                WHEN al.new_values IS NOT NULL THEN 'Creación'
+                WHEN al.old_values IS NOT NULL THEN 'Eliminación'
+                ELSE 'Acción'
+            END as details
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.id
+        """
+        
+        params: List[Any] = []
+        where_clauses = []
+        
+        if date_from:
+            where_clauses.append("DATE(al.timestamp) >= ?")
+            params.append(str(date_from))
+        
+        if date_to:
+            where_clauses.append("DATE(al.timestamp) <= ?")
+            params.append(str(date_to))
+        
+        if user_id:
+            where_clauses.append("al.user_id = ?")
+            params.append(user_id)
+        
+        if action:
+            where_clauses.append("al.action = ?")
+            params.append(action)
+        
+        if table_name:
+            where_clauses.append("al.table_name = ?")
+            params.append(table_name)
+        
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+        
+        query += " ORDER BY al.timestamp DESC LIMIT ?"
+        params.append(limit)
+        
+        return self.db.execute_query(query, tuple(params))
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Obtiene estadísticas para el panel de auditoría."""
+        try:
+            stats = {}
+            
+            # Total de logs
+            total_query = "SELECT COUNT(*) as total FROM audit_logs"
+            total_result = self.db.execute_query(total_query)
+            stats['total_logs'] = total_result[0]['total'] if total_result else 0
+            
+            # Logs de hoy
+            today_query = "SELECT COUNT(*) as today FROM audit_logs WHERE DATE(timestamp) = DATE('now')"
+            today_result = self.db.execute_query(today_query)
+            stats['logs_today'] = today_result[0]['today'] if today_result else 0
+            
+            # Usuarios únicos en los últimos 30 días
+            users_query = """
+            SELECT COUNT(DISTINCT user_id) as unique_users 
+            FROM audit_logs 
+            WHERE timestamp >= datetime('now', '-30 days')
+            """
+            users_result = self.db.execute_query(users_query)
+            stats['unique_users_30d'] = users_result[0]['unique_users'] if users_result else 0
+            
+            # Usuario más activo
+            active_user_query = """
+            SELECT u.username, COUNT(*) as activity_count
+            FROM audit_logs al
+            JOIN users u ON al.user_id = u.id
+            WHERE al.timestamp >= datetime('now', '-30 days')
+            GROUP BY al.user_id, u.username
+            ORDER BY activity_count DESC
+            LIMIT 1
+            """
+            active_user_result = self.db.execute_query(active_user_query)
+            if active_user_result:
+                stats['most_active_user'] = f"{active_user_result[0]['username']} ({active_user_result[0]['activity_count']} acciones)"
+            else:
+                stats['most_active_user'] = "N/A"
+            
+            # Actividad por tipo
+            activity_type_query = """
+            SELECT action, COUNT(*) as count
+            FROM audit_logs
+            WHERE timestamp >= datetime('now', '-30 days')
+            GROUP BY action
+            ORDER BY count DESC
+            """
+            activity_type_result = self.db.execute_query(activity_type_query)
+            activity_by_type = {}
+            for row in activity_type_result:
+                activity_by_type[row['action']] = row['count']
+            stats['activity_by_type'] = activity_by_type
+            
+            # Actividad reciente (últimas 24 horas)
+            recent_activity_query = """
+            SELECT 
+                al.timestamp,
+                al.action,
+                COALESCE(u.username, 'Sistema') as user_info
+            FROM audit_logs al
+            LEFT JOIN users u ON al.user_id = u.id
+            WHERE al.timestamp >= datetime('now', '-24 hours')
+            ORDER BY al.timestamp DESC
+            LIMIT 20
+            """
+            recent_activity_result = self.db.execute_query(recent_activity_query)
+            recent_activity = []
+            for row in recent_activity_result:
+                recent_activity.append({
+                    'timestamp': row['timestamp'],
+                    'action': row['action'],
+                    'user_info': row['user_info']
+                })
+            stats['recent_activity'] = recent_activity
+            
+            return stats
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo estadísticas de auditoría: {e}")
+            return {
+                'total_logs': 0,
+                'logs_today': 0,
+                'unique_users_30d': 0,
+                'most_active_user': 'Error',
+                'activity_by_type': {},
+                'recent_activity': []
+            }
+    
+    def get_log_details(self, log_id: int) -> Optional[Dict[str, Any]]:
+        """Obtiene los detalles completos de un log específico."""
+        query = """
+        SELECT 
+            al.*,
+            COALESCE(u.full_name || ' (' || u.username || ')', 'Sistema') as user_info
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.id
+        WHERE al.id = ?
+        """
+        
+        result = self.db.execute_query(query, (log_id,))
+        if result:
+            row = result[0]
+            return {
+                'id': row['id'],
+                'timestamp': row['timestamp'],
+                'user_info': row['user_info'],
+                'action': row['action'],
+                'table_name': row['table_name'],
+                'record_id': row['record_id'],
+                'ip_address': row['ip_address'],
+                'details': self._format_log_details(row)
+            }
+        return None
+    
+    def _format_log_details(self, row: sqlite3.Row) -> str:
+        """Formatea los detalles de un log para mostrar."""
+        details = []
+        
+        if row['old_values']:
+            try:
+                old_data = json.loads(row['old_values'])
+                details.append(f"Valores anteriores: {json.dumps(old_data, indent=2, ensure_ascii=False)}")
+            except:
+                details.append(f"Valores anteriores: {row['old_values']}")
+        
+        if row['new_values']:
+            try:
+                new_data = json.loads(row['new_values'])
+                details.append(f"Valores nuevos: {json.dumps(new_data, indent=2, ensure_ascii=False)}")
+            except:
+                details.append(f"Valores nuevos: {row['new_values']}")
+        
+        return "\n\n".join(details) if details else "Sin detalles adicionales"
 
 
 # Instancia global del administrador de base de datos

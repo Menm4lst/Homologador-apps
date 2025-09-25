@@ -20,7 +20,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
 from PyQt6.QtGui import QFont
 
 from .theme import get_current_theme, ThemeType
-from .notifications import show_success, show_error, show_info
+from .notification_system import send_success, send_error, send_info
 
 logger = logging.getLogger(__name__)
 
@@ -562,7 +562,7 @@ class ExportDialog(QDialog):
         self.status_label.setText("")
         self.export_button.setEnabled(True)
         
-        show_success(self, f"Exportación completada exitosamente:\n{file_path}")
+        send_success("Exportación Exitosa", f"Exportación completada exitosamente:\n{file_path}", "export_system")
         self.accept()
     
     @pyqtSlot(str)
@@ -572,7 +572,7 @@ class ExportDialog(QDialog):
         self.status_label.setText("")
         self.export_button.setEnabled(True)
         
-        show_error(self, f"Error en la exportación:\n{error_message}")
+        send_error("Error de Exportación", f"Error en la exportación:\n{error_message}", "export_system")
     
     def apply_theme_styles(self):
         """Aplica estilos según el tema actual."""

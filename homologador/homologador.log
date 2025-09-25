@@ -212,3 +212,137 @@
 2025-09-22 15:57:09,944 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250922_155709_auto.db
 2025-09-22 15:57:10,103 - data.seed - INFO - Logout para usuario: admin
 2025-09-22 15:57:10,104 - __main__ - INFO - Limpieza de recursos completada
+2025-09-23 08:57:03,356 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 08:57:03,357 - __main__ - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 08:57:04,520 - __main__ - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 08:57:04,527 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 08:57:07,719 - __main__ - INFO - Ventana de login mostrada
+2025-09-23 08:57:12,045 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_085712_auto.db
+2025-09-23 08:57:12,060 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_085712_auto.db
+2025-09-23 08:57:12,073 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-23 08:57:12,075 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-23 08:57:12,075 - __main__ - INFO - Login exitoso para usuario: admin
+2025-09-23 08:57:13,106 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-23 08:57:13,148 - __main__ - INFO - Ventana principal mostrada
+2025-09-23 08:57:51,768 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 08:58:15,762 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_085815_auto.db
+2025-09-23 08:58:21,760 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 08:58:51,766 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 08:59:21,763 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 08:59:51,772 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 09:00:21,774 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 09:00:51,771 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 09:01:21,772 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 09:01:51,773 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 09:02:21,766 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 09:02:51,763 - root - ERROR - Error al guardar borrador: 'NoneType' object has no attribute 'get'
+2025-09-23 09:03:10,223 - __main__ - INFO - Aplicación cerrada
+2025-09-23 09:03:10,229 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_090310_auto.db
+2025-09-23 09:03:10,260 - data.seed - INFO - Logout para usuario: admin
+2025-09-23 09:03:10,260 - __main__ - INFO - Limpieza de recursos completada
+2025-09-24 07:57:01,787 - core.settings - INFO - Sistema de logging configurado
+2025-09-24 07:57:01,788 - __main__ - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-24 07:57:02,896 - __main__ - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 07:57:02,902 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-24 07:57:03,049 - __main__ - INFO - Ventana de login mostrada
+2025-09-24 07:57:11,987 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_075711_auto.db
+2025-09-24 07:57:12,007 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_075712_auto.db
+2025-09-24 07:57:12,031 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-24 07:57:12,031 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-24 07:57:12,032 - __main__ - INFO - Login exitoso para usuario: admin
+2025-09-24 07:57:12,744 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-24 07:57:12,774 - __main__ - INFO - Ventana principal mostrada
+2025-09-24 07:57:20,901 - __main__ - INFO - Aplicación cerrada
+2025-09-24 07:57:20,905 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_075720_auto.db
+2025-09-24 07:57:20,958 - data.seed - INFO - Logout para usuario: admin
+2025-09-24 07:57:20,959 - __main__ - INFO - Limpieza de recursos completada
+2025-09-24 08:13:18,449 - core.settings - INFO - Sistema de logging configurado
+2025-09-24 08:13:18,452 - __main__ - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-24 08:13:19,641 - __main__ - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 08:13:19,646 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-24 08:13:19,790 - __main__ - INFO - Ventana de login mostrada
+2025-09-24 08:13:25,174 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_081325_auto.db
+2025-09-24 08:13:25,195 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_081325_auto.db
+2025-09-24 08:13:25,215 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-24 08:13:25,216 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-24 08:13:25,216 - __main__ - INFO - Login exitoso para usuario: admin
+2025-09-24 08:13:26,448 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-24 08:13:26,496 - __main__ - INFO - Ventana principal mostrada
+2025-09-24 08:13:34,809 - __main__ - INFO - Aplicación cerrada
+2025-09-24 08:13:34,821 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_081334_auto.db
+2025-09-24 08:13:34,852 - data.seed - INFO - Logout para usuario: admin
+2025-09-24 08:13:34,854 - __main__ - INFO - Limpieza de recursos completada
+2025-09-24 08:39:01,292 - core.settings - INFO - Sistema de logging configurado
+2025-09-24 08:39:01,293 - __main__ - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-24 08:39:02,410 - __main__ - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 08:39:02,415 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-24 08:39:02,543 - __main__ - INFO - Ventana de login mostrada
+2025-09-24 08:39:07,883 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_083907_auto.db
+2025-09-24 08:39:07,903 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_083907_auto.db
+2025-09-24 08:39:07,926 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-24 08:39:07,926 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-24 08:39:07,927 - __main__ - INFO - Login exitoso para usuario: admin
+2025-09-24 08:39:09,094 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-24 08:39:09,122 - __main__ - INFO - Ventana principal mostrada
+2025-09-24 08:39:19,934 - ui.main_window - INFO - Abriendo dashboard administrativo para usuario: admin
+2025-09-24 08:39:20,096 - ui.admin_dashboard - INFO - Dashboard administrativo iniciado por: admin
+2025-09-24 08:39:32,863 - ui.user_management - INFO - Módulo de administración de usuarios iniciado por: admin
+2025-09-24 08:39:38,198 - __main__ - INFO - Aplicación cerrada
+2025-09-24 08:39:38,204 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_083938_auto.db
+2025-09-24 08:39:38,244 - data.seed - INFO - Logout para usuario: admin
+2025-09-24 08:39:38,245 - __main__ - INFO - Limpieza de recursos completada
+2025-09-24 08:41:37,929 - core.settings - INFO - Sistema de logging configurado
+2025-09-24 08:41:37,930 - __main__ - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-24 08:41:39,055 - __main__ - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 08:41:39,061 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-24 08:41:39,186 - __main__ - INFO - Ventana de login mostrada
+2025-09-24 08:41:43,709 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_084143_auto.db
+2025-09-24 08:41:43,737 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_084143_auto.db
+2025-09-24 08:41:43,757 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-24 08:41:43,758 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-24 08:41:43,759 - __main__ - INFO - Login exitoso para usuario: admin
+2025-09-24 08:41:44,862 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-24 08:41:44,894 - __main__ - INFO - Ventana principal mostrada
+2025-09-24 08:41:50,718 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_084150_auto.db
+2025-09-24 08:41:58,722 - __main__ - INFO - Aplicación cerrada
+2025-09-24 08:41:58,728 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_084158_auto.db
+2025-09-24 08:41:58,800 - data.seed - INFO - Logout para usuario: admin
+2025-09-24 08:41:58,801 - __main__ - INFO - Limpieza de recursos completada
+2025-09-24 08:43:58,389 - core.settings - INFO - Sistema de logging configurado
+2025-09-24 08:43:58,390 - __main__ - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-24 08:43:59,512 - __main__ - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 08:43:59,524 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-24 08:43:59,661 - __main__ - INFO - Ventana de login mostrada
+2025-09-24 08:44:04,977 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_084404_auto.db
+2025-09-24 08:44:05,000 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_084404_auto.db
+2025-09-24 08:44:05,024 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-24 08:44:05,025 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-24 08:44:05,025 - __main__ - INFO - Login exitoso para usuario: admin
+2025-09-24 08:44:05,981 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-24 08:44:06,009 - __main__ - INFO - Ventana principal mostrada
+2025-09-24 08:44:34,373 - ui.main_window - INFO - Abriendo dashboard administrativo para usuario: admin
+2025-09-24 08:44:35,187 - ui.admin_dashboard - INFO - Dashboard administrativo iniciado por: admin
+2025-09-24 08:45:06,536 - ui.user_management - INFO - Módulo de administración de usuarios iniciado por: admin
+2025-09-24 08:48:35,506 - ui.user_management - INFO - Módulo de administración de usuarios iniciado por: admin
+2025-09-24 08:48:53,756 - ui.main_window - INFO - Abriendo sistema de respaldos para usuario: admin
+2025-09-24 08:48:53,794 - ui.backup_system - INFO - Sistema de respaldos iniciado por: admin
+2025-09-24 08:49:24,074 - __main__ - INFO - Aplicación cerrada
+2025-09-24 08:49:24,083 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_084924_auto.db
+2025-09-24 08:49:24,147 - data.seed - INFO - Logout para usuario: admin
+2025-09-24 08:49:24,148 - __main__ - INFO - Limpieza de recursos completada
+2025-09-24 08:55:08,801 - core.settings - INFO - Sistema de logging configurado
+2025-09-24 08:55:08,802 - __main__ - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-24 08:55:09,908 - __main__ - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 08:55:09,914 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-24 08:55:10,031 - __main__ - INFO - Ventana de login mostrada
+2025-09-24 08:55:13,611 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_085513_auto.db
+2025-09-24 08:55:13,633 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_085513_auto.db
+2025-09-24 08:55:13,658 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-24 08:55:13,659 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-24 08:55:13,659 - __main__ - INFO - Login exitoso para usuario: admin
+2025-09-24 08:55:14,637 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-24 08:55:14,661 - __main__ - INFO - Ventana principal mostrada
+2025-09-24 08:55:43,479 - __main__ - INFO - Aplicación cerrada
+2025-09-24 08:55:43,497 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_085543_auto.db
+2025-09-24 08:55:43,556 - data.seed - INFO - Logout para usuario: admin
+2025-09-24 08:55:43,557 - __main__ - INFO - Limpieza de recursos completada

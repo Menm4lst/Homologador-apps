@@ -407,13 +407,17 @@ class HomologationFormDialog(QDialog):
     
     def setup_validation(self):
         """Configura validaciones en tiempo real."""
-        # Validación de nombre real (obligatorio)
-        self.real_name_edit.textChanged.connect(self.validate_form)
+        # Conectar eventos de cambio de texto para validación completa
+        self.real_name_edit.textChanged.connect(lambda: self.validate_form())
+        self.logical_name_edit.textChanged.connect(lambda: self.validate_form())
+        self.details_edit.textChanged.connect(lambda: self.validate_form())
         
-        # Validación de URL
+        # Validación específica de URL
         self.kb_url_edit.textChanged.connect(self.validate_url)
+        self.kb_url_edit.textChanged.connect(lambda: self.validate_form())
         
-        # Aplicar estilos iniciales según el tema actual
+        # Validación inicial
+        self.validate_form()        # Aplicar estilos iniciales según el tema actual
         self.apply_theme_styles()
         
     def apply_theme_styles(self):
@@ -454,44 +458,62 @@ class HomologationFormDialog(QDialog):
         self.details_edit.setStyleSheet(f"QTextEdit {{ {text_area_style} }}")
     
     def validate_form(self):
-        """Valida el formulario y habilita/deshabilita el botón guardar."""
+        """Valida el formulario completo y habilita/deshabilita el botón guardar."""
+        # Validar campos requeridos
         real_name = self.real_name_edit.text().strip()
         
-        # El nombre real es obligatorio
-        is_valid = bool(real_name)
+        # Validaciones adicionales
+        validation_errors = []
         
-        self.save_button.setEnabled(is_valid)
+        # 1. Nombre real es obligatorio
+        is_real_name_valid = bool(real_name)
+        if not is_real_name_valid:
+            validation_errors.append("El nombre real es obligatorio")
+        elif len(real_name) < 2:
+            validation_errors.append("El nombre real debe tener al menos 2 caracteres")
+            is_real_name_valid = False
+        elif len(real_name) > 255:
+            validation_errors.append("El nombre real no puede exceder 255 caracteres")
+            is_real_name_valid = False
         
-        # Visual feedback para campo obligatorio
-        if real_name:
-            # Usar el color adecuado según el tema
-            from .theme import get_current_theme, ThemeType
-            current_theme = get_current_theme()
-            is_dark = current_theme == ThemeType.DARK
-            
-            if is_dark:
-                self.real_name_edit.setStyleSheet("""
-                    QLineEdit {
-                        background-color: #333333;
-                        color: #ffffff;
-                    }
-                """)
-            else:
-                self.real_name_edit.setStyleSheet("""
-                    QLineEdit {
-                        background-color: white;
-                        color: #333333;
-                    }
-                """)
+        # 2. Validar URL si se proporciona
+        kb_url = self.kb_url_edit.text().strip()
+        is_url_valid = True
+        if kb_url:
+            is_url_valid = self._is_valid_url(kb_url)
+            if not is_url_valid:
+                validation_errors.append("La URL de KB no tiene un formato válido")
+        
+        # 3. Validar nombre lógico si se proporciona
+        logical_name = self.logical_name_edit.text().strip()
+        is_logical_name_valid = True
+        if logical_name and len(logical_name) > 255:
+            validation_errors.append("El nombre lógico no puede exceder 255 caracteres")
+            is_logical_name_valid = False
+        
+        # 4. Validar detalles si se proporcionan
+        details = self.details_edit.toPlainText().strip()
+        is_details_valid = True
+        if details and len(details) > 5000:
+            validation_errors.append("Los detalles no pueden exceder 5000 caracteres")
+            is_details_valid = False
+        
+        # El formulario es válido si no hay errores críticos
+        is_form_valid = is_real_name_valid and is_url_valid and is_logical_name_valid and is_details_valid
+        
+        # Habilitar/deshabilitar botón guardar
+        self.save_button.setEnabled(is_form_valid)
+        
+        # Aplicar estilos visuales
+        self._apply_validation_styles(is_real_name_valid, is_url_valid, is_logical_name_valid, is_details_valid)
+        
+        # Mostrar errores en tooltip si los hay
+        if validation_errors:
+            self.save_button.setToolTip("\n".join(validation_errors))
         else:
-            # Para campo con error, mantener un estilo de error visible en ambos temas
-            self.real_name_edit.setStyleSheet("""
-                QLineEdit {
-                    border: 2px solid #dc3545;
-                    background-color: #fff5f5;
-                    color: #333333;
-                }
-            """)
+            self.save_button.setToolTip("Guardar homologación")
+            
+        return is_form_valid, validation_errors
     
     def validate_url(self):
         """Valida formato de URL."""
@@ -567,6 +589,108 @@ class HomologationFormDialog(QDialog):
                     }
                 """)
             self.kb_url_edit.setToolTip("")  # Quitar tooltip
+    
+    def _is_valid_url(self, url: str) -> bool:
+        """Valida si una URL tiene formato correcto."""
+        import re
+        try:
+            # Patrón más robusto para URLs
+            url_pattern = r'^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$'
+            return bool(re.match(url_pattern, url))
+        except Exception:
+            return False
+    
+    def _apply_validation_styles(self, is_real_name_valid: bool, is_url_valid: bool, 
+                               is_logical_name_valid: bool, is_details_valid: bool):
+        """Aplica estilos visuales según el estado de validación."""
+        try:
+            from .theme import get_current_theme, ThemeType
+            current_theme = get_current_theme()
+            is_dark = current_theme == ThemeType.DARK
+            
+            # Estilos base según tema
+            if is_dark:
+                normal_style = """
+                    QLineEdit, QTextEdit {
+                        background-color: #333333;
+                        color: #ffffff;
+                        border: 1px solid #555555;
+                    }
+                """
+                valid_style = """
+                    QLineEdit, QTextEdit {
+                        background-color: #333333;
+                        color: #ffffff;
+                        border: 1px solid #0078d4;
+                    }
+                """
+            else:
+                normal_style = """
+                    QLineEdit, QTextEdit {
+                        background-color: white;
+                        color: #333333;
+                        border: 1px solid #cccccc;
+                    }
+                """
+                valid_style = """
+                    QLineEdit, QTextEdit {
+                        background-color: white;
+                        color: #333333;
+                        border: 1px solid #0078d4;
+                    }
+                """
+            
+            error_style = """
+                QLineEdit, QTextEdit {
+                    border: 2px solid #dc3545;
+                    background-color: #fff5f5;
+                    color: #333333;
+                }
+            """
+            
+            # Aplicar estilos según validación
+            self.real_name_edit.setStyleSheet(error_style if not is_real_name_valid else valid_style)
+            
+            # URL solo si tiene contenido
+            if self.kb_url_edit.text().strip():
+                self.kb_url_edit.setStyleSheet(error_style if not is_url_valid else valid_style)
+            else:
+                self.kb_url_edit.setStyleSheet(normal_style)
+                
+            # Nombre lógico solo si tiene contenido
+            if self.logical_name_edit.text().strip():
+                self.logical_name_edit.setStyleSheet(error_style if not is_logical_name_valid else valid_style)
+            else:
+                self.logical_name_edit.setStyleSheet(normal_style)
+                
+            # Detalles solo si tiene contenido
+            if self.details_edit.toPlainText().strip():
+                self.details_edit.setStyleSheet(error_style if not is_details_valid else valid_style)
+            else:
+                self.details_edit.setStyleSheet(normal_style)
+                
+        except Exception as e:
+            print(f"Error aplicando estilos de validación: {e}")
+    
+    def _check_duplicate_name(self, real_name: str) -> int | None:
+        """Verifica si ya existe una homologación con el mismo nombre real."""
+        try:
+            from ..core.storage import DatabaseManager
+            db = DatabaseManager()
+            
+            # Buscar homologaciones con el mismo nombre real
+            results = db.search_homologations(search_text=real_name, exact_match=True)
+            
+            # Filtrar por coincidencia exacta del nombre real
+            for homolog in results:
+                if homolog.get('real_name', '').lower() == real_name.lower():
+                    return homolog.get('id')
+                    
+            return None
+            
+        except Exception as e:
+            print(f"Error verificando nombre duplicado: {e}")
+            return None
     
     def load_data(self):
         """Carga datos existentes en el formulario (modo edición)."""
@@ -650,27 +774,66 @@ class HomologationFormDialog(QDialog):
         self.apply_theme_styles()
     
     def save_homologation(self):
-        """Guarda la homologación."""
-        # Validación final
-        if not self.real_name_edit.text().strip():
-            QMessageBox.warning(self, "Error", "El nombre real es obligatorio")
-            self.real_name_edit.setFocus()
-            self.validate_form()  # Aplicar estilo de error
-            return
-        
-        # Obtener datos del formulario
-        form_data = self.get_form_data()
-        
-        # Deshabilitar botón
-        self.save_button.setEnabled(False)
-        self.save_button.setText("Guardando...")
-        
-        # Guardar en worker thread
-        homologation_id = self.homologation_data['id'] if self.is_edit_mode else None
-        self.save_worker = HomologationSaveWorker(form_data, homologation_id)
-        self.save_worker.save_successful.connect(self.on_save_successful)
-        self.save_worker.save_failed.connect(self.on_save_failed)
-        self.save_worker.start()
+        """Guarda la homologación con validación completa."""
+        try:
+            # Validación final completa
+            is_valid, validation_errors = self.validate_form()
+            
+            if not is_valid:
+                # Mostrar errores específicos
+                error_message = "Se encontraron los siguientes errores:\n\n" + "\n• ".join(validation_errors)
+                QMessageBox.warning(self, "Errores de validación", error_message)
+                
+                # Enfocar el primer campo con error
+                if "nombre real" in validation_errors[0].lower():
+                    self.real_name_edit.setFocus()
+                elif "url" in validation_errors[0].lower():
+                    self.kb_url_edit.setFocus()
+                elif "lógico" in validation_errors[0].lower():
+                    self.logical_name_edit.setFocus()
+                elif "detalles" in validation_errors[0].lower():
+                    self.details_edit.setFocus()
+                    
+                return
+            
+            # Validaciones adicionales de negocio
+            form_data = self.get_form_data()
+            
+            # Verificar que no exista ya una homologación con el mismo nombre real
+            if not self.is_edit_mode:
+                existing_id = self._check_duplicate_name(form_data['real_name'])
+                if existing_id:
+                    response = QMessageBox.question(
+                        self, 
+                        "Nombre duplicado",
+                        f"Ya existe una homologación con el nombre '{form_data['real_name']}'.\n"
+                        "¿Desea continuar de todas formas?",
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                        QMessageBox.StandardButton.No
+                    )
+                    if response != QMessageBox.StandardButton.Yes:
+                        return
+            
+            # Deshabilitar botón y mostrar progreso
+            self.save_button.setEnabled(False)
+            self.save_button.setText("Guardando...")
+            
+            # Guardar en worker thread
+            homologation_id = self.homologation_data.get('id') if self.is_edit_mode else None
+            self.save_worker = HomologationSaveWorker(form_data, homologation_id)
+            self.save_worker.save_successful.connect(self.on_save_successful)
+            self.save_worker.save_failed.connect(self.on_save_failed)
+            self.save_worker.start()
+            
+        except Exception as e:
+            # Manejo de errores inesperados
+            QMessageBox.critical(
+                self, 
+                "Error inesperado", 
+                f"Ocurrió un error inesperado al intentar guardar:\n{str(e)}"
+            )
+            self.save_button.setEnabled(True)
+            self.save_button.setText("Guardar")
     
     @pyqtSlot(int)
     def on_save_successful(self, homologation_id):

@@ -354,3 +354,184 @@ ImportError: cannot import name 'get_stylesheet' from 'ui.theme' (C:\Users\Antwa
 2025-09-18 11:29:23,448 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250918_112923_auto.db
 2025-09-18 11:29:23,475 - __main__ - INFO - Aplicación cerrada
 2025-09-18 11:29:23,475 - __main__ - INFO - Limpieza de recursos completada
+2025-09-23 11:29:36,319 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 11:29:36,320 - app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 11:29:37,429 - app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 11:29:37,436 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 11:29:40,829 - app - INFO - Ventana de login mostrada
+2025-09-23 11:29:45,074 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_112945_auto.db
+2025-09-23 11:29:45,086 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_112945_auto.db
+2025-09-23 11:29:45,099 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-23 11:29:45,100 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-23 11:29:45,101 - app - INFO - Login exitoso para usuario: admin
+2025-09-23 11:29:46,131 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-23 11:29:46,161 - app - INFO - Ventana principal mostrada
+2025-09-23 11:29:54,422 - core.storage - ERROR - Error en conexión de base de datos: no such column: department
+2025-09-23 11:29:54,425 - ui.user_management - ERROR - Error cargando usuarios: Error de base de datos: no such column: department
+2025-09-23 11:29:59,256 - ui.user_management - INFO - Módulo de administración de usuarios iniciado por: admin
+2025-09-23 11:31:26,614 - core.storage - ERROR - Error en conexión de base de datos: no such column: password
+2025-09-23 11:31:26,617 - ui.user_management - ERROR - Error creando usuario: Error de base de datos: no such column: password
+2025-09-23 11:31:35,152 - core.storage - ERROR - Error en conexión de base de datos: no such column: password
+2025-09-23 11:31:35,153 - ui.user_management - ERROR - Error creando usuario: Error de base de datos: no such column: password
+2025-09-23 11:31:48,863 - app - INFO - Aplicación cerrada
+2025-09-23 11:31:48,870 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113148_auto.db
+2025-09-23 11:31:48,911 - data.seed - INFO - Logout para usuario: admin
+2025-09-23 11:31:48,911 - app - INFO - Limpieza de recursos completada
+2025-09-23 11:33:55,699 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 11:33:55,700 - app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 11:33:56,776 - app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 11:33:56,783 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 11:33:59,116 - app - INFO - Ventana de login mostrada
+2025-09-23 11:34:02,728 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113402_auto.db
+2025-09-23 11:34:02,742 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113402_auto.db
+2025-09-23 11:34:02,757 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-23 11:34:02,758 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-23 11:34:02,759 - app - INFO - Login exitoso para usuario: admin
+2025-09-23 11:34:03,525 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-23 11:34:03,552 - app - INFO - Ventana principal mostrada
+2025-09-23 11:34:06,473 - ui.user_management - ERROR - Error cargando usuarios: 'sqlite3.Row' object has no attribute 'get'
+2025-09-23 11:34:11,487 - ui.user_management - INFO - Módulo de administración de usuarios iniciado por: admin
+2025-09-23 11:34:51,145 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113451_auto.db
+2025-09-23 11:34:51,165 - ui.user_management - ERROR - Error cargando usuarios: 'sqlite3.Row' object has no attribute 'get'
+2025-09-23 11:34:53,715 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113453_auto.db
+2025-09-23 11:34:53,735 - core.storage - ERROR - Error en conexión de base de datos: FOREIGN KEY constraint failed
+2025-09-23 11:34:53,737 - ui.user_management - ERROR - Error registrando auditoría: Error de base de datos: FOREIGN KEY constraint failed
+2025-09-23 11:35:00,327 - ui.user_management - ERROR - Error cargando usuarios: 'sqlite3.Row' object has no attribute 'get'
+2025-09-23 11:35:06,291 - app - INFO - Aplicación cerrada
+2025-09-23 11:35:06,293 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113506_auto.db
+2025-09-23 11:35:06,325 - data.seed - INFO - Logout para usuario: admin
+2025-09-23 11:35:06,325 - app - INFO - Limpieza de recursos completada
+2025-09-23 11:36:42,407 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 11:36:42,408 - app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 11:36:43,500 - app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 11:36:43,505 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 11:36:46,902 - app - INFO - Ventana de login mostrada
+2025-09-23 11:36:52,027 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113652_auto.db
+2025-09-23 11:36:52,042 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113652_auto.db
+2025-09-23 11:36:52,058 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-23 11:36:52,059 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-23 11:36:52,059 - app - INFO - Login exitoso para usuario: admin
+2025-09-23 11:36:53,589 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-23 11:36:53,613 - app - INFO - Ventana principal mostrada
+2025-09-23 11:36:57,222 - ui.user_management - INFO - Módulo de administración de usuarios iniciado por: admin
+2025-09-23 11:39:05,909 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113905_auto.db
+2025-09-23 11:39:05,940 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113905_auto.db
+2025-09-23 11:39:05,960 - core.storage - ERROR - Error en conexión de base de datos: FOREIGN KEY constraint failed
+2025-09-23 11:39:05,963 - ui.user_management - ERROR - Error registrando auditoría: Error de base de datos: FOREIGN KEY constraint failed
+2025-09-23 11:39:24,423 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113924_auto.db
+2025-09-23 11:39:24,455 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113924_auto.db
+2025-09-23 11:39:24,468 - core.storage - ERROR - Error en conexión de base de datos: FOREIGN KEY constraint failed
+2025-09-23 11:39:24,470 - ui.user_management - ERROR - Error registrando auditoría: Error de base de datos: FOREIGN KEY constraint failed
+2025-09-23 11:39:44,487 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_113944_auto.db
+2025-09-23 11:40:06,945 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_114006_auto.db
+2025-09-23 11:40:06,980 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_114006_auto.db
+2025-09-23 11:40:06,995 - core.storage - ERROR - Error en conexión de base de datos: FOREIGN KEY constraint failed
+2025-09-23 11:40:06,997 - ui.user_management - ERROR - Error registrando auditoría: Error de base de datos: FOREIGN KEY constraint failed
+2025-09-23 11:42:07,335 - app - INFO - Aplicación cerrada
+2025-09-23 11:42:07,340 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_114207_auto.db
+2025-09-23 11:42:07,372 - data.seed - INFO - Logout para usuario: admin
+2025-09-23 11:42:07,372 - app - INFO - Limpieza de recursos completada
+2025-09-23 11:53:56,557 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 11:53:56,558 - app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 11:53:57,612 - app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 11:53:57,616 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 11:54:19,612 - app - INFO - Ventana de login mostrada
+2025-09-23 11:54:23,376 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_115423_auto.db
+2025-09-23 11:54:23,388 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_115423_auto.db
+2025-09-23 11:54:23,401 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-23 11:54:23,402 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-23 11:54:23,403 - app - INFO - Login exitoso para usuario: admin
+2025-09-23 11:54:24,224 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-23 11:54:24,252 - app - INFO - Ventana principal mostrada
+2025-09-23 11:54:30,199 - ui.main_window - INFO - Abriendo dashboard administrativo para usuario: admin
+2025-09-23 11:54:30,330 - ui.admin_dashboard - ERROR - Error cargando datos del dashboard: 'UserRepository' object has no attribute 'get_all'
+2025-09-23 11:54:30,330 - ui.admin_dashboard - INFO - Dashboard administrativo iniciado por: admin
+2025-09-23 12:25:04,367 - app - INFO - Aplicación cerrada
+2025-09-23 12:25:04,371 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_122504_auto.db
+2025-09-23 12:25:04,425 - data.seed - INFO - Logout para usuario: admin
+2025-09-23 12:25:04,426 - app - INFO - Limpieza de recursos completada
+2025-09-23 12:26:14,912 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 12:26:14,912 - app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 12:26:15,982 - app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 12:26:15,987 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 12:26:17,957 - app - INFO - Ventana de login mostrada
+2025-09-23 12:26:21,771 - data.seed - WARNING - Contraseña incorrecta para usuario: admin
+2025-09-23 12:26:21,773 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_122621_auto.db
+2025-09-23 12:26:26,722 - data.seed - WARNING - Contraseña incorrecta para usuario: admin
+2025-09-23 12:26:26,724 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_122626_auto.db
+2025-09-23 12:35:27,117 - app - INFO - Aplicación cerrada
+2025-09-23 12:35:27,125 - app - INFO - Limpieza de recursos completada
+2025-09-23 12:40:41,948 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 12:40:41,948 - app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 12:40:43,012 - app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 12:40:43,017 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 12:40:47,630 - app - INFO - Ventana de login mostrada
+2025-09-23 12:40:52,667 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_124052_auto.db
+2025-09-23 12:40:52,682 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_124052_auto.db
+2025-09-23 12:40:52,697 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-23 12:40:52,698 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-23 12:40:52,698 - app - INFO - Login exitoso para usuario: admin
+2025-09-23 12:40:53,545 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-23 12:40:53,582 - app - INFO - Ventana principal mostrada
+2025-09-23 12:41:00,825 - ui.main_window - INFO - Abriendo panel de auditoría para usuario: admin
+2025-09-23 12:41:00,863 - ui.audit_panel - ERROR - Error aplicando filtros: 'QDate' object has no attribute 'toPython'
+2025-09-23 12:41:02,453 - ui.audit_panel - INFO - Panel de auditoría iniciado por: admin
+2025-09-23 12:41:26,759 - ui.audit_panel - ERROR - Error exportando logs: 'QDate' object has no attribute 'toPython'
+2025-09-23 12:41:31,842 - ui.audit_panel - ERROR - Error exportando logs: 'QDate' object has no attribute 'toPython'
+2025-09-23 12:41:42,322 - app - INFO - Aplicación cerrada
+2025-09-23 12:41:42,326 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_124142_auto.db
+2025-09-23 12:41:42,354 - data.seed - INFO - Logout para usuario: admin
+2025-09-23 12:41:42,355 - app - INFO - Limpieza de recursos completada
+2025-09-23 12:44:06,802 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 12:44:06,803 - app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 12:44:07,870 - app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 12:44:07,876 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 12:44:09,616 - app - INFO - Ventana de login mostrada
+2025-09-23 12:44:13,982 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_124413_auto.db
+2025-09-23 12:44:13,999 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_124413_auto.db
+2025-09-23 12:44:14,012 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-23 12:44:14,013 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-23 12:44:14,014 - app - INFO - Login exitoso para usuario: admin
+2025-09-23 12:44:14,836 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-23 12:44:14,864 - app - INFO - Ventana principal mostrada
+2025-09-23 12:44:18,633 - ui.main_window - INFO - Abriendo panel de auditoría para usuario: admin
+2025-09-23 12:44:18,685 - ui.audit_panel - INFO - Panel de auditoría iniciado por: admin
+2025-09-23 12:45:55,681 - app - INFO - Aplicación cerrada
+2025-09-23 12:45:55,691 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_124555_auto.db
+2025-09-23 12:45:55,727 - data.seed - INFO - Logout para usuario: admin
+2025-09-23 12:45:55,728 - app - INFO - Limpieza de recursos completada
+2025-09-23 13:01:01,495 - core.settings - INFO - Sistema de logging configurado
+2025-09-23 13:01:01,495 - app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-23 13:01:02,574 - app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-23 13:01:02,580 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-23 13:01:04,568 - app - INFO - Ventana de login mostrada
+2025-09-23 13:01:08,141 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_130108_auto.db
+2025-09-23 13:01:08,171 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_130108_auto.db
+2025-09-23 13:01:08,190 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-23 13:01:08,191 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-23 13:01:08,191 - app - INFO - Login exitoso para usuario: admin
+2025-09-23 13:01:09,051 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-23 13:01:09,081 - app - INFO - Ventana principal mostrada
+2025-09-23 13:01:27,585 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_130127_auto.db
+2025-09-23 13:01:59,940 - app - INFO - Aplicación cerrada
+2025-09-23 13:01:59,943 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250923_130159_auto.db
+2025-09-23 13:01:59,972 - data.seed - INFO - Logout para usuario: admin
+2025-09-23 13:01:59,974 - app - INFO - Limpieza de recursos completada
+2025-09-24 10:02:43,183 - core.settings - INFO - Sistema de logging configurado
+2025-09-24 10:02:43,184 - homologador.app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-24 10:02:44,358 - homologador.app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-24 10:02:44,368 - data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-24 10:02:44,495 - homologador.app - INFO - Ventana de login mostrada
+2025-09-24 10:05:46,523 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_100546_auto.db
+2025-09-24 10:05:46,545 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_100546_auto.db
+2025-09-24 10:05:46,566 - data.seed - INFO - Login exitoso para usuario: admin
+2025-09-24 10:05:46,567 - ui.final_login - INFO - Login exitoso para: admin
+2025-09-24 10:05:46,568 - homologador.app - INFO - Login exitoso para usuario: admin
+2025-09-24 10:05:47,022 - ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-24 10:05:47,058 - homologador.app - INFO - Ventana principal mostrada
+2025-09-24 10:06:19,240 - ui.main_window - INFO - Abriendo dashboard administrativo para usuario: admin
+2025-09-24 10:06:19,433 - ui.admin_dashboard - INFO - Dashboard administrativo iniciado por: admin
+2025-09-24 10:06:34,174 - homologador.app - INFO - Aplicación cerrada
+2025-09-24 10:06:34,186 - core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250924_100634_auto.db
+2025-09-24 10:06:34,248 - data.seed - INFO - Logout para usuario: admin
+2025-09-24 10:06:34,249 - homologador.app - INFO - Limpieza de recursos completada

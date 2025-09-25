@@ -1,7 +1,10 @@
-[README.md](https://github.com/user-attachments/files/22408872/README.md)
-# Homologador de Aplicaciones
+# Homologador de Aplicaciones - MVP 1.0 ✅
 
-Aplicación de escritorio en Python con PyQt6 para gestión de homologaciones de aplicaciones corporativas.
+**Estado:** LISTO PARA PRODUCCIÓN  
+**Versión:** MVP 1.0  
+**Completado:** 90%
+
+Aplicación de escritorio desarrollada en **PyQt6** para gestionar el proceso de homologación de aplicaciones en entornos empresariales. Sistema completo con autenticación, CRUD robusto, validación de formularios mejorada, manejo centralizado de errores y documentación completa.
 
 ## Características
 

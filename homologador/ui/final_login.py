@@ -13,6 +13,16 @@ from PyQt6.QtGui import QFont, QPalette, QColor
 
 from data.seed import get_auth_service, AuthenticationError
 
+# Importar sistema de notificaciones
+try:
+    from ui.notification_system import (
+        send_info, send_success, send_warning, send_error, send_system
+    )
+    NOTIFICATIONS_AVAILABLE = True
+except ImportError:
+    NOTIFICATIONS_AVAILABLE = False
+    print("Sistema de notificaciones no disponible")
+
 logger = logging.getLogger(__name__)
 
 class FinalLoginWindow(QWidget):
@@ -141,15 +151,43 @@ class FinalLoginWindow(QWidget):
             self.status_label.setText("Autenticación exitosa")
             self.status_label.setStyleSheet("color: green; font-weight: bold;")
             logger.info(f"Login exitoso para: {user_info['username']}")
+            
+            # Enviar notificación de login exitoso
+            if NOTIFICATIONS_AVAILABLE:
+                username_display = user_info.get('username', 'Usuario')
+                role = user_info.get('role', 'usuario')
+                send_success(
+                    "Sesión Iniciada",
+                    f"Bienvenido {username_display}! Has iniciado sesión correctamente como {role}.",
+                    "auth_system"
+                )
+            
             self.login_successful.emit(user_info)
         except AuthenticationError as e:
             self.status_label.setText(str(e))
             self.status_label.setStyleSheet("color: red; font-weight: bold;")
             self.login_button.setEnabled(True)
             self.login_button.setText("Iniciar Sesión")
+            
+            # Enviar notificación de error de login
+            if NOTIFICATIONS_AVAILABLE:
+                send_error(
+                    "Error de Autenticación",
+                    f"No se pudo iniciar sesión: {str(e)}",
+                    "auth_system"
+                )
+                
         except Exception as e:
             logger.error(f"Error inesperado en login: {e}")
             self.status_label.setText("Error interno del sistema")
             self.status_label.setStyleSheet("color: red; font-weight: bold;")
             self.login_button.setEnabled(True)
             self.login_button.setText("Iniciar Sesión")
+            
+            # Enviar notificación de error del sistema
+            if NOTIFICATIONS_AVAILABLE:
+                send_error(
+                    "Error del Sistema",
+                    f"Error interno durante la autenticación: {str(e)}",
+                    "auth_system"
+                )

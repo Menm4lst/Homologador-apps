@@ -28,13 +28,51 @@ from .theme import (
 )
 from .homologation_form import HomologationFormDialog
 from .details_view import show_homologation_details
-from .notifications import show_info, show_success, show_warning, show_error
+from .web_preview import show_web_preview
+from .notification_system import send_info, send_success, send_warning, send_error
 from .metrics_panel import MetricsPanel
 from .tooltips import setup_tooltips, setup_widget_tooltips, get_help_system
 from .user_guide import UserGuideManager
 from .user_guide import start_user_tour
+from .change_password_dialog import ChangeMyPasswordDialog
 
 logger = logging.getLogger(__name__)
+
+# Importar módulos de administración
+try:
+    from .user_management import show_user_management
+    USER_MANAGEMENT_AVAILABLE = True
+except ImportError:
+    USER_MANAGEMENT_AVAILABLE = False
+    logger.warning("Módulo de administración de usuarios no disponible")
+
+try:
+    from .audit_panel import show_audit_panel
+    AUDIT_PANEL_AVAILABLE = True
+except ImportError:
+    AUDIT_PANEL_AVAILABLE = False
+    logger.warning("Panel de auditoría no disponible")
+
+try:
+    from .backup_system import show_backup_system
+    BACKUP_SYSTEM_AVAILABLE = True
+except ImportError:
+    BACKUP_SYSTEM_AVAILABLE = False
+    logger.warning("Sistema de respaldos no disponible")
+
+try:
+    from .admin_dashboard import show_admin_dashboard
+    ADMIN_DASHBOARD_AVAILABLE = True
+except ImportError:
+    ADMIN_DASHBOARD_AVAILABLE = False
+    logger.warning("Dashboard administrativo no disponible")
+
+try:
+    from .reports_system import show_reports_system
+    REPORTS_SYSTEM_AVAILABLE = True
+except ImportError:
+    REPORTS_SYSTEM_AVAILABLE = False
+    logger.warning("Sistema de reportes no disponible")
 
 try:
     from advanced_search import AdvancedSearchWidget
@@ -49,6 +87,13 @@ try:
 except ImportError:
     ACCESSIBILITY_AVAILABLE = False
     logger.warning("Módulo de accesibilidad no disponible")
+
+try:
+    from .notification_system import NotificationPanel, notification_manager, NotificationBadge
+    NOTIFICATIONS_AVAILABLE = True
+except ImportError:
+    NOTIFICATIONS_AVAILABLE = False
+    logger.warning("Sistema de notificaciones no disponible")
 
 
 class DataLoadWorker(QThread):
@@ -91,6 +136,11 @@ class HomologationTableWidget(QTableWidget):
         self.sort_order = Qt.SortOrder.AscendingOrder
         # Configurar tabla
         self.setup_table()
+        # Configurar menú contextual
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.show_context_menu)
+        # Referencia al widget principal para acceder a métodos
+        self.main_window = None
     
     def setup_table(self):
         """Configura la apariencia y comportamiento de la tabla."""
@@ -314,6 +364,54 @@ class HomologationTableWidget(QTableWidget):
         start_idx = (self.current_page - 1) * self.page_size + 1
         end_idx = start_idx + len(self.record_data) - 1
         return (start_idx, end_idx)
+    
+    def show_context_menu(self, position):
+        """Muestra el menú contextual de la tabla."""
+        from PyQt6.QtWidgets import QMenu
+        from PyQt6.QtGui import QAction
+        
+        # Verificar que hay un registro seleccionado
+        record = self.get_selected_record()
+        if not record or not self.main_window:
+            return
+        
+        # Crear menú contextual
+        context_menu = QMenu(self)
+        
+        # Acción Ver Detalles
+        details_action = QAction("👁️ Ver Detalles", self)
+        details_action.triggered.connect(self.main_window.view_details)
+        context_menu.addAction(details_action)
+        
+        # Acción Editar
+        edit_action = QAction("✏️ Editar", self)
+        edit_action.triggered.connect(self.main_window.edit_homologation)
+        context_menu.addAction(edit_action)
+        
+        # Acción Previsualizar Web (solo si tiene URL)
+        kb_url = record.get('kb_url', '').strip()
+        if kb_url:
+            context_menu.addSeparator()
+            web_preview_action = QAction("🌐 Previsualizar Web", self)
+            web_preview_action.triggered.connect(lambda: self.main_window.preview_web_url(record))
+            context_menu.addAction(web_preview_action)
+        
+        # Separador
+        context_menu.addSeparator()
+        
+        # Acción Eliminar (solo para admin/manager)
+        if (hasattr(self.main_window, 'current_user') and 
+            self.main_window.current_user and
+            self.main_window.current_user.get('role') in ['admin', 'manager']):
+            
+            delete_action = QAction("🗑️ Eliminar", self)
+            delete_action.triggered.connect(self.main_window.delete_homologation)
+            # Estilo rojo para indicar acción destructiva
+            delete_action.setProperty("style", "danger")
+            context_menu.addAction(delete_action)
+        
+        # Mostrar menú en la posición del cursor
+        context_menu.exec(self.mapToGlobal(position))
         
 
 class PaginationWidget(QWidget):
@@ -753,9 +851,26 @@ class MainWindow(QMainWindow):
             setup_widget_tooltips(edit_button, 'btn_edit')
             button_layout.addWidget(edit_button)
             
-            if is_admin:
-                delete_button = QPushButton("Eliminar")
+            # Botón eliminar - visible para admin y manager
+            if is_admin or self.current_user.get('role') == 'manager':
+                delete_button = QPushButton("🗑️ Eliminar")
                 delete_button.clicked.connect(self.delete_homologation)
+                delete_button.setStyleSheet("""
+                    QPushButton {
+                        background-color: #d32f2f;
+                        color: white;
+                        border: none;
+                        padding: 6px 12px;
+                        border-radius: 4px;
+                        font-weight: bold;
+                    }
+                    QPushButton:hover {
+                        background-color: #b71c1c;
+                    }
+                    QPushButton:pressed {
+                        background-color: #8e0000;
+                    }
+                """)
                 setup_widget_tooltips(delete_button, 'btn_delete')
                 button_layout.addWidget(delete_button)
         
@@ -845,6 +960,13 @@ class MainWindow(QMainWindow):
         metrics_action.triggered.connect(self.show_metrics_panel)
         view_menu.addAction(metrics_action)
         
+        # Centro de notificaciones
+        if NOTIFICATIONS_AVAILABLE:
+            notifications_action = QAction("🔔 Centro de Notificaciones", self)
+            notifications_action.setShortcut("Ctrl+N")
+            notifications_action.triggered.connect(self.show_notifications_panel)
+            view_menu.addAction(notifications_action)
+        
         view_menu.addSeparator()
         
         # Opciones de tema
@@ -910,6 +1032,78 @@ class MainWindow(QMainWindow):
                 large_text_action.triggered.connect(self.toggle_large_text)
                 accessibility_menu.addAction(large_text_action)
         
+        # Menú Usuario
+        if self.user_info:
+            user_menu = menubar.addMenu('&Usuario')
+            if user_menu:
+                # Información del usuario
+                user_info_text = f"👤 {self.user_info.get('username', 'Usuario')} ({self.user_info.get('role', 'viewer')})"
+                user_info_action = QAction(user_info_text, self)
+                user_info_action.setEnabled(False)  # Solo informativo
+                user_menu.addAction(user_info_action)
+                
+                user_menu.addSeparator()
+                
+                # Cambiar contraseña
+                change_password_action = QAction("🔑 Cambiar Mi Contraseña", self)
+                change_password_action.setShortcut("Ctrl+Shift+P")
+                change_password_action.triggered.connect(self.change_my_password)
+                user_menu.addAction(change_password_action)
+                
+                user_menu.addSeparator()
+                
+                # Cerrar sesión
+                logout_action = QAction("🚪 Cerrar Sesión", self)
+                logout_action.setShortcut("Ctrl+Shift+L")
+                logout_action.triggered.connect(self.logout)
+                user_menu.addAction(logout_action)
+
+        # Menú Administración (solo para administradores)
+        if self.user_info and self.user_info.get('role') == 'admin':
+            admin_menu = menubar.addMenu('&Administración')
+            if admin_menu:
+                # Dashboard administrativo
+                if ADMIN_DASHBOARD_AVAILABLE:
+                    dashboard_action = QAction("🎛️ Dashboard Administrativo", self)
+                    dashboard_action.setShortcut("Ctrl+D")
+                    dashboard_action.triggered.connect(self.show_admin_dashboard)
+                    admin_menu.addAction(dashboard_action)
+                    
+                    admin_menu.addSeparator()
+                
+                # Gestión de usuarios
+                if USER_MANAGEMENT_AVAILABLE:
+                    user_management_action = QAction("👥 Gestión de Usuarios", self)
+                    user_management_action.setShortcut("Ctrl+U")
+                    user_management_action.triggered.connect(self.show_user_management)
+                    admin_menu.addAction(user_management_action)
+                
+                # Panel de auditoría
+                if AUDIT_PANEL_AVAILABLE:
+                    audit_action = QAction("📋 Panel de Auditoría", self)
+                    audit_action.setShortcut("Ctrl+A")
+                    audit_action.triggered.connect(self.show_audit_panel)
+                    admin_menu.addAction(audit_action)
+                
+                # Sistema de respaldos
+                if BACKUP_SYSTEM_AVAILABLE:
+                    backup_action = QAction("💾 Sistema de Respaldos", self)
+                    backup_action.setShortcut("Ctrl+B")
+                    backup_action.triggered.connect(self.show_backup_system)
+                    admin_menu.addAction(backup_action)
+                
+                admin_menu.addSeparator()
+                
+                # Configuraciones del sistema
+                settings_action = QAction("⚙️ Configuraciones del Sistema", self)
+                settings_action.triggered.connect(self.show_system_settings)
+                admin_menu.addAction(settings_action)
+                
+                # Reportes administrativos
+                reports_action = QAction("� Reportes Administrativos", self)
+                reports_action.triggered.connect(self.show_admin_reports)
+                admin_menu.addAction(reports_action)
+        
         # Menú Ayuda
         help_menu = menubar.addMenu('A&yuda')
         if help_menu:
@@ -929,9 +1123,67 @@ class MainWindow(QMainWindow):
         """Configura la barra de herramientas."""
         toolbar = QToolBar("Barra Principal")
         toolbar.setMovable(False)
+        toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.addToolBar(toolbar)
         
-        # TODO: Agregar iconos y acciones a la barra
+        # Actualizar datos
+        refresh_action = QAction("🔄 Actualizar", self)
+        refresh_action.setShortcut("F5")
+        refresh_action.setToolTip("Actualizar datos de homologaciones")
+        refresh_action.triggered.connect(self.refresh_data)
+        toolbar.addAction(refresh_action)
+        
+        toolbar.addSeparator()
+        
+        # Nueva homologación (solo editores)
+        if self.user_info and self.user_info.get('role') in ('admin', 'editor'):
+            new_action = QAction("➕ Nueva", self)
+            new_action.setShortcut("Ctrl+N")
+            new_action.setToolTip("Crear nueva homologación")
+            new_action.triggered.connect(self.new_homologation)
+            toolbar.addAction(new_action)
+        
+        # Exportar
+        export_action = QAction("📊 Exportar", self)
+        export_action.setShortcut("Ctrl+E")
+        export_action.setToolTip("Exportar datos a CSV")
+        export_action.triggered.connect(self.export_data)
+        toolbar.addAction(export_action)
+        
+        # Agregar espacio flexible
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        toolbar.addWidget(spacer)
+        
+        # Información del usuario y contraseña (lado derecho)
+        if self.user_info:
+            # Etiqueta con info del usuario
+            user_label = QLabel(f"👤 {self.user_info.get('username', 'Usuario')}")
+            user_label.setStyleSheet("""
+                QLabel {
+                    color: #f0f6fc;
+                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, 
+                        stop: 0 #21262d, stop: 1 #0d1117);
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    margin-right: 5px;
+                }
+            """)
+            toolbar.addWidget(user_label)
+            
+            # Botón cambiar contraseña
+            password_action = QAction("🔑 Mi Contraseña", self)
+            password_action.setShortcut("Ctrl+Shift+P")
+            password_action.setToolTip("Cambiar mi contraseña")
+            password_action.triggered.connect(self.change_my_password)
+            toolbar.addAction(password_action)
+            
+            # Botón cerrar sesión
+            logout_action = QAction("🚪 Salir", self)
+            logout_action.setShortcut("Ctrl+Shift+L")
+            logout_action.setToolTip("Cerrar sesión")
+            logout_action.triggered.connect(self.logout)
+            toolbar.addAction(logout_action)
     
     def setup_styles(self):
         """Aplica estilos para mejorar la visibilidad en tema oscuro."""
@@ -1213,7 +1465,7 @@ class MainWindow(QMainWindow):
         """Maneja el evento cuando una homologación es guardada."""
         self.refresh_data()
         # Usar el sistema de notificaciones en lugar de la barra de estado
-        show_success(self, f"Homologación guardada con ID: {homologation_id}")
+        send_success("Homologación Guardada", f"Homologación guardada exitosamente con ID: {homologation_id}", "main_window")
     
     def new_homologation(self):
         """Abre formulario para nueva homologación."""
@@ -1246,7 +1498,7 @@ class MainWindow(QMainWindow):
         """Elimina la homologación seleccionada."""
         record = self.table_widget.get_selected_record()
         if not record:
-            show_warning(self, "Seleccione una homologación primero")
+            send_warning("Seleccione una homologación", "Debe seleccionar una homologación primero", "main_window")
             return
             
         # Confirmar eliminación
@@ -1261,13 +1513,13 @@ class MainWindow(QMainWindow):
             try:
                 success = self.repo.delete(record['id'])
                 if success:
-                    show_success(self, f"Homologación eliminada: {record['real_name']}")
+                    send_success("Homologación Eliminada", f"Homologación eliminada exitosamente: {record['real_name']}", "main_window")
                     self.refresh_data()
                 else:
-                    show_error(self, "No se pudo eliminar la homologación")
+                    send_error("Error", "No se pudo eliminar la homologación", "main_window")
             except Exception as e:
                 logger.error(f"Error eliminando homologación: {e}")
-                show_error(self, f"Error eliminando homologación: {str(e)}")
+                send_error("Error de Eliminación", f"Error eliminando homologación: {str(e)}", "main_window")
     
     def apply_filters(self):
         """Aplica filtros actuales y carga datos."""
@@ -1390,15 +1642,83 @@ class MainWindow(QMainWindow):
         # Guardar referencia para evitar garbage collection
         self.metrics_window = metrics_window
     
+    def show_notifications_panel(self):
+        """Muestra el centro de notificaciones."""
+        if not NOTIFICATIONS_AVAILABLE:
+            QMessageBox.warning(
+                self,
+                "Módulo No Disponible",
+                "El sistema de notificaciones no está disponible."
+            )
+            return
+        
+        # Crear ventana secundaria para notificaciones
+        notifications_window = QWidget()
+        notifications_window.setWindowTitle("🔔 Centro de Notificaciones")
+        notifications_window.setMinimumSize(800, 600)
+        notifications_window.resize(1000, 700)
+        
+        # Layout principal
+        layout = QVBoxLayout(notifications_window)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Crear panel de notificaciones
+        notifications_panel = NotificationPanel(notification_manager)
+        layout.addWidget(notifications_panel)
+        
+        # Hacer que la ventana sea modal
+        notifications_window.setWindowModality(Qt.WindowModality.ApplicationModal)
+        
+        # Posicionar relativo a la ventana principal
+        if self.geometry().isValid():
+            x = self.geometry().x() + 50
+            y = self.geometry().y() + 50
+            notifications_window.move(x, y)
+        
+        # Mostrar ventana
+        notifications_window.show()
+        
+        # Guardar referencia para evitar garbage collection
+        self.notifications_window = notifications_window
+    
+    def show_user_management(self):
+        """Muestra el módulo de administración de usuarios."""
+        if not USER_MANAGEMENT_AVAILABLE:
+            QMessageBox.warning(
+                self,
+                "Módulo No Disponible",
+                "El módulo de administración de usuarios no está disponible."
+            )
+            return
+        
+        if not self.user_info or self.user_info.get('role') != 'admin':
+            QMessageBox.warning(
+                self,
+                "Acceso Denegado",
+                "Solo los administradores pueden acceder a este módulo."
+            )
+            return
+        
+        try:
+            dialog = show_user_management(cast(Dict[str, Any], self.user_info), self)
+            dialog.exec()
+        except Exception as e:
+            logger.error(f"Error abriendo administración de usuarios: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error abriendo módulo de administración: {str(e)}"
+            )
+    
     def start_user_tour(self):
         """Inicia el tour de usuario para la ventana principal."""
         tour = start_user_tour('main_window_tour', self)
         if tour:
             # Conectar señales del tour
-            tour.tour_completed.connect(lambda: show_success(self, "¡Tour completado! Ya conoce las funciones principales."))
-            tour.tour_cancelled.connect(lambda: show_info(self, "Tour cancelado. Puede reiniciarlo desde el menú Ayuda."))
+            tour.tour_completed.connect(lambda: send_success("Operación Exitosa", "¡Tour completado! Ya conoce las funciones principales.", "main_window"))
+            tour.tour_cancelled.connect(lambda: send_info("Información", "Tour cancelado. Puede reiniciarlo desde el menú Ayuda.", "main_window"))
         else:
-            show_warning(self, "No se pudo iniciar el tour de usuario.")
+            send_warning("Advertencia", "No se pudo iniciar el tour de usuario.", "main_window")
         
     def toggle_theme(self):
         """Cambia entre tema claro y oscuro."""
@@ -1435,7 +1755,7 @@ class MainWindow(QMainWindow):
                 set_widget_style_class(self, actual_theme)
             
             # Mostrar mensaje de éxito
-            show_success(self, "Tema configurado para seguir el tema del sistema")
+            send_success("Operación Exitosa", "Tema configurado para seguir el tema del sistema", "main_window")
             
             # Actualizar datos para aplicar correctamente los estilos
             self.refresh_data()
@@ -1461,7 +1781,7 @@ class MainWindow(QMainWindow):
             theme_name = "Claro" if theme == "light" else "Oscuro"
             
             # Usar nuevo sistema de notificaciones
-            show_success(self, f"Tema cambiado a: {theme_name}")
+            send_success("Tema Cambiado", f"Tema cambiado exitosamente a: {theme_name}", "theme_system")
             
             # Guardar preferencia
             theme_type = ThemeType.LIGHT if theme == "light" else ThemeType.DARK
@@ -1508,7 +1828,7 @@ class MainWindow(QMainWindow):
     def show_advanced_search(self):
         """Muestra el widget de búsqueda avanzada."""
         if not self.advanced_search_widget:
-            show_warning(self, "Búsqueda avanzada no disponible")
+            send_warning("Advertencia", "Búsqueda avanzada no disponible", "main_window")
             return
         
         # Configurar datos para la búsqueda
@@ -1580,7 +1900,7 @@ class MainWindow(QMainWindow):
     def show_accessibility_settings(self):
         """Muestra la configuración de accesibilidad."""
         if not self.accessibility_manager:
-            show_warning(self, "Gestor de accesibilidad no disponible")
+            send_warning("Advertencia", "Gestor de accesibilidad no disponible", "main_window")
             return
         
         self.accessibility_manager.show_accessibility_settings()
@@ -1588,7 +1908,7 @@ class MainWindow(QMainWindow):
     def toggle_high_contrast(self):
         """Alterna el modo de alto contraste."""
         if not self.accessibility_manager:
-            show_warning(self, "Gestor de accesibilidad no disponible")
+            send_warning("Advertencia", "Gestor de accesibilidad no disponible", "main_window")
             return
         
         self.accessibility_manager.toggle_high_contrast()
@@ -1597,14 +1917,14 @@ class MainWindow(QMainWindow):
         from accessibility import AccessibilityMode
         current_mode = self.accessibility_manager.theme_manager.current_mode
         if current_mode == AccessibilityMode.HIGH_CONTRAST:
-            show_info(self, "Modo alto contraste activado")
+            send_info("Información", "Modo alto contraste activado", "main_window")
         else:
-            show_info(self, "Modo alto contraste desactivado")
+            send_info("Información", "Modo alto contraste desactivado", "main_window")
     
     def toggle_large_text(self):
         """Alterna el modo de texto grande."""
         if not self.accessibility_manager:
-            show_warning(self, "Gestor de accesibilidad no disponible")
+            send_warning("Advertencia", "Gestor de accesibilidad no disponible", "main_window")
             return
         
         # Alternar entre texto normal y grande
@@ -1615,12 +1935,195 @@ class MainWindow(QMainWindow):
         if app and isinstance(app, QApplication):
             if current_mode == AccessibilityMode.LARGE_TEXT:
                 self.accessibility_manager.theme_manager.set_mode(AccessibilityMode.NORMAL, app)
-                show_info(self, "Modo texto normal activado")
+                send_info("Información", "Modo texto normal activado", "main_window")
             else:
                 self.accessibility_manager.theme_manager.set_mode(AccessibilityMode.LARGE_TEXT, app)
-                show_info(self, "Modo texto grande activado")
+                send_info("Información", "Modo texto grande activado", "main_window")
+    
+    def show_admin_dashboard(self):
+        """Muestra el dashboard administrativo."""
+        try:
+            if not ADMIN_DASHBOARD_AVAILABLE:
+                QMessageBox.warning(
+                    self,
+                    "Función No Disponible",
+                    "El dashboard administrativo no está disponible."
+                )
+                return
+            
+            if not self.user_info or self.user_info.get('role') != 'admin':
+                QMessageBox.warning(
+                    self,
+                    "Acceso Denegado",
+                    "Solo los administradores pueden acceder al dashboard."
+                )
+                return
+            
+            logger.info(f"Abriendo dashboard administrativo para usuario: {self.user_info.get('username')}")
+            dialog = show_admin_dashboard(self.user_info, self)
+            dialog.exec()
+            
+        except Exception as e:
+            logger.error(f"Error abriendo dashboard administrativo: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error abriendo dashboard administrativo: {str(e)}"
+            )
+    
+    def show_audit_panel(self):
+        """Muestra el panel de auditoría."""
+        try:
+            if not AUDIT_PANEL_AVAILABLE:
+                QMessageBox.warning(
+                    self,
+                    "Función No Disponible",
+                    "El panel de auditoría no está disponible."
+                )
+                return
+            
+            if not self.user_info or self.user_info.get('role') not in ['admin', 'manager']:
+                QMessageBox.warning(
+                    self,
+                    "Acceso Denegado",
+                    "Solo los administradores y managers pueden acceder a los logs de auditoría."
+                )
+                return
+            
+            logger.info(f"Abriendo panel de auditoría para usuario: {self.user_info.get('username')}")
+            dialog = show_audit_panel(self.user_info, self)
+            dialog.exec()
+            
+        except Exception as e:
+            logger.error(f"Error abriendo panel de auditoría: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error abriendo panel de auditoría: {str(e)}"
+            )
+    
+    def show_backup_system(self):
+        """Muestra el sistema de respaldos."""
+        try:
+            if not BACKUP_SYSTEM_AVAILABLE:
+                QMessageBox.warning(
+                    self,
+                    "Función No Disponible",
+                    "El sistema de respaldos no está disponible."
+                )
+                return
+            
+            if not self.user_info or self.user_info.get('role') != 'admin':
+                QMessageBox.warning(
+                    self,
+                    "Acceso Denegado",
+                    "Solo los administradores pueden acceder al sistema de respaldos."
+                )
+                return
+            
+            logger.info(f"Abriendo sistema de respaldos para usuario: {self.user_info.get('username')}")
+            dialog = show_backup_system(self.user_info, self)
+            dialog.exec()
+            
+        except Exception as e:
+            logger.error(f"Error abriendo sistema de respaldos: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error abriendo sistema de respaldos: {str(e)}"
+            )
+    
+    def show_system_settings(self):
+        """Muestra las configuraciones del sistema."""
+        try:
+            if not self.user_info or self.user_info.get('role') != 'admin':
+                QMessageBox.warning(
+                    self,
+                    "Acceso Denegado",
+                    "Solo los administradores pueden acceder a las configuraciones del sistema."
+                )
+                return
+            
+            # Aquí iría el diálogo de configuraciones del sistema
+            QMessageBox.information(
+                self,
+                "Configuraciones del Sistema",
+                "Panel de configuraciones del sistema\\n\\n"
+                "Esta funcionalidad estará disponible en una próxima versión."
+            )
+            
+        except Exception as e:
+            logger.error(f"Error abriendo configuraciones del sistema: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error abriendo configuraciones: {str(e)}"
+            )
+    
+    def show_admin_reports(self):
+        """Muestra los reportes administrativos."""
+        try:
+            if not self.user_info or self.user_info.get('role') not in ['admin', 'manager']:
+                QMessageBox.warning(
+                    self,
+                    "Acceso Denegado",
+                    "Solo los administradores y managers pueden acceder a los reportes administrativos."
+                )
+                return
+            
+            # Aquí iría el sistema de reportes administrativos
+            QMessageBox.information(
+                self,
+                "Reportes Administrativos",
+                "Sistema de reportes administrativos\\n\\n"
+                "Esta funcionalidad incluirá:\\n"
+                "• Reportes de actividad de usuarios\\n"
+                "• Estadísticas de uso del sistema\\n"
+                "• Análisis de rendimiento\\n"
+                "• Reportes de seguridad\\n\\n"
+                "Estará disponible en una próxima versión."
+            )
+            
+        except Exception as e:
+            logger.error(f"Error abriendo reportes administrativos: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error abriendo reportes: {str(e)}"
+            )
+    
+    def show_reports_system(self):
+        """Muestra el sistema de reportes avanzado."""
+        try:
+            if not REPORTS_SYSTEM_AVAILABLE:
+                QMessageBox.warning(
+                    self,
+                    "Función No Disponible",
+                    "El sistema de reportes no está disponible."
+                )
+                return
+            
+            if not self.user_info or self.user_info.get('role') not in ['admin', 'manager']:
+                QMessageBox.warning(
+                    self,
+                    "Acceso Denegado",
+                    "Solo los administradores y managers pueden acceder al sistema de reportes."
+                )
+                return
+            
+            logger.info(f"Abriendo sistema de reportes para usuario: {self.user_info.get('username')}")
+            dialog = show_reports_system(self.user_info, self)
+            dialog.exec()
+            
+        except Exception as e:
+            logger.error(f"Error abriendo sistema de reportes: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error abriendo sistema de reportes: {str(e)}"
+            )
         else:
-            show_warning(self, "No se pudo cambiar el modo de texto")
+            send_warning("Advertencia", "No se pudo cambiar el modo de texto", "main_window")
     
     def setup_widget_accessibility(self, widget: QWidget, name: str, description: str = ""):
         """Configura la accesibilidad de un widget."""
@@ -1640,6 +2143,104 @@ class MainWindow(QMainWindow):
             self.data_worker.wait()
         
         event.accept()
+
+    def preview_web_url(self, record: Dict[str, Any]) -> None:
+        """
+        Abre una ventana de previsualización web para la URL de la homologación.
+        
+        Args:
+            record: Diccionario con los datos de la homologación
+        """
+        kb_url = record.get('kb_url', '').strip()
+        
+        if not kb_url:
+            QMessageBox.warning(
+                self,
+                "Sin URL",
+                "Esta homologación no tiene una URL de KB asociada."
+            )
+            return
+        
+        homologation_name = record.get('app_name', 'Homologación')
+        
+        try:
+            show_web_preview(kb_url, parent=self)
+        except Exception as e:
+            logging.error(f"Error al abrir previsualización web: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"No se pudo abrir la previsualización web:\n{str(e)}"
+            )
+    
+    def change_my_password(self):
+        """Abre el diálogo para cambiar la contraseña del usuario actual."""
+        if not self.user_info:
+            QMessageBox.warning(
+                self,
+                "⚠️ Advertencia",
+                "No hay información de usuario disponible."
+            )
+            return
+        
+        try:
+            dialog = ChangeMyPasswordDialog(self.user_info, self)
+            dialog.password_changed.connect(self.on_password_changed)
+            dialog.exec()
+        except Exception as e:
+            logger.error(f"Error al abrir diálogo de cambio de contraseña: {e}")
+            QMessageBox.critical(
+                self,
+                "❌ Error",
+                f"No se pudo abrir el diálogo de cambio de contraseña:\n{str(e)}"
+            )
+    
+    def on_password_changed(self):
+        """Maneja cuando se cambia la contraseña del usuario."""
+        send_success("Contraseña Actualizada", "Tu contraseña ha sido cambiada exitosamente", "user_management")
+        
+        # Opcional: mostrar mensaje informativo
+        result = QMessageBox.question(
+            self,
+            "🔄 Contraseña Cambiada",
+            "Tu contraseña ha sido cambiada exitosamente.\n\n"
+            "¿Deseas cerrar sesión para usar la nueva contraseña?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if result == QMessageBox.StandardButton.Yes:
+            self.logout()
+    
+    def logout(self):
+        """Cierra la sesión actual y regresa al login."""
+        result = QMessageBox.question(
+            self,
+            "🚪 Cerrar Sesión",
+            f"¿Está seguro de que desea cerrar la sesión de {self.user_info.get('username', 'Usuario')}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if result == QMessageBox.StandardButton.Yes:
+            try:
+                # Cerrar la ventana principal
+                self.close()
+                
+                # Mostrar ventana de login nuevamente
+                from .final_login import FinalLoginWindow
+                login_window = FinalLoginWindow()
+                login_window.show()
+                
+                send_info("Sesión Cerrada", f"Sesión cerrada para {self.user_info.get('username', 'Usuario')}", "user_management")
+                
+            except Exception as e:
+                logger.error(f"Error al cerrar sesión: {e}")
+                QMessageBox.critical(
+                    self,
+                    "❌ Error",
+                    f"Error al cerrar sesión:\n{str(e)}"
+                )
 
 
 if __name__ == "__main__":

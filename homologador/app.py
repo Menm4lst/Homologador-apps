@@ -174,18 +174,13 @@ class HomologadorApplication:
     def show_login(self):
         """Muestra la ventana de login."""
         try:
-            # Mostrar mensaje de diagnóstico
-            QMessageBox.information(None, "Diagnóstico", "¿Puedes ver este mensaje? Vamos a mostrar el login.")
-            
             self.login_window = FinalLoginWindow()
             self.login_window.login_successful.connect(self.on_login_successful)
             
-            # Ya no aplicamos efectos visuales que puedan interferir
+            # Mostrar ventana de login
             self.login_window.show()
             self.login_window.raise_()  # Asegurar que esté en primer plano
-            
-            # Otro mensaje para verificar que se mostró
-            QMessageBox.information(None, "Diagnóstico", "El login debería estar visible ahora.")
+            self.login_window.activateWindow()  # Activar ventana
             
             logger.info("Ventana de login mostrada")
             

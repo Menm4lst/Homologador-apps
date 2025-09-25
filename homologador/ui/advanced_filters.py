@@ -454,14 +454,14 @@ class AdvancedFilterWidget(QFrame):
     def save_filter_configuration(self):
         """Guarda la configuración actual de filtros."""
         # TODO: Implementar guardado de configuración
-        from .notifications import show_info
-        show_info(self, "Funcionalidad de guardado de configuración próximamente disponible")
+        from .notification_system import send_info
+        send_info("Información", "Funcionalidad de guardado de configuración próximamente disponible", "filters_system")
     
     def load_filter_configuration(self):
         """Carga una configuración guardada de filtros."""
         # TODO: Implementar carga de configuración
-        from .notifications import show_info
-        show_info(self, "Funcionalidad de carga de configuración próximamente disponible")
+        from .notification_system import send_info
+        send_info("Información", "Funcionalidad de carga de configuración próximamente disponible", "filters_system")
     
     def apply_theme_styles(self):
         """Aplica estilos según el tema actual."""
