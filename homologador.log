@@ -830,3 +830,31 @@ AttributeError: 'Settings' object has no attribute 'get'
 2025-09-26 12:23:54,886 - homologador.ui.main_window - INFO - Abriendo sistema de respaldos para usuario: admin
 2025-09-26 12:23:54,914 - homologador.ui.main_window - ERROR - Error abriendo sistema de respaldos: type object 'DarkTheme' has no attribute 'apply_to_widget'
 2025-09-26 12:24:01,600 - homologador.ui.main_window - ERROR - Error creando respaldo rápido: cannot import name 'get_app_instance' from 'homologador.app' (C:\Users\Antware\OneDrive\Desktop\PROYECTOS DEV\APP HOMOLOGACIONES\homologador\app.py)
+2025-09-26 12:43:31,739 - homologador.core.settings - INFO - Sistema de logging configurado
+2025-09-26 12:43:31,739 - homologador.app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-26 12:43:32,859 - homologador.app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-26 12:43:32,864 - homologador.data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-26 12:43:32,867 - homologador.core.backup_system - INFO - Respaldos automáticos iniciados cada 24 horas
+2025-09-26 12:43:32,867 - homologador.app - INFO - Sistema de respaldos inicializado
+2025-09-26 12:43:32,982 - homologador.app - INFO - Ventana de login mostrada
+2025-09-26 12:43:42,272 - homologador.core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250926_124342_auto.db
+2025-09-26 12:43:42,330 - homologador.core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250926_124342_auto.db
+2025-09-26 12:43:42,378 - homologador.data.seed - INFO - Login exitoso para usuario: admin
+2025-09-26 12:43:42,378 - homologador.ui.final_login - INFO - Login exitoso para: admin
+2025-09-26 12:43:42,379 - homologador.app - INFO - Login exitoso para usuario: admin
+2025-09-26 12:43:43,267 - homologador.ui.main_window - INFO - Búsqueda avanzada configurada correctamente
+2025-09-26 12:43:43,313 - homologador.app - INFO - Ventana principal mostrada
+2025-09-26 12:44:15,267 - homologador.ui.user_management - INFO - Módulo de administración de usuarios iniciado por: admin
+2025-09-26 12:44:49,002 - homologador.app - INFO - Aplicación cerrada
+2025-09-26 12:44:49,007 - homologador.core.storage - INFO - Backup creado: C:\Users\Antware\OneDrive\backups/homologador_backup_20250926_124449_auto.db
+2025-09-26 12:44:49,097 - homologador.data.seed - INFO - Logout para usuario: admin
+2025-09-26 12:44:49,097 - homologador.app - INFO - Limpieza de recursos completada
+2025-09-26 13:41:59,348 - homologador.core.settings - INFO - Sistema de logging configurado
+2025-09-26 13:41:59,348 - homologador.app - INFO - Iniciando Homologador de Aplicaciones v1.0.0
+2025-09-26 13:42:00,508 - homologador.app - INFO - Base de datos inicializada en: C:\Users\Antware\OneDrive\homologador.db
+2025-09-26 13:42:00,514 - homologador.data.seed - INFO - Usuario admin ya existe, omitiendo seed
+2025-09-26 13:42:00,518 - homologador.core.backup_system - INFO - Respaldos automáticos iniciados cada 24 horas
+2025-09-26 13:42:00,519 - homologador.app - INFO - Sistema de respaldos inicializado
+2025-09-26 13:42:00,671 - homologador.app - INFO - Ventana de login mostrada
+2025-09-26 13:42:02,407 - homologador.app - INFO - Aplicación cerrada
+2025-09-26 13:42:02,409 - homologador.app - INFO - Limpieza de recursos completada

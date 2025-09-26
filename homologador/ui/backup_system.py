@@ -96,7 +96,16 @@ class BackupWorker(QThread):
     def _backup_database(self, zipf: zipfile.ZipFile, timestamp: str):
         """Respalda la base de datos."""
         try:
-            db_path = Path("data/homologador.db")
+            # Determinar la ruta de la base de datos según el contexto
+            import sys
+            if getattr(sys, 'frozen', False):
+                # Si es ejecutable compilado, usar la carpeta del .exe
+                db_dir = os.path.dirname(sys.executable)
+                db_path = Path(os.path.join(db_dir, "homologador.db"))
+            else:
+                # Si es desarrollo, usar la ruta original
+                db_path = Path("data/homologador.db")
+                
             if db_path.exists():
                 # Crear una copia temporal de la base de datos
                 temp_db_path = f"temp_backup_{timestamp}.db"
@@ -271,9 +280,18 @@ class RestoreWorker(QThread):
             db_info = zipf.getinfo("database/homologador.db")
             zipf.extract(db_info, "temp_restore")
             
+            # Determinar la ruta de destino según el contexto
+            import sys
+            if getattr(sys, 'frozen', False):
+                # Si es ejecutable compilado, usar la carpeta del .exe
+                db_dir = os.path.dirname(sys.executable)
+                target_db_path = os.path.join(db_dir, "homologador.db")
+            else:
+                # Si es desarrollo, usar la ruta original
+                target_db_path = "data/homologador.db"
+            
             # Mover la base de datos restaurada
             temp_db_path = "temp_restore/database/homologador.db"
-            target_db_path = "data/homologador.db"
             
             # Crear directorio si no existe
             os.makedirs(os.path.dirname(target_db_path), exist_ok=True)
@@ -361,7 +379,17 @@ class BackupSystemWidget(QWidget):
         
         # Directorio de destino
         backup_dir_layout = QHBoxLayout()
-        self.backup_directory = QLineEdit("backups")
+        
+        # Determinar directorio por defecto según el contexto
+        import sys
+        if getattr(sys, 'frozen', False):
+            # Si es ejecutable compilado, usar carpeta del .exe/backups
+            default_backup_dir = os.path.join(os.path.dirname(sys.executable), "backups")
+        else:
+            # Si es desarrollo, usar backups relativo
+            default_backup_dir = "backups"
+            
+        self.backup_directory = QLineEdit(default_backup_dir)
         backup_dir_layout.addWidget(self.backup_directory)
         
         browse_btn = QPushButton("📁 Examinar")

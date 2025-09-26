@@ -1,0 +1,11 @@
+{
+    "db_path": "homologador.db",
+    "backups_dir": "backups/",
+    "auto_backup": true,
+    "backup_retention_days": 30,
+    "onedrive_paths": [
+        "C:\\Users\\{username}\\OneDrive\\HomologadorApp",
+        "C:\\Users\\{username}\\OneDrive - Personal\\HomologadorApp",
+        "C:\\Users\\{username}\\OneDrive\\Documentos\\HomologadorApp"
+    ]
+}

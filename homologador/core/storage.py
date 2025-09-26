@@ -179,13 +179,26 @@ class DatabaseManager:
         conn = None
         
         try:
+            # Determinar la ruta de la base de datos según el contexto
+            import sys
+            if getattr(sys, 'frozen', False):
+                # Si es ejecutable compilado, usar la carpeta del .exe
+                db_dir = os.path.dirname(sys.executable)
+                db_path = os.path.join(db_dir, "homologador.db")
+            else:
+                # Si es desarrollo, usar la configuración original
+                db_path = self.db_path
+            
+            # Actualizar la ruta para el lock
+            self.db_path = db_path
+            
             # Adquirir lock del archivo
             self._acquire_file_lock()
             lock_acquired = True
             
             # Conectar a la base de datos
             conn = sqlite3.connect(
-                self.db_path,
+                db_path,
                 timeout=30.0,
                 check_same_thread=False
             )
