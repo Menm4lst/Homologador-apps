@@ -4,12 +4,12 @@ Maneja roles, contraseñas con Argon2 y seed de datos inicial.
 """
 
 import logging
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError, HashingError
-from typing import Optional, Dict, Any, cast
 from datetime import datetime
+from typing import Any, Dict, Optional, cast
 
-from core.storage import get_user_repository, get_audit_repository
+from argon2 import PasswordHasher
+from argon2.exceptions import HashingError, VerifyMismatchError
+from ..core.storage import get_audit_repository, get_user_repository
 
 logger = logging.getLogger(__name__)
 

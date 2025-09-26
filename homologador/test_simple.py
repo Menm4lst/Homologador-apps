@@ -4,8 +4,8 @@
 Script de prueba simple para validar que la aplicación funciona correctamente.
 """
 
-import sys
 import os
+import sys
 from datetime import datetime
 
 # Agregar el directorio actual al path para importar módulos

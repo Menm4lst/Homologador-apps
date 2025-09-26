@@ -4,15 +4,13 @@ Proporciona ayuda contextual y información adicional en tiempo real.
 """
 
 import logging
-from typing import Dict, Any, Optional
-from PyQt6.QtWidgets import (
-    QWidget, QLabel, QToolTip, QApplication
-)
-from PyQt6.QtCore import QPoint
-from PyQt6.QtCore import Qt, QTimer, QPoint, pyqtSignal
-from PyQt6.QtGui import QFont, QPalette, QColor
+from typing import Any, Dict, Optional
 
-from .theme import get_current_theme, ThemeType
+from PyQt6.QtCore import QPoint, Qt, QTimer, pyqtSignal
+from PyQt6.QtGui import QColor, QFont, QPalette
+from PyQt6.QtWidgets import QApplication, QLabel, QToolTip, QWidget
+
+from .theme import ThemeType, get_current_theme
 
 logger = logging.getLogger(__name__)
 

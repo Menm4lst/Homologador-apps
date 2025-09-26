@@ -2,22 +2,20 @@
 Ventana de login final con estilo básico y compatible.
 """
 
-import sys
 import logging
-from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLabel, QLineEdit, QPushButton, QMessageBox, QFrame
-)
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QPalette, QColor
+import sys
 
-from data.seed import get_auth_service, AuthenticationError
+from ..data.seed import AuthenticationError, get_auth_service
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QFont, QPalette
+from PyQt6.QtWidgets import (QApplication, QFormLayout, QFrame, QHBoxLayout,
+                             QLabel, QLineEdit, QMessageBox, QPushButton,
+                             QVBoxLayout, QWidget)
 
 # Importar sistema de notificaciones
 try:
-    from ui.notification_system import (
-        send_info, send_success, send_warning, send_error, send_system
-    )
+    from ui.notification_system import (send_error, send_info, send_success,
+                                        send_system, send_warning)
     NOTIFICATIONS_AVAILABLE = True
 except ImportError:
     NOTIFICATIONS_AVAILABLE = False

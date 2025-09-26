@@ -5,26 +5,27 @@ Este módulo proporciona funcionalidades completas para crear, gestionar y resta
 respaldos de la base de datos y configuraciones del sistema.
 """
 
+import json
+import logging
 import os
 import shutil
 import sqlite3
-import json
 import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, cast
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QPushButton, QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem,
-    QHeaderView, QGroupBox, QCheckBox, QTextEdit, QDateEdit,
-    QMessageBox, QDialog, QTabWidget, QFrame, QSplitter,
-    QListWidget, QListWidgetItem, QProgressBar, QFileDialog,
-    QSpinBox, QSlider, QButtonGroup, QRadioButton, QTextBrowser
-)
-from PyQt6.QtCore import Qt, QDate, pyqtSignal, QTimer, QThread, pyqtSlot
-from PyQt6.QtGui import QFont, QIcon, QPalette, QColor, QAction
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-import logging
+from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QAction, QColor, QFont, QIcon, QPalette
+from PyQt6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDateEdit,
+                             QDialog, QFileDialog, QFormLayout, QFrame,
+                             QGroupBox, QHBoxLayout, QHeaderView, QLabel,
+                             QLineEdit, QListWidget, QListWidgetItem,
+                             QMessageBox, QProgressBar, QPushButton,
+                             QRadioButton, QSlider, QSpinBox, QSplitter,
+                             QTableWidget, QTableWidgetItem, QTabWidget,
+                             QTextBrowser, QTextEdit, QVBoxLayout, QWidget)
+
 logger = logging.getLogger(__name__)
 
 
@@ -316,6 +317,7 @@ class BackupSystemWidget(QWidget):
         self.user_info = user_info
         
         self.setup_ui()
+        self.apply_dark_theme()
         self.load_backup_list()
         
         logger.info(f"Sistema de respaldos iniciado por: {user_info.get('username')}")
@@ -927,6 +929,74 @@ class BackupSystemWidget(QWidget):
     def save_settings(self):
         """Guarda las configuraciones del sistema."""
         QMessageBox.information(self, "Configuración Guardada", "Las configuraciones han sido guardadas.")
+    
+    def apply_dark_theme(self):
+        """Aplica el tema nocturno elegante al sistema de respaldos."""
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #3a4b5c;
+                border-radius: 12px;
+                margin-top: 15px;
+                padding-top: 15px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+            }
+            
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 15px;
+                padding: 0 8px 0 8px;
+                color: #74b9ff;
+                background-color: #1a1a1a;
+                font-weight: bold;
+            }
+            
+            QLabel {
+                color: #e0e0e0;
+                background-color: transparent;
+            }
+            
+            QPushButton {
+                padding: 12px 20px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                font-weight: bold;
+                min-width: 120px;
+                background-color: #34495e;
+                color: #ecf0f1;
+            }
+            
+            QPushButton:hover {
+                background-color: #4a6741;
+                border-color: #74b9ff;
+                color: #ffffff;
+            }
+            
+            QPushButton[default="true"] {
+                background-color: #2980b9;
+                border-color: #3498db;
+            }
+            
+            QProgressBar {
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+                text-align: center;
+                color: #ecf0f1;
+                height: 25px;
+            }
+            
+            QProgressBar::chunk {
+                background-color: #74b9ff;
+                border-radius: 6px;
+            }
+        """)
 
 
 def show_backup_system(user_info: Dict[str, Any], parent: Optional[QWidget] = None) -> QDialog:
@@ -966,6 +1036,7 @@ def show_backup_system(user_info: Dict[str, Any], parent: Optional[QWidget] = No
 
 if __name__ == "__main__":
     import sys
+
     from PyQt6.QtWidgets import QApplication
     
     app = QApplication(sys.argv)

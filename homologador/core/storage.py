@@ -3,16 +3,17 @@ Core de almacenamiento para el Homologador de Aplicaciones.
 Maneja la base de datos SQLite con WAL mode, file locking y backups automáticos.
 """
 
-import sqlite3
-import os
-import shutil
 import json
 import logging
-import portalocker
+import os
+import shutil
+import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Tuple, cast
-from contextlib import contextmanager
+from typing import Any, Dict, List, Optional, Tuple, cast
+
+import portalocker
 
 from .settings import get_settings
 
@@ -43,9 +44,15 @@ class DatabaseManager:
             
             with self.get_connection() as conn:
                 # Cargar y ejecutar el esquema
-                schema_path = Path(__file__).parent.parent / "data" / "schema.sql"
-                with open(schema_path, 'r', encoding='utf-8') as f:
-                    schema_sql = f.read()
+                try:
+                    # Intentar cargar desde archivo externo primero
+                    schema_path = Path(__file__).parent.parent / "data" / "schema.sql"
+                    with open(schema_path, 'r', encoding='utf-8') as f:
+                        schema_sql = f.read()
+                except (FileNotFoundError, IOError):
+                    # Si no se encuentra el archivo, usar esquema embebido
+                    from ..data.embedded_schema import get_schema_sql
+                    schema_sql = get_schema_sql()
                 
                 conn.executescript(schema_sql)
                 conn.commit()
@@ -104,7 +111,7 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error al aplicar migraciones: {e}")
 
-    def _apply_smart_migration(self, conn, filename: str, migration_sql: str) -> bool:
+    def _apply_smart_migration(self, conn: sqlite3.Connection, filename: str, migration_sql: str) -> bool:
         """Aplica una migración de forma inteligente, evitando errores de columnas duplicadas."""
         try:
             # Para migraciones que agregan columnas, verificar si ya existen
@@ -122,7 +129,7 @@ class DatabaseManager:
                 logger.warning(f"Error al aplicar migración {filename}: {e}")
                 return False
 
-    def _apply_column_migration(self, conn, filename: str, migration_sql: str) -> bool:
+    def _apply_column_migration(self, conn: sqlite3.Connection, filename: str, migration_sql: str) -> bool:
         """Aplica migración de columnas verificando si ya existen."""
         try:
             lines = migration_sql.strip().split('\n')
@@ -156,7 +163,7 @@ class DatabaseManager:
             logger.warning(f"Error en migración de columna {filename}: {e}")
             return False
 
-    def _column_exists(self, conn, table_name: str, column_name: str) -> bool:
+    def _column_exists(self, conn: sqlite3.Connection, table_name: str, column_name: str) -> bool:
         """Verifica si una columna existe en una tabla."""
         try:
             cursor = conn.execute(f"PRAGMA table_info({table_name})")
@@ -375,7 +382,7 @@ class HomologationRepository:
         """Obtiene todas las homologaciones con filtros opcionales."""
         query = "SELECT * FROM v_homologations_with_user"
         params: List[Any] = []
-        where_clauses = []
+        where_clauses: List[str] = []
         
         if filters:
             if filters.get('real_name'):
@@ -689,7 +696,7 @@ class AuditRepository:
         """Obtiene el trail de auditoría con filtros opcionales."""
         query = "SELECT * FROM v_audit_with_user"
         params: List[Any] = []
-        where_clauses = []
+        where_clauses: List[str] = []
         
         if filters:
             if filters.get('user_id'):
@@ -745,7 +752,7 @@ class AuditRepository:
         """
         
         params: List[Any] = []
-        where_clauses = []
+        where_clauses: List[str] = []
         
         if date_from:
             where_clauses.append("DATE(al.timestamp) >= ?")
@@ -892,7 +899,7 @@ class AuditRepository:
     
     def _format_log_details(self, row: sqlite3.Row) -> str:
         """Formatea los detalles de un log para mostrar."""
-        details = []
+        details: List[str] = []
         
         if row['old_values']:
             try:

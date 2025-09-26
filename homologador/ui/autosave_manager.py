@@ -6,10 +6,11 @@ Guarda borradores automáticos periódicamente para evitar pérdida de datos.
 import json
 import logging
 import tempfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 from PyQt6.QtCore import QTimer
+
 
 class AutoSaveManager:
     """Gestiona el autoguardado de los datos del formulario."""

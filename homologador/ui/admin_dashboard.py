@@ -8,20 +8,19 @@ todas las funciones administrativas del sistema.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, cast
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QPushButton, QLabel, QFrame, QGroupBox, QScrollArea,
-    QMessageBox, QDialog, QSizePolicy, QSpacerItem,
-    QProgressBar, QListWidget, QListWidgetItem
-)
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QSize
-from PyQt6.QtGui import QFont, QIcon, QPalette, QColor, QPixmap, QPainter
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-from core.storage import get_user_repository, get_audit_repository
-from ui.user_management import show_user_management
-from ui.audit_panel import show_audit_panel
-from ui.backup_system import show_backup_system
+from ..core.storage import get_audit_repository, get_user_repository
+from PyQt6.QtCore import QSize, Qt, QTimer, pyqtSignal
+from PyQt6.QtGui import QColor, QFont, QIcon, QPainter, QPalette, QPixmap
+from PyQt6.QtWidgets import (QDialog, QFrame, QGridLayout, QGroupBox,
+                             QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
+                             QMessageBox, QProgressBar, QPushButton,
+                             QScrollArea, QSizePolicy, QSpacerItem,
+                             QVBoxLayout, QWidget)
+from ..ui.audit_panel import show_audit_panel
+from ..ui.backup_system import show_backup_system
+from ..ui.user_management import show_user_management
 
 # Importar sistema de reportes si está disponible
 try:
@@ -32,7 +31,8 @@ except ImportError:
 
 # Importar sistema de notificaciones si está disponible
 try:
-    from ui.notification_system import NotificationPanel, notification_manager, send_system
+    from ui.notification_system import (NotificationPanel,
+                                        notification_manager, send_system)
     NOTIFICATIONS_AVAILABLE = True
 except ImportError:
     NOTIFICATIONS_AVAILABLE = False
@@ -44,19 +44,19 @@ class MetricCard(QFrame):
     """Widget de tarjeta para mostrar métricas."""
     
     def __init__(self, title: str, value: str, icon: str = "📊", 
-                 color: str = "#3498db", trend: Optional[str] = None, parent: Optional[QWidget] = None):
+                 color: str = "#74b9ff", trend: Optional[str] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setFrameStyle(QFrame.Shape.StyledPanel)
         self.setStyleSheet(f"""
             QFrame {{
-                background-color: white;
-                border: 1px solid #e0e0e0;
-                border-radius: 10px;
+                background-color: #2c3e50;
+                border: 2px solid #34495e;
+                border-radius: 12px;
                 padding: 15px;
             }}
             QFrame:hover {{
                 border: 2px solid {color};
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                background-color: #34495e;
             }}
         """)
         
@@ -79,7 +79,7 @@ class MetricCard(QFrame):
         
         # Valor principal
         value_label = QLabel(value)
-        value_label.setStyleSheet("font-size: 28px; font-weight: bold; color: #2c3e50;")
+        value_label.setStyleSheet("font-size: 28px; font-weight: bold; color: #ecf0f1;")
         value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(value_label)
         
@@ -109,19 +109,19 @@ class ActionCard(QFrame):
     action_clicked = pyqtSignal(str)
     
     def __init__(self, title: str, description: str, icon: str = "⚡", 
-                 action_id: str = "", color: str = "#3498db", parent: Optional[QWidget] = None):
+                 action_id: str = "", color: str = "#74b9ff", parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.action_id = action_id
         self.setFrameStyle(QFrame.Shape.StyledPanel)
         self.setStyleSheet(f"""
             QFrame {{
-                background-color: white;
-                border: 1px solid #e0e0e0;
-                border-radius: 10px;
+                background-color: #2c3e50;
+                border: 2px solid #34495e;
+                border-radius: 12px;
                 padding: 20px;
             }}
             QFrame:hover {{
-                background-color: #f8f9fa;
+                background-color: #34495e;
                 border: 2px solid {color};
                 cursor: pointer;
             }}
@@ -144,7 +144,7 @@ class ActionCard(QFrame):
         
         # Descripción
         desc_label = QLabel(description)
-        desc_label.setStyleSheet("color: #7f8c8d; font-size: 11px; text-align: center;")
+        desc_label.setStyleSheet("color: #bdc3c7; font-size: 11px; text-align: center;")
         desc_label.setWordWrap(True)
         desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(desc_label)
@@ -172,7 +172,7 @@ class SystemHealthWidget(QWidget):
         
         # Título
         title_label = QLabel("🔍 Estado del Sistema")
-        title_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #2c3e50; margin-bottom: 10px;")
+        title_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #74b9ff; margin-bottom: 10px;")
         layout.addWidget(title_label)
         
         # Indicadores de salud
@@ -195,13 +195,15 @@ class SystemHealthWidget(QWidget):
         self.memory_progress.setValue(45)
         self.memory_progress.setStyleSheet("""
             QProgressBar {
-                border: 1px solid #bdc3c7;
-                border-radius: 4px;
+                border: 2px solid #34495e;
+                border-radius: 6px;
                 text-align: center;
+                background-color: #2c3e50;
+                color: #ecf0f1;
             }
             QProgressBar::chunk {
-                background-color: #3498db;
-                border-radius: 3px;
+                background-color: #74b9ff;
+                border-radius: 4px;
             }
         """)
         memory_layout.addWidget(self.memory_progress)
@@ -216,8 +218,16 @@ class SystemHealthWidget(QWidget):
         self.disk_progress.setMaximum(100)
         self.disk_progress.setValue(78)
         self.disk_progress.setStyleSheet("""
+            QProgressBar {
+                border: 2px solid #34495e;
+                border-radius: 6px;
+                text-align: center;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+            }
             QProgressBar::chunk {
                 background-color: #f39c12;
+                border-radius: 4px;
             }
         """)
         disk_layout.addWidget(self.disk_progress)
@@ -240,15 +250,16 @@ class SystemHealthWidget(QWidget):
         diagnosis_btn = QPushButton("🔧 Ejecutar Diagnóstico")
         diagnosis_btn.setStyleSheet("""
             QPushButton {
-                background-color: #34495e;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
+                background-color: #74b9ff;
+                color: #ffffff;
+                border: 2px solid #74b9ff;
+                border-radius: 8px;
+                padding: 10px 16px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #2c3e50;
+                background-color: #0984e3;
+                border-color: #0984e3;
             }
         """)
         diagnosis_btn.clicked.connect(self.run_system_diagnosis)
@@ -273,23 +284,28 @@ class RecentActivityWidget(QWidget):
         
         # Título
         title_label = QLabel("⏰ Actividad Reciente")
-        title_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #2c3e50; margin-bottom: 10px;")
+        title_label.setStyleSheet("font-weight: bold; font-size: 14px; color: #74b9ff; margin-bottom: 10px;")
         layout.addWidget(title_label)
         
         # Lista de actividades
         self.activity_list = QListWidget()
         self.activity_list.setStyleSheet("""
             QListWidget {
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                background-color: white;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
             }
             QListWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #f0f0f0;
+                padding: 12px;
+                border-bottom: 1px solid #34495e;
             }
             QListWidget::item:hover {
-                background-color: #f8f9fa;
+                background-color: #34495e;
+            }
+            QListWidget::item:selected {
+                background-color: #74b9ff;
+                color: #ffffff;
             }
         """)
         layout.addWidget(self.activity_list)
@@ -299,14 +315,14 @@ class RecentActivityWidget(QWidget):
         view_more_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                color: #3498db;
-                border: 1px solid #3498db;
-                border-radius: 6px;
-                padding: 6px 12px;
+                color: #74b9ff;
+                border: 2px solid #74b9ff;
+                border-radius: 8px;
+                padding: 8px 16px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #3498db;
+                background-color: #74b9ff;
                 color: white;
             }
         """)
@@ -401,6 +417,7 @@ class AdminDashboardWidget(QWidget):
         self.user_info = user_info
         
         self.setup_ui()
+        self.apply_dark_theme()
         self.setup_timer()
         self.load_dashboard_data()
         
@@ -411,11 +428,11 @@ class AdminDashboardWidget(QWidget):
         # Scroll area principal
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; background-color: #f8f9fa; }")
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: #1a1a1a; }")
         
         # Widget contenedor
         container = QWidget()
-        container.setStyleSheet("background-color: #f8f9fa;")
+        container.setStyleSheet("background-color: #1a1a1a;")
         
         main_layout = QVBoxLayout(container)
         main_layout.setSpacing(30)
@@ -738,6 +755,93 @@ class AdminDashboardWidget(QWidget):
         except Exception as e:
             logger.error(f"Error mostrando centro de notificaciones: {e}")
             QMessageBox.critical(self, "Error", f"Error abriendo centro de notificaciones: {str(e)}")
+    
+    def apply_dark_theme(self):
+        """Aplica el tema nocturno elegante al dashboard administrativo."""
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            
+            QScrollArea {
+                border: none;
+                background-color: #1a1a1a;
+            }
+            
+            QFrame {
+                background-color: #2c3e50;
+                border: 2px solid #34495e;
+                border-radius: 12px;
+                padding: 15px;
+            }
+            
+            QLabel {
+                color: #e0e0e0;
+                background-color: transparent;
+            }
+            
+            QPushButton {
+                padding: 12px 20px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                font-weight: bold;
+                min-width: 120px;
+                background-color: #34495e;
+                color: #ecf0f1;
+            }
+            
+            QPushButton:hover {
+                background-color: #4a6741;
+                border-color: #74b9ff;
+                color: #ffffff;
+            }
+            
+            QPushButton[default="true"] {
+                background-color: #2980b9;
+                border-color: #3498db;
+            }
+            
+            QProgressBar {
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+                text-align: center;
+                color: #ecf0f1;
+            }
+            
+            QProgressBar::chunk {
+                background-color: #74b9ff;
+                border-radius: 6px;
+            }
+            
+            QTableWidget {
+                gridline-color: #4a6741;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                border: 2px solid #34495e;
+                border-radius: 10px;
+            }
+            
+            QTableWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #34495e;
+            }
+            
+            QTableWidget::item:selected {
+                background-color: #74b9ff;
+                color: #ffffff;
+            }
+            
+            QHeaderView::section {
+                background-color: #1a252f;
+                color: #74b9ff;
+                padding: 15px;
+                border: none;
+                font-weight: bold;
+                border-bottom: 2px solid #74b9ff;
+            }
+        """)
 
 
 def show_admin_dashboard(user_info: Dict[str, Any], parent: Optional[QWidget] = None) -> QDialog:
@@ -758,15 +862,16 @@ def show_admin_dashboard(user_info: Dict[str, Any], parent: Optional[QWidget] = 
         close_button = QPushButton("Cerrar")
         close_button.setStyleSheet("""
             QPushButton {
-                background-color: #95a5a6;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
+                background-color: #e74c3c;
+                color: #ffffff;
+                border: 2px solid #c0392b;
+                border-radius: 8px;
+                padding: 12px 24px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #7f8c8d;
+                background-color: #c0392b;
+                border-color: #a93226;
             }
         """)
         close_button.clicked.connect(dialog.accept)
@@ -792,6 +897,7 @@ def show_admin_dashboard(user_info: Dict[str, Any], parent: Optional[QWidget] = 
 
 if __name__ == "__main__":
     import sys
+
     from PyQt6.QtWidgets import QApplication
     
     app = QApplication(sys.argv)

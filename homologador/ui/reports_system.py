@@ -6,38 +6,42 @@ estadísticas detalladas, análisis de tendencias y exportación automática
 en múltiples formatos.
 """
 
-import os
-import json
 import csv
-from datetime import datetime, timedelta, date
-from typing import Dict, List, Any, Optional, Tuple, cast
-from pathlib import Path
+import json
 import logging
+import os
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout,
-    QPushButton, QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem,
-    QHeaderView, QGroupBox, QCheckBox, QTextEdit, QDateEdit,
-    QMessageBox, QDialog, QTabWidget, QFrame, QSplitter,
-    QListWidget, QListWidgetItem, QProgressBar, QFileDialog,
-    QSpinBox, QSlider, QButtonGroup, QRadioButton, QTextBrowser,
-    QScrollArea, QSizePolicy, QSpacerItem
-)
-from PyQt6.QtCore import Qt, QDate, pyqtSignal, QTimer, QThread, pyqtSlot, QSize
-from PyQt6.QtGui import QFont, QIcon, QPalette, QColor, QAction, QPainter, QPen, QBrush
+from PyQt6.QtCore import (QDate, QSize, Qt, QThread, QTimer, pyqtSignal,
+                          pyqtSlot)
+from PyQt6.QtGui import (QAction, QBrush, QColor, QFont, QIcon, QPainter,
+                         QPalette, QPen)
+from PyQt6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDateEdit,
+                             QDialog, QFileDialog, QFormLayout, QFrame,
+                             QGridLayout, QGroupBox, QHBoxLayout, QHeaderView,
+                             QLabel, QLineEdit, QListWidget, QListWidgetItem,
+                             QMessageBox, QProgressBar, QPushButton,
+                             QRadioButton, QScrollArea, QSizePolicy, QSlider,
+                             QSpacerItem, QSpinBox, QSplitter, QTableWidget,
+                             QTableWidgetItem, QTabWidget, QTextBrowser,
+                             QTextEdit, QVBoxLayout, QWidget)
 
 # Intentar importar matplotlib para gráficos
 try:
-    import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-    from matplotlib.figure import Figure
+    import matplotlib.pyplot as plt
     import numpy as np
+    from matplotlib.backends.backend_qt5agg import \
+        FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.figure import Figure
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
-from core.storage import get_homologation_repository, get_user_repository, get_audit_repository
+from ..core.storage import (get_audit_repository, get_homologation_repository,
+                          get_user_repository)
 
 logger = logging.getLogger(__name__)
 
@@ -655,6 +659,7 @@ class ReportsSystemWidget(QWidget):
         self.current_report_data = None
         
         self.setup_ui()
+        self.apply_dark_theme()
         logger.info(f"Sistema de reportes iniciado por: {user_info.get('username')}")
     
     def setup_ui(self):
@@ -890,6 +895,80 @@ class ReportsSystemWidget(QWidget):
             "• Almacenamiento automático en ubicaciones específicas\\n\\n"
             "Estará disponible en una próxima versión."
         )
+    
+    def apply_dark_theme(self):
+        """Aplica el tema nocturno elegante al sistema de reportes."""
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #3a4b5c;
+                border-radius: 12px;
+                margin-top: 15px;
+                padding-top: 15px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+            }
+            
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 15px;
+                padding: 0 8px 0 8px;
+                color: #74b9ff;
+                background-color: #1a1a1a;
+                font-weight: bold;
+            }
+            
+            QLabel {
+                color: #e0e0e0;
+                background-color: transparent;
+            }
+            
+            QPushButton {
+                padding: 12px 20px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                font-weight: bold;
+                min-width: 120px;
+                background-color: #34495e;
+                color: #ecf0f1;
+            }
+            
+            QPushButton:hover {
+                background-color: #4a6741;
+                border-color: #74b9ff;
+                color: #ffffff;
+            }
+            
+            QPushButton[default="true"] {
+                background-color: #2980b9;
+                border-color: #3498db;
+            }
+            
+            QComboBox, QDateEdit {
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                border: 2px solid #34495e;
+                border-radius: 6px;
+                padding: 8px;
+            }
+            
+            QComboBox:hover, QDateEdit:hover {
+                border-color: #74b9ff;
+            }
+            
+            QTextEdit {
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                padding: 12px;
+            }
+        """)
 
 
 def show_reports_system(user_info: Dict[str, Any], parent: Optional[QWidget] = None) -> QDialog:
@@ -944,6 +1023,7 @@ def show_reports_system(user_info: Dict[str, Any], parent: Optional[QWidget] = N
 
 if __name__ == "__main__":
     import sys
+
     from PyQt6.QtWidgets import QApplication
     
     app = QApplication(sys.argv)

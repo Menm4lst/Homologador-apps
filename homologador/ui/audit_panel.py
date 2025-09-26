@@ -7,21 +7,21 @@ de los usuarios y cambios en el sistema.
 """
 
 import logging
-from datetime import datetime, timedelta, date
-from typing import Dict, List, Any, Optional, Tuple, cast
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QPushButton, QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem,
-    QHeaderView, QGroupBox, QCheckBox, QTextEdit, QDateEdit,
-    QMessageBox, QDialog, QTabWidget, QFrame, QSplitter,
-    QListWidget, QListWidgetItem, QProgressBar, QCalendarWidget,
-    QSpinBox, QSlider, QButtonGroup, QRadioButton
-)
-from PyQt6.QtCore import Qt, QDate, pyqtSignal, QTimer, QThread, pyqtSlot
-from PyQt6.QtGui import QFont, QIcon, QPalette, QColor, QAction
+from datetime import date, datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-from core.storage import get_audit_repository, get_user_repository
-from data.seed import get_auth_service
+from ..core.storage import get_audit_repository, get_user_repository
+from ..data.seed import get_auth_service
+from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QAction, QColor, QFont, QIcon, QPalette
+from PyQt6.QtWidgets import (QButtonGroup, QCalendarWidget, QCheckBox,
+                             QComboBox, QDateEdit, QDialog, QFormLayout,
+                             QFrame, QGroupBox, QHBoxLayout, QHeaderView,
+                             QLabel, QLineEdit, QListWidget, QListWidgetItem,
+                             QMessageBox, QProgressBar, QPushButton,
+                             QRadioButton, QSlider, QSpinBox, QSplitter,
+                             QTableWidget, QTableWidgetItem, QTabWidget,
+                             QTextEdit, QVBoxLayout, QWidget)
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class AuditLogWidget(QWidget):
         title_font.setPointSize(18)
         title_font.setWeight(QFont.Weight.Bold)
         title_label.setFont(title_font)
-        title_label.setStyleSheet("color: #2c3e50; margin-bottom: 10px;")
+        title_label.setStyleSheet("color: #74b9ff; margin-bottom: 15px; text-decoration: underline;")
         main_layout.addWidget(title_label)
         
         # Pestañas
@@ -62,6 +62,9 @@ class AuditLogWidget(QWidget):
         self.create_statistics_tab()
         self.create_security_tab()
         self.create_export_tab()
+        
+        # Aplicar tema nocturno
+        self.apply_dark_theme()
     
     def create_logs_tab(self):
         """Crea la pestaña de logs de auditoría."""
@@ -157,11 +160,18 @@ class AuditLogWidget(QWidget):
             QTableWidget {
                 gridline-color: #e0e0e0;
                 background-color: white;
+                color: #2c3e50;
                 border: 1px solid #ddd;
                 border-radius: 6px;
             }
             QTableWidget::item {
                 padding: 8px;
+                color: #2c3e50;
+                background-color: white;
+            }
+            QTableWidget::item:alternate {
+                background-color: #f8f9fa;
+                color: #2c3e50;
             }
             QTableWidget::item:selected {
                 background-color: #3498db;
@@ -242,6 +252,28 @@ class AuditLogWidget(QWidget):
         activity_layout = QVBoxLayout(activity_group)
         
         self.activity_list = QListWidget()
+        self.activity_list.setStyleSheet("""
+            QListWidget {
+                background-color: white;
+                color: #2c3e50;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                padding: 5px;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #eee;
+                color: #2c3e50;
+            }
+            QListWidget::item:selected {
+                background-color: #3498db;
+                color: white;
+            }
+            QListWidget::item:hover {
+                background-color: #ecf0f1;
+                color: #2c3e50;
+            }
+        """)
         activity_layout.addWidget(self.activity_list)
         
         layout.addWidget(activity_group)
@@ -251,6 +283,28 @@ class AuditLogWidget(QWidget):
         recent_layout = QVBoxLayout(recent_group)
         
         self.recent_activity_list = QListWidget()
+        self.recent_activity_list.setStyleSheet("""
+            QListWidget {
+                background-color: white;
+                color: #2c3e50;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                padding: 5px;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #eee;
+                color: #2c3e50;
+            }
+            QListWidget::item:selected {
+                background-color: #3498db;
+                color: white;
+            }
+            QListWidget::item:hover {
+                background-color: #ecf0f1;
+                color: #2c3e50;
+            }
+        """)
         recent_layout.addWidget(self.recent_activity_list)
         
         layout.addWidget(recent_group)
@@ -269,6 +323,35 @@ class AuditLogWidget(QWidget):
         self.failed_logins_table = QTableWidget()
         self.failed_logins_table.setColumnCount(4)
         self.failed_logins_table.setHorizontalHeaderLabels(["Fecha/Hora", "Usuario", "IP", "Intentos"])
+        self.failed_logins_table.setStyleSheet("""
+            QTableWidget {
+                gridline-color: #e0e0e0;
+                background-color: white;
+                color: #2c3e50;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+            }
+            QTableWidget::item {
+                padding: 8px;
+                color: #2c3e50;
+                background-color: white;
+            }
+            QTableWidget::item:alternate {
+                background-color: #f8f9fa;
+                color: #2c3e50;
+            }
+            QTableWidget::item:selected {
+                background-color: #3498db;
+                color: white;
+            }
+            QHeaderView::section {
+                background-color: #34495e;
+                color: white;
+                padding: 10px;
+                border: none;
+                font-weight: bold;
+            }
+        """)
         failed_layout.addWidget(self.failed_logins_table)
         
         layout.addWidget(failed_logins_group)
@@ -278,6 +361,28 @@ class AuditLogWidget(QWidget):
         suspicious_layout = QVBoxLayout(suspicious_group)
         
         self.suspicious_activity_list = QListWidget()
+        self.suspicious_activity_list.setStyleSheet("""
+            QListWidget {
+                background-color: white;
+                color: #2c3e50;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                padding: 5px;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #eee;
+                color: #2c3e50;
+            }
+            QListWidget::item:selected {
+                background-color: #3498db;
+                color: white;
+            }
+            QListWidget::item:hover {
+                background-color: #ecf0f1;
+                color: #2c3e50;
+            }
+        """)
         suspicious_layout.addWidget(self.suspicious_activity_list)
         
         layout.addWidget(suspicious_group)
@@ -655,6 +760,114 @@ class LogDetailDialog(QDialog):
         close_btn = QPushButton("Cerrar")
         close_btn.clicked.connect(self.accept)
         layout.addWidget(close_btn)
+    
+    def apply_dark_theme(self):
+        """Aplica el tema nocturno elegante al panel de auditoría."""
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #3a4b5c;
+                border-radius: 12px;
+                margin-top: 15px;
+                padding-top: 15px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+            }
+            
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 15px;
+                padding: 0 8px 0 8px;
+                color: #74b9ff;
+                background-color: #1a1a1a;
+                font-weight: bold;
+            }
+            
+            QLabel {
+                color: #e0e0e0;
+                background-color: transparent;
+            }
+            
+            QPushButton {
+                padding: 12px 20px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                font-weight: bold;
+                min-width: 100px;
+                background-color: #34495e;
+                color: #ecf0f1;
+            }
+            
+            QPushButton:hover {
+                background-color: #4a6741;
+                border-color: #74b9ff;
+                color: #ffffff;
+            }
+            
+            QTabWidget::pane {
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+            }
+            
+            QTabBar::tab {
+                background-color: #34495e;
+                color: #bdc3c7;
+                padding: 12px 20px;
+                border: 2px solid #2c3e50;
+                border-bottom: none;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                margin-right: 4px;
+                font-weight: bold;
+            }
+            
+            QTabBar::tab:selected {
+                background-color: #2980b9;
+                color: #ffffff;
+                border-color: #3498db;
+            }
+            
+            QTabBar::tab:hover:!selected {
+                background-color: #4a6741;
+                color: #ecf0f1;
+                border-color: #74b9ff;
+            }
+            
+            QComboBox, QLineEdit, QDateEdit, QSpinBox {
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                border: 2px solid #34495e;
+                border-radius: 6px;
+                padding: 8px;
+            }
+            
+            QComboBox:hover, QLineEdit:hover, QDateEdit:hover, QSpinBox:hover {
+                border-color: #74b9ff;
+            }
+            
+            QCheckBox {
+                color: #e0e0e0;
+            }
+            
+            QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+                border: 2px solid #34495e;
+                border-radius: 4px;
+                background-color: #2c3e50;
+            }
+            
+            QCheckBox::indicator:checked {
+                background-color: #74b9ff;
+                border-color: #74b9ff;
+            }
+        """)
 
 
 def show_audit_panel(user_info: Dict[str, Any], parent: Optional[QWidget] = None) -> QDialog:
@@ -694,6 +907,7 @@ def show_audit_panel(user_info: Dict[str, Any], parent: Optional[QWidget] = None
 
 if __name__ == "__main__":
     import sys
+
     from PyQt6.QtWidgets import QApplication
     
     app = QApplication(sys.argv)

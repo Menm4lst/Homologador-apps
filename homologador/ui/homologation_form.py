@@ -4,23 +4,23 @@ Interfaz completa con validaciones y manejo de datos.
 """
 import logging
 import tempfile
+from datetime import date, datetime
 from pathlib import Path
-from datetime import datetime, date
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional, List
 
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout,
-    QLabel, QLineEdit, QTextEdit, QDateEdit, QComboBox, QCheckBox,
-    QPushButton, QDialogButtonBox, QMessageBox, QFrame, QScrollArea,
-    QWidget, QSizePolicy, QSpacerItem, QGroupBox
-)
-from PyQt6.QtCore import Qt, QDate, pyqtSignal, QThread, pyqtSlot, QTimer
+from ..core.storage import get_homologation_repository
+from ..data.seed import get_auth_service
+from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDateEdit, QDialog,
+                             QDialogButtonBox, QFormLayout, QFrame,
+                             QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+                             QLineEdit, QMessageBox, QPushButton, QScrollArea,
+                             QSizePolicy, QSpacerItem, QTextEdit, QVBoxLayout,
+                             QWidget)
 
-from core.storage import get_homologation_repository
-from data.seed import get_auth_service
-from .theme import set_widget_style_class
 from .autosave_manager import AutoSaveManager
+from .theme import set_widget_style_class
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class HomologationSaveWorker(QThread):
     save_successful = pyqtSignal(int)
     save_failed = pyqtSignal(str)
     
-    def __init__(self, homologation_data: Dict[str, Any], homologation_id: int = None):
+    def __init__(self, homologation_data: Dict[str, Any], homologation_id: Optional[int] = None):
         super().__init__()
         self.homologation_data = homologation_data
         self.homologation_id = homologation_id  # None para crear, ID para editar
@@ -62,7 +62,7 @@ class HomologationFormDialog(QDialog):
     
     homologation_saved = pyqtSignal(int)
     
-    def __init__(self, parent=None, homologation_data: Dict[str, Any] = None, user_info: Dict[str, Any] = None):
+    def __init__(self, parent: Optional[QWidget] = None, homologation_data: Optional[Dict[str, Any]] = None, user_info: Optional[Dict[str, Any]] = None):
         super().__init__(parent)
         self.homologation_data = homologation_data  # None para crear, datos para editar
         self.user_info = user_info
@@ -256,152 +256,152 @@ class HomologationFormDialog(QDialog):
         layout.addLayout(button_layout)
     
     def setup_styles(self):
-        """Configura estilos CSS según el tema actual."""
-        from .theme import get_current_theme, ThemeType
-        
-        current_theme = get_current_theme()
-        is_dark = current_theme == ThemeType.DARK
-        
-        if is_dark:
-            # Tema oscuro
-            self.setStyleSheet("""
-                QDialog {
-                    background-color: #222222;
-                    color: #ffffff;
-                }
-                
-                QLabel {
-                    color: #e0e0e0;
-                    font-weight: normal;
-                }
-                
-                QGroupBox {
-                    font-weight: bold;
-                    border: 1px solid #555555;
-                    border-radius: 4px;
-                    margin-top: 10px;
-                    padding-top: 10px;
-                    color: #e0e0e0;
-                }
-                
-                QGroupBox::title {
-                    subcontrol-origin: margin;
-                    left: 10px;
-                    padding: 0 5px 0 5px;
-                    color: #e0e0e0;
-                }
-                
-                QLineEdit, QTextEdit {
-                    padding: 8px;
-                    border: 1px solid #555555;
-                    border-radius: 4px;
-                    background-color: #333333;
-                    color: #ffffff;
-                color: #ffffff;
-                font-size: 11pt;
-                selection-background-color: #0078d4;
+        """Configura estilos CSS con tema nocturno elegante."""
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            
+            QLabel {
+                color: #e0e0e0;
+                background-color: transparent;
+                font-weight: normal;
+            }
+            
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #3a4b5c;
+                border-radius: 12px;
+                margin-top: 15px;
+                padding-top: 15px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+            }
+            
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 15px;
+                padding: 0 8px 0 8px;
+                color: #74b9ff;
+                background-color: #1a1a1a;
+                font-weight: bold;
+            }
+            
+            QLineEdit, QTextEdit {
+                padding: 12px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                font-size: 12pt;
+                selection-background-color: #74b9ff;
+            }
+            
+            QLineEdit:focus, QTextEdit:focus {
+                border-color: #74b9ff;
+                background-color: #34495e;
             }
             
             QDateEdit, QComboBox {
-                padding: 8px;
-                border: 1px solid #555555;
-                border-radius: 4px;
-                background-color: #333333;
-                color: #ffffff;
-                font-size: 11pt;
+                padding: 10px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                font-size: 12pt;
+            }
+            
+            QDateEdit:hover, QComboBox:hover {
+                border-color: #74b9ff;
             }
             
             QComboBox::drop-down {
                 subcontrol-origin: padding;
                 subcontrol-position: top right;
-                width: 15px;
-                border-left: 1px solid #555555;
+                width: 20px;
+                border-left: 2px solid #34495e;
+                border-top-right-radius: 8px;
+                border-bottom-right-radius: 8px;
+                background-color: #34495e;
             }
             
             QComboBox QAbstractItemView {
-                background-color: #333333;
-                color: #ffffff;
-                selection-background-color: #0078d4;
-            }
-            
-            QLineEdit:focus, QTextEdit:focus, QDateEdit:focus, QComboBox:focus {
-                border-color: #0078d4;
-                outline: none;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                selection-background-color: #74b9ff;
+                border: 2px solid #34495e;
+                border-radius: 8px;
             }
             
             QPushButton {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                font-size: 11pt;
+                padding: 12px 20px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                font-size: 12pt;
                 font-weight: bold;
-                min-width: 100px;
+                min-width: 120px;
+                background-color: #34495e;
+                color: #ecf0f1;
+            }
+            
+            QPushButton:hover {
+                background-color: #4a6741;
+                border-color: #74b9ff;
+                color: #ffffff;
             }
             
             QPushButton[default="true"] {
-                background-color: #0078d4;
+                background-color: #2980b9;
+                border-color: #3498db;
                 color: white;
             }
             
             QPushButton[default="true"]:hover {
-                background-color: #106ebe;
-            }
-            
-            QPushButton:not([default="true"]) {
-                background-color: #555555;
-                color: white;
-            }
-            
-            QPushButton:not([default="true"]):hover {
-                background-color: #666666;
+                background-color: #3498db;
+                border-color: #74b9ff;
             }
             
             QPushButton:disabled {
-                background-color: #333333;
-                color: #777777;
+                background-color: #1a252f;
+                color: #7f8c8d;
+                border-color: #2c3e50;
             }
             
             QCheckBox {
-                font-size: 11pt;
+                font-size: 12pt;
                 color: #e0e0e0;
+                spacing: 8px;
             }
             
             QCheckBox::indicator {
-                width: 18px;
-                height: 18px;
-            }
-            
-            QCheckBox::indicator:unchecked {
-                border: 1px solid #666666;
-                background-color: #333333;
-                border-radius: 3px;
+                width: 20px;
+                height: 20px;
+                border: 2px solid #34495e;
+                border-radius: 4px;
+                background-color: #2c3e50;
             }
             
             QCheckBox::indicator:checked {
-                border: 1px solid #0078d4;
-                background-color: #0078d4;
-                border-radius: 3px;
+                background-color: #74b9ff;
+                border-color: #74b9ff;
+            }
+            
+            QCheckBox::indicator:hover {
+                border-color: #74b9ff;
             }
             
             QSpinBox, QDoubleSpinBox {
-                background-color: #333333;
-                color: #ffffff;
-                border: 1px solid #555555;
-                border-radius: 4px;
-                padding: 6px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                padding: 8px;
+                font-size: 12pt;
             }
             
-            QSpinBox::up-button, QDoubleSpinBox::up-button {
-                subcontrol-origin: border;
-                subcontrol-position: top right;
-                border-left: 1px solid #555555;
-                border-bottom: 1px solid #555555;
-            }
-            
-            QSpinBox::down-button, QDoubleSpinBox::down-button {
-                subcontrol-origin: border;
-                subcontrol-position: bottom right;
-                border-left: 1px solid #555555;
+            QSpinBox:hover, QDoubleSpinBox:hover {
+                border-color: #74b9ff;
             }
         """)
     
@@ -422,7 +422,7 @@ class HomologationFormDialog(QDialog):
         
     def apply_theme_styles(self):
         """Aplica estilos adaptados al tema actual a todos los campos."""
-        from .theme import get_current_theme, ThemeType
+        from .theme import ThemeType, get_current_theme
         current_theme = get_current_theme()
         is_dark = current_theme == ThemeType.DARK
         
@@ -463,7 +463,7 @@ class HomologationFormDialog(QDialog):
         real_name = self.real_name_edit.text().strip()
         
         # Validaciones adicionales
-        validation_errors = []
+        validation_errors: List[str] = []
         
         # 1. Nombre real es obligatorio
         is_real_name_valid = bool(real_name)
@@ -547,7 +547,7 @@ class HomologationFormDialog(QDialog):
                 self.kb_url_edit.setToolTip("La URL parece no tener un formato válido")
             else:
                 # URL válida - aplicar estilo normal según el tema
-                from .theme import get_current_theme, ThemeType
+                from .theme import ThemeType, get_current_theme
                 current_theme = get_current_theme()
                 is_dark = current_theme == ThemeType.DARK
                 
@@ -570,7 +570,7 @@ class HomologationFormDialog(QDialog):
                 self.kb_url_edit.setToolTip("URL válida")
         else:
             # Campo vacío - estilo normal según el tema
-            from .theme import get_current_theme, ThemeType
+            from .theme import ThemeType, get_current_theme
             current_theme = get_current_theme()
             is_dark = current_theme == ThemeType.DARK
             
@@ -604,7 +604,7 @@ class HomologationFormDialog(QDialog):
                                is_logical_name_valid: bool, is_details_valid: bool):
         """Aplica estilos visuales según el estado de validación."""
         try:
-            from .theme import get_current_theme, ThemeType
+            from .theme import ThemeType, get_current_theme
             current_theme = get_current_theme()
             is_dark = current_theme == ThemeType.DARK
             
@@ -900,9 +900,10 @@ def show_homologation_form(parent=None, homologation_data=None, user_info=None):
 if __name__ == "__main__":
     # Test del formulario
     import sys
-    from PyQt6.QtWidgets import QApplication
+
     from core.settings import setup_logging
     from data.seed import create_seed_data
+    from PyQt6.QtWidgets import QApplication
     
     setup_logging()
     

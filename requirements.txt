@@ -1,6 +1,29 @@
-PyQt6>=6.6.0
-bcrypt>=4.0.1
-portalocker>=2.0.0
-argon2-cffi>=21.0.0
-pandas>=2.0.0
-numpy>=1.26.0
+# Core GUI Framework
+PyQt6==6.7.1
+PyQt6-Qt6==6.7.2
+PyQt6-sip==13.6.0
+
+# Security & Authentication
+argon2-cffi==23.1.0
+
+# File & Process Management  
+portalocker==2.8.2
+
+# Data Processing & Analysis
+python-dateutil==2.8.2
+pandas==2.2.2
+openpyxl==3.1.2
+
+# Development Dependencies (optional)
+# Install with: pip install -e ".[dev]"
+# mypy>=1.8.0
+# black>=24.0.0  
+# isort>=5.13.0
+# flake8>=7.0.0
+# pytest>=8.0.0
+# pytest-qt>=4.4.0
+# pytest-cov>=4.0.0
+
+# Build Dependencies (optional)
+# Install with: pip install -e ".[build]" 
+# pyinstaller>=6.0.0

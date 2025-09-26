@@ -3,12 +3,12 @@ Módulo de exportación de datos para el Homologador de Aplicaciones.
 Funciones para exportar datos a CSV, Excel y otros formatos.
 """
 
-import os
-import logging
 import csv
+import logging
+import os
 from datetime import datetime
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 try:
     import pandas as pd
@@ -16,8 +16,8 @@ try:
 except ImportError:
     PANDAS_AVAILABLE = False
 
-from core.storage import get_homologation_repository, get_audit_repository
-from core.audit import get_audit_logger
+from ..core.audit import get_audit_logger
+from ..core.storage import get_audit_repository, get_homologation_repository
 
 logger = logging.getLogger(__name__)
 

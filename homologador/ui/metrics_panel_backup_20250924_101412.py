@@ -4,20 +4,19 @@ Muestra gráficos y estadísticas de homologaciones con indicadores visuales.
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
 import sqlite3
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, 
-    QFrame, QScrollArea, QGroupBox, QPushButton, QComboBox,
-    QProgressBar, QTableWidget, QTableWidgetItem, QHeaderView
-)
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread, pyqtSlot
-from PyQt6.QtGui import QFont, QPalette, QColor
+from ..core.storage import get_homologation_repository
+from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QColor, QFont, QPalette
+from PyQt6.QtWidgets import (QComboBox, QFrame, QGridLayout, QGroupBox,
+                             QHBoxLayout, QHeaderView, QLabel, QProgressBar,
+                             QPushButton, QScrollArea, QTableWidget,
+                             QTableWidgetItem, QVBoxLayout, QWidget)
 
-from core.storage import get_homologation_repository
-from .theme import get_current_theme, ThemeType
+from .theme import ThemeType, get_current_theme
 
 logger = logging.getLogger(__name__)
 

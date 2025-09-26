@@ -5,25 +5,24 @@ Este módulo proporciona un sistema de notificaciones simple y elegante
 que funciona únicamente dentro de la aplicación, sin envío de emails.
 """
 
-import logging
 import json
+import logging
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Callable
-from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QPushButton, QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem,
-    QHeaderView, QGroupBox, QCheckBox, QTextEdit, QListWidget, QListWidgetItem,
-    QMessageBox, QDialog, QDialogButtonBox, QFrame, QSplitter, QTabWidget,
-    QScrollArea, QSizePolicy
-)
-from PyQt6.QtCore import (
-    QTimer, QThread, pyqtSignal, Qt, QSize, QPropertyAnimation, 
-    QEasingCurve, QRect, QParallelAnimationGroup
-)
-from PyQt6.QtGui import QFont, QIcon, QPixmap, QPainter, QColor, QPalette
+from PyQt6.QtCore import (QEasingCurve, QParallelAnimationGroup,
+                          QPropertyAnimation, QRect, QSize, Qt, QThread,
+                          QTimer, pyqtSignal)
+from PyQt6.QtGui import QColor, QFont, QIcon, QPainter, QPalette, QPixmap
+from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+                             QFormLayout, QFrame, QGroupBox, QHBoxLayout,
+                             QHeaderView, QLabel, QLineEdit, QListWidget,
+                             QListWidgetItem, QMessageBox, QPushButton,
+                             QScrollArea, QSizePolicy, QSplitter, QTableWidget,
+                             QTableWidgetItem, QTabWidget, QTextEdit,
+                             QVBoxLayout, QWidget)
 
 # Configurar logging
 logger = logging.getLogger(__name__)

@@ -4,20 +4,19 @@ Proporciona filtros más específicos y opciones de búsqueda mejoradas.
 """
 
 import logging
-from datetime import datetime, date
-from typing import Dict, List, Any, Optional
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
 
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFormLayout,
-    QLabel, QLineEdit, QComboBox, QDateEdit, QPushButton, QCheckBox,
-    QFrame, QGroupBox, QButtonGroup, QRadioButton, QSpinBox,
-    QSlider, QProgressBar, QTabWidget, QScrollArea
-)
-from PyQt6.QtCore import Qt, QDate, pyqtSignal, QTimer
+from ..core.storage import get_homologation_repository
+from PyQt6.QtCore import QDate, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDateEdit,
+                             QFormLayout, QFrame, QGridLayout, QGroupBox,
+                             QHBoxLayout, QLabel, QLineEdit, QProgressBar,
+                             QPushButton, QRadioButton, QScrollArea, QSlider,
+                             QSpinBox, QTabWidget, QVBoxLayout, QWidget)
 
-from core.storage import get_homologation_repository
-from .theme import get_current_theme, ThemeType
+from .theme import ThemeType, get_current_theme
 
 logger = logging.getLogger(__name__)
 

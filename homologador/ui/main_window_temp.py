@@ -3,28 +3,28 @@ Ventana principal del Homologador de Aplicaciones.
 Interfaz principal con tabla de homologaciones, filtros y gestión según roles.
 """
 
-import sys
-import logging
 import csv
-from datetime import datetime, date
-from typing import List, Dict, Any, Optional
+import logging
+import sys
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
 
-from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QTableWidget, QTableWidgetItem, QHeaderView, QPushButton, 
-    QLineEdit, QDateEdit, QComboBox, QLabel, QFrame, QSplitter,
-    QMessageBox, QFileDialog, QProgressBar, QStatusBar, QMenuBar,
-    QToolBar, QSpacerItem, QSizePolicy, QGroupBox, QGridLayout,
-    QApplication, QAbstractItemView
-)
-from PyQt6.QtCore import Qt, QDate, pyqtSignal, QThread, pyqtSlot, QTimer
-from PyQt6.QtGui import QAction, QIcon, QFont
+from ..core.storage import get_audit_repository, get_homologation_repository
+from ..data.seed import get_auth_service
+from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QAction, QFont, QIcon
+from PyQt6.QtWidgets import (QAbstractItemView, QApplication, QComboBox,
+                             QDateEdit, QFileDialog, QFormLayout, QFrame,
+                             QGridLayout, QGroupBox, QHBoxLayout, QHeaderView,
+                             QLabel, QLineEdit, QMainWindow, QMenuBar,
+                             QMessageBox, QProgressBar, QPushButton,
+                             QSizePolicy, QSpacerItem, QSplitter, QStatusBar,
+                             QTableWidget, QTableWidgetItem, QToolBar,
+                             QVBoxLayout, QWidget)
 
-from core.storage import get_homologation_repository, get_audit_repository
-from data.seed import get_auth_service
-from .theme import set_widget_style_class
-from .homologation_form import HomologationFormDialog
 from .details_view import show_homologation_details
+from .homologation_form import HomologationFormDialog
+from .theme import set_widget_style_class
 
 logger = logging.getLogger(__name__)
 
@@ -595,6 +595,7 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     # Test de la ventana principal
     import sys
+
     from core.settings import setup_logging
     from data.seed import create_seed_data
     

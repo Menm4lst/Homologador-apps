@@ -2,19 +2,19 @@
 Formulario para crear y editar homologaciones de aplicaciones.
 """
 
-import sys
 import logging
-from datetime import datetime, date
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QGroupBox, 
-    QLabel, QLineEdit, QTextEdit, QDateEdit, QComboBox, QCheckBox,
-    QPushButton, QScrollArea, QWidget, QMessageBox, QFrame
-)
-from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtGui import QFont
+import sys
+from datetime import date, datetime
 
-from .theme import get_current_theme, ThemeType
-from .notification_system import send_warning, send_error
+from PyQt6.QtCore import QDate, Qt
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDateEdit, QDialog,
+                             QFormLayout, QFrame, QGroupBox, QHBoxLayout,
+                             QLabel, QLineEdit, QMessageBox, QPushButton,
+                             QScrollArea, QTextEdit, QVBoxLayout, QWidget)
+
+from .notification_system import send_error, send_warning
+from .theme import ThemeType, get_current_theme
 
 logger = logging.getLogger(__name__)
 

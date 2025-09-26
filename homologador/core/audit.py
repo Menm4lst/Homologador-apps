@@ -3,13 +3,13 @@ Módulo de auditoría avanzada para el Homologador de Aplicaciones.
 Funciones adicionales para logging y reporting de auditoría.
 """
 
-import logging
 import json
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional
+import logging
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from core.storage import get_audit_repository, get_user_repository
+from ..core.storage import get_audit_repository, get_user_repository
 
 logger = logging.getLogger(__name__)
 

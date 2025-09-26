@@ -7,21 +7,22 @@ puedan gestionar usuarios, permisos, contraseñas y accesos del sistema.
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Tuple, cast
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFormLayout,
-    QPushButton, QLabel, QLineEdit, QComboBox, QTableWidget, QTableWidgetItem,
-    QHeaderView, QGroupBox, QCheckBox, QTextEdit, QDateEdit, QSpinBox,
-    QMessageBox, QDialog, QDialogButtonBox, QTabWidget, QFrame,
-    QScrollArea, QSplitter, QProgressBar, QListWidget, QListWidgetItem,
-    QButtonGroup, QRadioButton, QSlider, QCalendarWidget
-)
-from PyQt6.QtCore import Qt, QDate, pyqtSignal, QTimer, QThread, pyqtSlot
-from PyQt6.QtGui import QFont, QIcon, QPixmap, QPalette, QColor, QAction
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-from core.storage import get_user_repository, get_audit_repository
-from core.auth import generate_password
-from data.seed import get_auth_service
+from ..core.auth import generate_password
+from ..core.storage import get_audit_repository, get_user_repository
+from ..data.seed import get_auth_service
+from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QAction, QColor, QFont, QIcon, QPalette, QPixmap
+from PyQt6.QtWidgets import (QButtonGroup, QCalendarWidget, QCheckBox,
+                             QComboBox, QDateEdit, QDialog, QDialogButtonBox,
+                             QFormLayout, QFrame, QGridLayout, QGroupBox,
+                             QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+                             QListWidget, QListWidgetItem, QMessageBox,
+                             QProgressBar, QPushButton, QRadioButton,
+                             QScrollArea, QSlider, QSpinBox, QSplitter,
+                             QTableWidget, QTableWidgetItem, QTabWidget,
+                             QTextEdit, QVBoxLayout, QWidget)
 
 logger = logging.getLogger(__name__)
 
@@ -860,6 +861,7 @@ class UserManagementWidget(QWidget):
             raise PermissionError("Solo los administradores pueden acceder a este módulo")
         
         self.setup_ui()
+        self.apply_dark_theme()
         self.load_users()
         
         logger.info(f"Módulo de administración de usuarios iniciado por: {user_info.get('username')}")
@@ -1016,6 +1018,10 @@ class UserManagementWidget(QWidget):
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)  # Estado
         header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)  # Login
         header.setSectionResizeMode(7, QHeaderView.ResizeMode.ResizeToContents)  # Acciones
+        
+        # Configurar altura de filas para que los botones se vean correctamente
+        self.users_table.verticalHeader().setDefaultSectionSize(45)  # Altura mínima de 45px
+        self.users_table.verticalHeader().setMinimumSectionSize(40)   # Altura mínima absoluta
         
         main_layout.addWidget(self.users_table)
         
@@ -1177,6 +1183,9 @@ class UserManagementWidget(QWidget):
             actions_layout.addStretch()
             
             self.users_table.setCellWidget(row, 7, actions_widget)
+            
+            # Asegurar altura mínima para esta fila específicamente
+            self.users_table.setRowHeight(row, 45)
     
     def update_statistics(self, users: List[Dict[str, Any]]):
         """Actualiza las estadísticas."""
@@ -1435,6 +1444,72 @@ class UserManagementWidget(QWidget):
             )
         except Exception as e:
             logger.error(f"Error registrando auditoría: {e}")
+    
+    def apply_dark_theme(self):
+        """Aplica el tema nocturno elegante al sistema de usuarios."""
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            
+            QGroupBox {
+                font-weight: bold;
+                border: 2px solid #3a4b5c;
+                border-radius: 12px;
+                margin-top: 15px;
+                padding-top: 15px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+            }
+            
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 15px;
+                padding: 0 8px 0 8px;
+                color: #74b9ff;
+                background-color: #1a1a1a;
+                font-weight: bold;
+            }
+            
+            QLabel {
+                color: #e0e0e0;
+                background-color: transparent;
+            }
+            
+            QPushButton {
+                padding: 12px 20px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                font-weight: bold;
+                min-width: 120px;
+                background-color: #34495e;
+                color: #ecf0f1;
+            }
+            
+            QPushButton:hover {
+                background-color: #4a6741;
+                border-color: #74b9ff;
+                color: #ffffff;
+            }
+            
+            QPushButton[default="true"] {
+                background-color: #2980b9;
+                border-color: #3498db;
+            }
+            
+            QLineEdit, QComboBox, QTextEdit {
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                border: 2px solid #34495e;
+                border-radius: 6px;
+                padding: 8px;
+            }
+            
+            QLineEdit:hover, QComboBox:hover {
+                border-color: #74b9ff;
+            }
+        """)
 
 
 def show_user_management(user_info: Dict[str, Any], parent: Optional[QWidget] = None) -> QDialog:
@@ -1482,6 +1557,7 @@ def show_user_management(user_info: Dict[str, Any], parent: Optional[QWidget] = 
 
 if __name__ == "__main__":
     import sys
+
     from PyQt6.QtWidgets import QApplication
     
     app = QApplication(sys.argv)

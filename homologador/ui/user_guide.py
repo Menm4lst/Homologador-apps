@@ -4,15 +4,15 @@ Proporciona tutoriales paso a paso y tour de funcionalidades.
 """
 
 import logging
-from typing import List, Dict, Any, Optional, Callable
-from PyQt6.QtWidgets import (
-    QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
-    QFrame, QApplication, QDialog
-)
-from PyQt6.QtCore import Qt, QTimer, QPoint, QRect, pyqtSignal, QEasingCurve, QPropertyAnimation
-from PyQt6.QtGui import QFont, QPainter, QPen, QBrush, QColor
+from typing import Any, Callable, Dict, List, Optional
 
-from .theme import get_current_theme, ThemeType
+from PyQt6.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRect, Qt,
+                          QTimer, pyqtSignal)
+from PyQt6.QtGui import QBrush, QColor, QFont, QPainter, QPen
+from PyQt6.QtWidgets import (QApplication, QDialog, QFrame, QHBoxLayout,
+                             QLabel, QPushButton, QVBoxLayout, QWidget)
+
+from .theme import ThemeType, get_current_theme
 
 logger = logging.getLogger(__name__)
 

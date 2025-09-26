@@ -2,21 +2,21 @@
 Componente de visualización web integrada para previsualizar URLs de homologaciones.
 """
 
-import sys
-from typing import Optional, Dict, Any
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
-    QLineEdit, QProgressBar, QMessageBox, QFrame, QSizePolicy
-)
-from PyQt6.QtCore import QUrl, pyqtSignal, QTimer
-from PyQt6.QtGui import QFont, QIcon
 import logging
+import sys
+from typing import Any, Dict, Optional
+
+from PyQt6.QtCore import QTimer, QUrl, pyqtSignal
+from PyQt6.QtGui import QFont, QIcon
+from PyQt6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QLineEdit,
+                             QMessageBox, QProgressBar, QPushButton,
+                             QSizePolicy, QVBoxLayout, QWidget)
 
 logger = logging.getLogger(__name__)
 
 try:
+    from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings
     from PyQt6.QtWebEngineWidgets import QWebEngineView
-    from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEnginePage
     WEB_ENGINE_AVAILABLE = True
 except ImportError:
     WEB_ENGINE_AVAILABLE = False

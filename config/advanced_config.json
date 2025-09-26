@@ -1,0 +1,82 @@
+{
+  "security": {
+    "session_timeout_minutes": 60,
+    "max_login_attempts": 5,
+    "lockout_duration_minutes": 15,
+    "password_policy": {
+      "min_length": 8,
+      "require_uppercase": true,
+      "require_lowercase": true,
+      "require_numbers": true,
+      "require_special": true,
+      "max_age_days": 90,
+      "remember_last": 5
+    },
+    "audit_retention_days": 365,
+    "enable_ip_blocking": true,
+    "enable_brute_force_protection": true
+  },
+  "ui": {
+    "theme": "dark",
+    "auto_save_interval_seconds": 30,
+    "recent_files_count": 10,
+    "table_page_size": 50,
+    "enable_tooltips": true,
+    "enable_animations": true,
+    "font_size": "medium",
+    "accessibility": {
+      "high_contrast": false,
+      "screen_reader_support": true,
+      "keyboard_navigation": true,
+      "focus_indicators": true
+    }
+  },
+  "backup": {
+    "auto_backup_enabled": true,
+    "backup_frequency_hours": 24,
+    "backup_retention_days": 30,
+    "backup_compression": true,
+    "backup_verification": true,
+    "backup_location": "auto",
+    "include_user_files": false,
+    "include_logs": true,
+    "include_config": true,
+    "cloud_backup": {
+      "enabled": false,
+      "provider": "onedrive",
+      "sync_frequency_hours": 48
+    }
+  },
+  "notifications": {
+    "enabled": true,
+    "types": {
+      "login_success": true,
+      "login_failure": true,
+      "data_changes": true,
+      "system_events": true,
+      "backup_events": true
+    },
+    "display": {
+      "show_toasts": true,
+      "toast_duration_seconds": 5,
+      "sound_enabled": false,
+      "position": "bottom_right"
+    }
+  },
+  "performance": {
+    "database": {
+      "wal_mode": true,
+      "cache_size_mb": 32,
+      "vacuum_frequency_days": 30,
+      "optimize_on_startup": true
+    },
+    "ui": {
+      "lazy_loading": true,
+      "virtual_scrolling": true,
+      "debounce_search_ms": 300,
+      "max_concurrent_operations": 3
+    }
+  },
+  "version": "1.0.0",
+  "created": "2025-09-26"
+}

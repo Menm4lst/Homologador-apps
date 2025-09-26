@@ -5,18 +5,18 @@ Script de prueba para validar las funcionalidades principales
 de la aplicación Homologador de Aplicaciones.
 """
 
-import sys
 import os
+import sys
 from datetime import datetime
 
 # Agregar el directorio actual al path para importar módulos
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
+    import argon2
     from core.settings import Settings
     from core.storage import DatabaseManager
     from data.seed import create_seed_data
-    import argon2
     print("✅ Todas las importaciones exitosas")
 except ImportError as e:
     print(f"❌ Error de importación: {e}")

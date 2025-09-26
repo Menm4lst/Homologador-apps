@@ -1,13 +1,14 @@
 """
 Sistema centralizado de manejo de errores para la aplicación de homologaciones.
 """
-import traceback
 import logging
+import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
-from PyQt6.QtWidgets import QMessageBox, QWidget
+from typing import Any, Dict, Optional
+
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtWidgets import QMessageBox, QWidget
 
 
 class ErrorSeverity:

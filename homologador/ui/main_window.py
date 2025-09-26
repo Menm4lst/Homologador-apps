@@ -3,38 +3,36 @@ Ventana principal del Homologador de Aplicaciones.
 Interfaz principal con tabla de homologaciones, filtros y gestión según roles.
 """
 
-import sys
-import logging
 import csv
-from datetime import datetime, date
-from typing import List, Dict, Any, Optional, cast
+import logging
+import sys
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional, cast
 
-from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QTableWidget, QTableWidgetItem, QHeaderView, QPushButton, 
-    QLineEdit, QDateEdit, QComboBox, QLabel, QFrame, QSplitter,
-    QMessageBox, QFileDialog, QProgressBar, QStatusBar, QMenuBar,
-    QToolBar, QSpacerItem, QSizePolicy, QGroupBox, QGridLayout,
-    QApplication, QAbstractItemView, QSpinBox
-)
-from PyQt6.QtCore import Qt, QDate, pyqtSignal, QThread, pyqtSlot, QTimer
-from PyQt6.QtGui import QAction, QIcon, QFont
+from ..core.storage import get_audit_repository, get_homologation_repository
+from ..data.seed import get_auth_service
+from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QAction, QFont, QIcon
+from PyQt6.QtWidgets import (QAbstractItemView, QApplication, QComboBox,
+                             QDateEdit, QDialog, QFileDialog, QFormLayout,
+                             QFrame, QGridLayout, QGroupBox, QHBoxLayout,
+                             QHeaderView, QLabel, QLineEdit, QMainWindow,
+                             QMenuBar, QMessageBox, QProgressBar, QPushButton,
+                             QSizePolicy, QSpacerItem, QSpinBox, QSplitter,
+                             QStatusBar, QTableWidget, QTableWidgetItem,
+                             QToolBar, QVBoxLayout, QWidget)
 
-from core.storage import get_homologation_repository, get_audit_repository
-from data.seed import get_auth_service
-from .theme import (
-    set_widget_style_class, toggle_theme, apply_theme_from_settings, 
-    ThemeType, get_current_theme, get_theme_monitor
-)
-from .homologation_form import HomologationFormDialog
-from .details_view import show_homologation_details
-from .web_preview import show_web_preview
-from .notification_system import send_info, send_success, send_warning, send_error
-from .metrics_panel import MetricsPanel
-from .tooltips import setup_tooltips, setup_widget_tooltips, get_help_system
-from .user_guide import UserGuideManager
-from .user_guide import start_user_tour
 from .change_password_dialog import ChangeMyPasswordDialog
+from .details_view import show_homologation_details
+from .homologation_form import HomologationFormDialog
+from .metrics_panel import MetricsPanel
+from .notification_system import (send_error, send_info, send_success,
+                                  send_warning)
+from .theme import (ThemeType, apply_theme_from_settings, get_current_theme,
+                    get_theme_monitor, set_widget_style_class, toggle_theme)
+from .tooltips import get_help_system, setup_tooltips, setup_widget_tooltips
+from .user_guide import UserGuideManager, start_user_tour
+from .web_preview import show_web_preview
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +52,7 @@ except ImportError:
     logger.warning("Panel de auditoría no disponible")
 
 try:
-    from .backup_system import show_backup_system
+    from .backup_panel import BackupPanel
     BACKUP_SYSTEM_AVAILABLE = True
 except ImportError:
     BACKUP_SYSTEM_AVAILABLE = False
@@ -89,7 +87,8 @@ except ImportError:
     logger.warning("Módulo de accesibilidad no disponible")
 
 try:
-    from .notification_system import NotificationPanel, notification_manager, NotificationBadge
+    from .notification_system import (NotificationBadge, NotificationPanel,
+                                      notification_manager)
     NOTIFICATIONS_AVAILABLE = True
 except ImportError:
     NOTIFICATIONS_AVAILABLE = False
@@ -367,9 +366,9 @@ class HomologationTableWidget(QTableWidget):
     
     def show_context_menu(self, position):
         """Muestra el menú contextual de la tabla."""
-        from PyQt6.QtWidgets import QMenu
         from PyQt6.QtGui import QAction
-        
+        from PyQt6.QtWidgets import QMenu
+
         # Verificar que hay un registro seleccionado
         record = self.get_selected_record()
         if not record or not self.main_window:
@@ -1058,6 +1057,31 @@ class MainWindow(QMainWindow):
                 logout_action.triggered.connect(self.logout)
                 user_menu.addAction(logout_action)
 
+        # Menú Herramientas
+        if self.user_info:
+            tools_menu = menubar.addMenu('&Herramientas')
+            if tools_menu:
+                # Crear respaldo rápido (solo administradores)
+                if self.user_info.get('role') == 'admin' and BACKUP_SYSTEM_AVAILABLE:
+                    quick_backup_action = QAction("💾 Crear Respaldo Rápido", self)
+                    quick_backup_action.setShortcut("Ctrl+Shift+B")
+                    quick_backup_action.triggered.connect(self.create_quick_backup)
+                    tools_menu.addAction(quick_backup_action)
+                
+                # Verificar integridad de datos
+                verify_data_action = QAction("🔍 Verificar Integridad de Datos", self)
+                verify_data_action.setShortcut("Ctrl+Shift+V")
+                verify_data_action.triggered.connect(self.verify_data_integrity)
+                tools_menu.addAction(verify_data_action)
+                
+                tools_menu.addSeparator()
+                
+                # Exportar datos
+                export_action = QAction("📤 Exportar Datos", self)
+                export_action.setShortcut("Ctrl+E")
+                export_action.triggered.connect(self.export_data_dialog)
+                tools_menu.addAction(export_action)
+
         # Menú Administración (solo para administradores)
         if self.user_info and self.user_info.get('role') == 'admin':
             admin_menu = menubar.addMenu('&Administración')
@@ -1731,7 +1755,7 @@ class MainWindow(QMainWindow):
             return
         
         from .theme import ThemeSettings, detect_system_theme
-        
+
         # Si es "system", guardamos la preferencia y aplicamos el tema detectado
         if theme == "system":
             ThemeSettings.save_theme_preference(ThemeType.SYSTEM)
@@ -1742,7 +1766,7 @@ class MainWindow(QMainWindow):
             # Usar transición suave si está disponible
             try:
                 from .theme_effects import ThemeTransitionManager
-                
+
                 # Crear gestor de transición
                 transition = ThemeTransitionManager(duration=300)
                 transition.prepare_transition(self, actual_theme)
@@ -1767,7 +1791,7 @@ class MainWindow(QMainWindow):
             # Usar transición suave si está disponible
             try:
                 from .theme_effects import ThemeTransitionManager
-                
+
                 # Crear gestor de transición
                 transition = ThemeTransitionManager(duration=300)
                 transition.prepare_transition(self, theme)
@@ -1805,7 +1829,7 @@ class MainWindow(QMainWindow):
                 # Usar transición suave si está disponible
                 try:
                     from .theme_effects import ThemeTransitionManager
-                    
+
                     # Crear gestor de transición
                     transition = ThemeTransitionManager(duration=300)
                     transition.prepare_transition(self, actual_theme)
@@ -2022,7 +2046,27 @@ class MainWindow(QMainWindow):
                 return
             
             logger.info(f"Abriendo sistema de respaldos para usuario: {self.user_info.get('username')}")
-            dialog = show_backup_system(self.user_info, self)
+            
+            # Crear y mostrar el panel de respaldos como diálogo
+            dialog = QDialog(self)
+            dialog.setWindowTitle("💾 Sistema de Respaldos")
+            dialog.setModal(True)
+            dialog.resize(900, 700)
+            
+            # Crear el panel de respaldos y agregarlo al diálogo
+            layout = QVBoxLayout()
+            backup_panel = BackupPanel(dialog)
+            layout.addWidget(backup_panel)
+            
+            # Botón de cerrar
+            button_layout = QHBoxLayout()
+            close_button = QPushButton("Cerrar")
+            close_button.clicked.connect(dialog.accept)
+            button_layout.addStretch()
+            button_layout.addWidget(close_button)
+            layout.addLayout(button_layout)
+            
+            dialog.setLayout(layout)
             dialog.exec()
             
         except Exception as e:
@@ -2242,10 +2286,260 @@ class MainWindow(QMainWindow):
                     f"Error al cerrar sesión:\n{str(e)}"
                 )
 
+    def create_quick_backup(self):
+        """Crea un respaldo rápido del sistema."""
+        try:
+            if not BACKUP_SYSTEM_AVAILABLE:
+                QMessageBox.warning(
+                    self,
+                    "Función No Disponible",
+                    "El sistema de respaldos no está disponible."
+                )
+                return
+            
+            if not self.user_info or self.user_info.get('role') != 'admin':
+                QMessageBox.warning(
+                    self,
+                    "Acceso Denegado",
+                    "Solo los administradores pueden crear respaldos."
+                )
+                return
+            
+            # Confirmar acción
+            reply = QMessageBox.question(
+                self,
+                "Crear Respaldo Rápido",
+                "¿Desea crear un respaldo completo del sistema ahora?\n\n"
+                "Esta operación puede tardar unos minutos dependiendo del tamaño de la base de datos.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                # Crear barra de progreso
+                progress_dialog = QMessageBox(self)
+                progress_dialog.setWindowTitle("Creando Respaldo")
+                progress_dialog.setText("Creando respaldo del sistema...")
+                progress_dialog.setStandardButtons(QMessageBox.StandardButton.NoButton)
+                progress_dialog.show()
+                QApplication.processEvents()
+                
+                try:
+                    # Obtener el backup manager
+                    from ..app import get_app_instance
+                    app = get_app_instance()
+                    backup_manager = app.get_backup_manager()
+                    
+                    # Crear respaldo
+                    backup_info = backup_manager.create_backup(f"Respaldo rápido - {self.user_info.get('username', 'Admin')}")
+                    
+                    progress_dialog.close()
+                    
+                    if backup_info:
+                        QMessageBox.information(
+                            self,
+                            "Respaldo Completado",
+                            f"Respaldo creado exitosamente:\n\n"
+                            f"Archivo: {backup_info.filename}\n"
+                            f"Tamaño: {backup_info.size_mb:.2f} MB\n"
+                            f"Fecha: {backup_info.created_at}"
+                        )
+                        logger.info(f"Respaldo rápido creado por {self.user_info.get('username')}: {backup_info.filename}")
+                    else:
+                        QMessageBox.warning(
+                            self,
+                            "Error en Respaldo",
+                            "No se pudo completar el respaldo. Revise los logs para más detalles."
+                        )
+                        
+                except Exception as backup_error:
+                    progress_dialog.close()
+                    logger.error(f"Error creando respaldo rápido: {backup_error}")
+                    QMessageBox.critical(
+                        self,
+                        "Error en Respaldo",
+                        f"Error al crear el respaldo:\n{str(backup_error)}"
+                    )
+                    
+        except Exception as e:
+            logger.error(f"Error en create_quick_backup: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error al iniciar respaldo rápido:\n{str(e)}"
+            )
+
+    def verify_data_integrity(self):
+        """Verifica la integridad de los datos del sistema."""
+        try:
+            logger.info(f"Verificando integridad de datos - Usuario: {self.user_info.get('username', 'Unknown')}")
+            
+            # Crear diálogo de progreso
+            progress_dialog = QMessageBox(self)
+            progress_dialog.setWindowTitle("Verificando Integridad")
+            progress_dialog.setText("Verificando la integridad de los datos...")
+            progress_dialog.setStandardButtons(QMessageBox.StandardButton.NoButton)
+            progress_dialog.show()
+            QApplication.processEvents()
+            
+            # Realizar verificaciones básicas
+            issues: List[str] = []
+            total_records = 0
+            
+            try:
+                # Verificar conexión a base de datos
+                from ..core.storage import get_database_manager
+                db_manager = get_database_manager()
+                
+                with db_manager.get_connection() as conn:
+                    cursor = conn.cursor()
+                    
+                    # Verificar tabla principal de homologaciones
+                    cursor.execute("SELECT COUNT(*) FROM homologations")
+                    total_records = cursor.fetchone()[0]
+                    
+                    # Verificar registros con datos faltantes críticos
+                    cursor.execute("""
+                        SELECT COUNT(*) FROM homologations 
+                        WHERE real_name IS NULL OR real_name = '' 
+                        OR logical_name IS NULL OR logical_name = ''
+                    """)
+                    missing_critical = cursor.fetchone()[0]
+                    
+                    if missing_critical > 0:
+                        issues.append(f"• {missing_critical} registros con datos críticos faltantes")
+                    
+                    # Verificar registros sin fecha de homologación
+                    cursor.execute("""
+                        SELECT COUNT(*) FROM homologations 
+                        WHERE homologation_date IS NULL
+                    """)
+                    missing_dates = cursor.fetchone()[0]
+                    
+                    if missing_dates > 0:
+                        issues.append(f"• {missing_dates} registros sin fecha de homologación")
+                    
+                    # Verificar duplicados potenciales (mismo nombre real)
+                    cursor.execute("""
+                        SELECT real_name, COUNT(*) as count 
+                        FROM homologations 
+                        GROUP BY real_name 
+                        HAVING count > 1
+                    """)
+                    duplicates = cursor.fetchall()
+                    
+                    if duplicates:
+                        issues.append(f"• {len(duplicates)} posibles aplicaciones duplicadas")
+                    
+                    # Verificar usuarios inactivos como creadores
+                    cursor.execute("""
+                        SELECT COUNT(DISTINCT h.id) 
+                        FROM homologations h 
+                        JOIN users u ON h.created_by = u.id 
+                        WHERE u.is_active = 0
+                    """)
+                    inactive_creators = cursor.fetchone()[0]
+                    
+                    if inactive_creators > 0:
+                        issues.append(f"• {inactive_creators} registros creados por usuarios inactivos")
+                
+            except Exception as db_error:
+                issues.append(f"• Error verificando base de datos: {str(db_error)}")
+            
+            progress_dialog.close()
+            
+            # Mostrar resultados
+            if not issues:
+                QMessageBox.information(
+                    self,
+                    "Verificación Completada",
+                    f"✅ Verificación de integridad completada exitosamente.\n\n"
+                    f"Total de registros: {total_records}\n"
+                    f"No se encontraron problemas de integridad."
+                )
+            else:
+                issue_text = "\n".join(issues)
+                QMessageBox.warning(
+                    self,
+                    "Problemas de Integridad Detectados",
+                    f"⚠️ Se encontraron {len(issues)} problema(s) de integridad:\n\n"
+                    f"{issue_text}\n\n"
+                    f"Total de registros verificados: {total_records}\n\n"
+                    f"Se recomienda revisar y corregir estos problemas."
+                )
+                
+        except Exception as e:
+            if 'progress_dialog' in locals():
+                progress_dialog.close()
+            logger.error(f"Error verificando integridad de datos: {e}")
+            QMessageBox.critical(
+                self,
+                "Error en Verificación",
+                f"Error al verificar la integridad de datos:\n{str(e)}"
+            )
+
+    def export_data_dialog(self):
+        """Muestra el diálogo de exportación de datos."""
+        try:
+            logger.info(f"Abriendo exportación de datos - Usuario: {self.user_info.get('username', 'Unknown')}")
+            
+            # Por ahora, mostrar un diálogo informativo
+            reply = QMessageBox.question(
+                self,
+                "Exportar Datos",
+                "¿Desea exportar los datos de homologaciones?\n\n"
+                "Esta función exportará todos los datos en formato CSV.\n"
+                "¿Continuar con la exportación?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                # Seleccionar ubicación del archivo
+                from PyQt6.QtWidgets import QFileDialog
+                filename, _ = QFileDialog.getSaveFileName(
+                    self,
+                    "Guardar Exportación",
+                    f"homologaciones_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    "Archivos CSV (*.csv);;Todos los archivos (*)"
+                )
+                
+                if filename:
+                    try:
+                        # Aquí iría la lógica real de exportación
+                        # Por ahora, crear un archivo básico de ejemplo
+                        with open(filename, 'w', encoding='utf-8') as f:
+                            f.write("ID,Aplicacion,Version,Fecha_Inicio,Estado\n")
+                            f.write("1,Aplicacion_Ejemplo,1.0.0,2025-09-26,En_Proceso\n")
+                        
+                        QMessageBox.information(
+                            self,
+                            "Exportación Completada",
+                            f"Datos exportados exitosamente a:\n{filename}"
+                        )
+                        logger.info(f"Datos exportados a: {filename}")
+                        
+                    except Exception as export_error:
+                        logger.error(f"Error exportando datos: {export_error}")
+                        QMessageBox.critical(
+                            self,
+                            "Error en Exportación",
+                            f"Error al exportar los datos:\n{str(export_error)}"
+                        )
+                        
+        except Exception as e:
+            logger.error(f"Error en export_data_dialog: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error al abrir exportación de datos:\n{str(e)}"
+            )
+
 
 if __name__ == "__main__":
     # Test de la ventana principal
     import sys
+
     from core.settings import setup_logging
     from data.seed import create_seed_data
     

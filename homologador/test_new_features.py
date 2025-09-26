@@ -2,8 +2,8 @@
 Script de prueba para verificar las nuevas funcionalidades implementadas.
 """
 
-import sys
 import os
+import sys
 
 # Agregar el directorio del proyecto al path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +24,8 @@ def test_imports():
         print(f"❌ Error importando búsqueda avanzada: {e}")
     
     try:
-        from accessibility import AccessibilityManager, ThemeManager, KeyboardNavigationManager
+        from accessibility import (AccessibilityManager,
+                                   KeyboardNavigationManager, ThemeManager)
         print("✅ Módulo de accesibilidad importado correctamente")
         
         # Crear instancia de prueba
@@ -40,7 +41,7 @@ def test_search_functionality():
     
     try:
         from advanced_search import SearchEngine
-        
+
         # Datos de prueba
         test_data = [
             {
@@ -87,8 +88,8 @@ def test_accessibility_features():
     print("\n♿ Probando características de accesibilidad...")
     
     try:
-        from accessibility import ThemeManager, AccessibilityMode
-        
+        from accessibility import AccessibilityMode, ThemeManager
+
         # Crear gestor de temas
         theme_manager = ThemeManager()
         
@@ -97,7 +98,7 @@ def test_accessibility_features():
         
         # Probar configuraciones
         from PyQt6.QtWidgets import QApplication
-        
+
         # Solo si no hay una aplicación corriendo
         if not QApplication.instance():
             app = QApplication([])

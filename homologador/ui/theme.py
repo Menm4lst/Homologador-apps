@@ -4,15 +4,17 @@ Proporciona estilos light y dark theme consistentes para toda la aplicación.
 Incluye detección automática del tema del sistema operativo.
 """
 
-import os
-import json
-import sys
-import platform
 import ctypes
+import json
+import os
+import platform
+import sys
 from enum import Enum
-from PyQt6.QtCore import Qt, QSettings, QTimer, pyqtSignal, QObject
-from PyQt6.QtGui import QPalette, QColor
-from PyQt6.QtWidgets import QApplication, QWidget, QMessageBox
+
+from PyQt6.QtCore import QObject, QSettings, Qt, QTimer, pyqtSignal
+from PyQt6.QtGui import QColor, QPalette
+from PyQt6.QtWidgets import QApplication, QMessageBox, QWidget
+
 
 class ThemeType(Enum):
     """Tipos de temas disponibles."""
@@ -1465,7 +1467,7 @@ def toggle_theme(widget):
     # Usar transición suave si está disponible
     try:
         from .theme_effects import ThemeTransitionManager
-        
+
         # Crear gestor de transición
         transition = ThemeTransitionManager(duration=300)
         transition.prepare_transition(widget, new_theme)

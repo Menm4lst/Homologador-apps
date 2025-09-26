@@ -8,35 +8,36 @@ Versión: 1.0.0
 Fecha: 2024
 """
 
-import sys
-import os
 import logging
+import os
+import sys
 import traceback
-from typing import Optional, Dict, Any, cast
+from typing import Any, Dict, Optional, cast
 
 # Agregar el directorio actual al path para imports relativos
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
     from PyQt6.QtCore import Qt, QTimer
-    from PyQt6.QtGui import QPixmap, QFont, QPainter, QColor
+    from PyQt6.QtGui import QColor, QFont, QPainter, QPixmap
+    from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
 except ImportError as e:
     print("Error: PyQt6 no está instalado.")
     print("Instale las dependencias con: pip install -r requirements.txt")
     sys.exit(1)
 
-from core.settings import setup_logging, get_settings
-from core.storage import get_database_manager
-from core.audit import get_audit_logger
-from data.seed import create_seed_data, get_auth_service
-from ui.final_login import FinalLoginWindow
-from ui.main_window import MainWindow
-from ui.homologation_form import HomologationFormDialog
-from ui.details_view import HomologationDetailsDialog
-from ui.theme import apply_dark_theme
-from ui.theme_effects import apply_theme_customizations, WindowCustomizer
-from ui.icons import apply_icons_to_application
+from .core.audit import get_audit_logger
+from .core.backup_system import get_backup_manager
+from .core.settings import get_settings, setup_logging
+from .core.storage import get_database_manager
+from .data.seed import create_seed_data, get_auth_service
+from .ui.details_view import HomologationDetailsDialog
+from .ui.final_login import FinalLoginWindow
+from .ui.homologation_form import HomologationFormDialog
+from .ui.icons import apply_icons_to_application
+from .ui.main_window import MainWindow
+from .ui.theme import apply_dark_theme
+from .ui.theme_effects import WindowCustomizer, apply_theme_customizations
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ class HomologadorApplication:
         self.current_user = None
         self.settings = get_settings()
         self.audit_logger = get_audit_logger()
+        self.backup_manager = None
         
     def initialize(self):
         """Inicializa la aplicación."""
@@ -91,6 +93,13 @@ class HomologadorApplication:
             self.app.processEvents()
             
             create_seed_data()
+            
+            # Inicializar sistema de respaldos
+            splash.showMessage("Inicializando sistema de respaldos...", Qt.AlignmentFlag.AlignBottom, QColor("white"))
+            self.app.processEvents()
+            
+            self.backup_manager = get_backup_manager()
+            logger.info("Sistema de respaldos inicializado")
             
             # Log de inicio del sistema
             self.audit_logger.log_system_event("STARTUP", {

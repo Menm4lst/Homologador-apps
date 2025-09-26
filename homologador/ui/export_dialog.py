@@ -3,24 +3,24 @@ Sistema de exportación avanzada para homologaciones.
 Permite exportar datos en múltiples formatos con opciones personalizadas.
 """
 
-import logging
 import csv
 import json
+import logging
 from datetime import datetime
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QFormLayout,
-    QLabel, QLineEdit, QComboBox, QPushButton, QCheckBox, QTextEdit,
-    QFrame, QGroupBox, QButtonGroup, QRadioButton, QSpinBox,
-    QProgressBar, QFileDialog, QMessageBox, QTabWidget, QWidget
-)
-from PyQt6.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
+                             QFileDialog, QFormLayout, QFrame, QGridLayout,
+                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                             QMessageBox, QProgressBar, QPushButton,
+                             QRadioButton, QSpinBox, QTabWidget, QTextEdit,
+                             QVBoxLayout, QWidget)
 
-from .theme import get_current_theme, ThemeType
-from .notification_system import send_success, send_error, send_info
+from .notification_system import send_error, send_info, send_success
+from .theme import ThemeType, get_current_theme
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +128,7 @@ class ExportWorker(QThread):
         """Exporta datos a formato Excel (requiere openpyxl)."""
         try:
             import openpyxl
-            from openpyxl.styles import Font, PatternFill, Alignment
+            from openpyxl.styles import Alignment, Font, PatternFill
             
             self.progress_updated.emit(50, "Generando archivo Excel...")
             
@@ -179,11 +179,13 @@ class ExportWorker(QThread):
     def export_pdf(self, data: List[Dict], file_path: str):
         """Exporta datos a formato PDF (requiere reportlab)."""
         try:
-            from reportlab.lib.pagesizes import letter, A4
             from reportlab.lib import colors
+            from reportlab.lib.pagesizes import A4, letter
+            from reportlab.lib.styles import (ParagraphStyle,
+                                              getSampleStyleSheet)
             from reportlab.lib.units import inch
-            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.platypus import (Paragraph, SimpleDocTemplate,
+                                            Spacer, Table, TableStyle)
             
             self.progress_updated.emit(50, "Generando archivo PDF...")
             

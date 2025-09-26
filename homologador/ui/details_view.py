@@ -5,18 +5,18 @@ Interfaz de solo lectura con información completa y auditoría.
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout,
-    QLabel, QTextEdit, QFrame, QScrollArea, QWidget, QPushButton,
-    QGroupBox, QTabWidget, QTableWidget, QTableWidgetItem,
-    QHeaderView, QMessageBox, QSizePolicy, QSpacerItem
-)
-from PyQt6.QtCore import Qt, pyqtSignal, QThread, pyqtSlot
-from PyQt6.QtGui import QFont, QClipboard
+from ..core.storage import get_audit_repository, get_homologation_repository
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QClipboard, QFont
+from PyQt6.QtWidgets import (QDialog, QFormLayout, QFrame, QGridLayout,
+                             QGroupBox, QHBoxLayout, QHeaderView, QLabel,
+                             QMessageBox, QPushButton, QScrollArea,
+                             QSizePolicy, QSpacerItem, QTableWidget,
+                             QTableWidgetItem, QTabWidget, QTextEdit,
+                             QVBoxLayout, QWidget)
 
-from core.storage import get_homologation_repository, get_audit_repository
 from .theme import set_widget_style_class
 
 logger = logging.getLogger(__name__)
@@ -83,6 +83,50 @@ class AuditTableWidget(QTableWidget):
         
         # Sin edición
         self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        
+        # Estilos tema nocturno elegante
+        self.setStyleSheet("""
+            QTableWidget {
+                gridline-color: #4a6741;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                border: 2px solid #34495e;
+                border-radius: 10px;
+                selection-background-color: #74b9ff;
+            }
+            QTableWidget::item {
+                padding: 12px;
+                color: #ecf0f1;
+                background-color: #2c3e50;
+                border-bottom: 1px solid #34495e;
+            }
+            QTableWidget::item:alternate {
+                background-color: #34495e;
+                color: #ecf0f1;
+            }
+            QTableWidget::item:selected {
+                background-color: #74b9ff;
+                color: #ffffff;
+                font-weight: bold;
+            }
+            QTableWidget::item:hover {
+                background-color: #4a6741;
+                color: #ffffff;
+            }
+            QHeaderView::section {
+                background-color: #1a252f;
+                color: #74b9ff;
+                padding: 15px;
+                border: none;
+                font-weight: bold;
+                font-size: 12px;
+                border-bottom: 2px solid #74b9ff;
+            }
+            QHeaderView::section:hover {
+                background-color: #2c3e50;
+                color: #ffffff;
+            }
+        """)
     
     def load_audit_data(self, audit_data: List[Dict[str, Any]]):
         """Carga datos de auditoría en la tabla."""
@@ -232,7 +276,7 @@ class HomologationDetailsDialog(QDialog):
         # Información básica en una línea
         self.info_label = QLabel()
         self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.info_label.setStyleSheet("color: #666; font-size: 12px; margin-top: 5px;")
+        self.info_label.setStyleSheet("color: #bdc3c7; font-size: 12px; margin-top: 5px; background-color: transparent; font-style: italic;")
         header_layout.addWidget(self.info_label)
         
         layout.addWidget(header_frame)
@@ -278,7 +322,7 @@ class HomologationDetailsDialog(QDialog):
         
         # Nombre Real
         self.real_name_label = QLabel()
-        self.real_name_label.setStyleSheet("font-weight: bold; font-size: 12pt;")
+        self.real_name_label.setStyleSheet("font-weight: bold; font-size: 14pt; color: #74b9ff; background-color: transparent; text-decoration: underline;")
         form_layout.addRow("Nombre Real:", self.real_name_label)
         
         # Nombre Lógico
@@ -381,12 +425,29 @@ class HomologationDetailsDialog(QDialog):
         
         # Botón editar (según permisos)
         if self.user_info:
-            from data.seed import get_auth_service
+            from ..data.seed import get_auth_service
             auth_service = get_auth_service()
             if auth_service.has_permission('update', self.user_info['role']):
                 edit_button = QPushButton("Editar")
                 edit_button.clicked.connect(self.request_edit)
-                edit_button.setStyleSheet("background-color: #007bff; color: white;")
+                edit_button.setStyleSheet("""
+                    QPushButton {
+                        background-color: #e74c3c;
+                        color: white;
+                        border: 2px solid #c0392b;
+                        border-radius: 8px;
+                        padding: 10px 20px;
+                        font-weight: bold;
+                    }
+                    QPushButton:hover {
+                        background-color: #c0392b;
+                        border-color: #e74c3c;
+                        transform: translateY(-1px);
+                    }
+                    QPushButton:pressed {
+                        background-color: #a93226;
+                    }
+                """)
                 button_layout.addWidget(edit_button)
         
         # Botón cerrar
@@ -401,59 +462,114 @@ class HomologationDetailsDialog(QDialog):
         """Configura estilos CSS."""
         self.setStyleSheet("""
             QDialog {
-                background-color: #f8f9fa;
+                background-color: #1a1a1a;
+                color: #e0e0e0;
             }
             
             QGroupBox {
                 font-weight: bold;
-                border: 2px solid #cccccc;
-                border-radius: 8px;
-                margin-top: 10px;
-                padding-top: 10px;
+                border: 2px solid #3a4b5c;
+                border-radius: 12px;
+                margin-top: 15px;
+                padding-top: 15px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
             }
             
             QGroupBox::title {
                 subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-                color: #495057;
+                left: 15px;
+                padding: 0 8px 0 8px;
+                color: #74b9ff;
+                background-color: #1a1a1a;
+                font-weight: bold;
             }
             
             QLabel {
-                padding: 4px;
+                padding: 6px;
+                color: #e0e0e0;
+                background-color: transparent;
             }
             
             QTextEdit {
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                background-color: white;
-                padding: 8px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+                color: #ecf0f1;
+                padding: 12px;
+                selection-background-color: #74b9ff;
             }
             
             QPushButton {
-                padding: 8px 16px;
-                border: none;
-                border-radius: 4px;
+                padding: 12px 20px;
+                border: 2px solid #34495e;
+                border-radius: 8px;
                 font-weight: bold;
-                min-width: 80px;
+                min-width: 100px;
+                background-color: #34495e;
+                color: #ecf0f1;
             }
             
-            QPushButton:not([default="true"]) {
-                background-color: #6c757d;
-                color: white;
+            QPushButton:hover {
+                background-color: #4a6741;
+                border-color: #74b9ff;
+                color: #ffffff;
             }
             
-            QPushButton:not([default="true"]):hover {
-                background-color: #545b62;
+            QPushButton:pressed {
+                background-color: #2c3e50;
+                border-color: #5dade2;
             }
             
             QPushButton[default="true"] {
-                background-color: #28a745;
+                background-color: #2980b9;
+                border-color: #3498db;
                 color: white;
             }
             
             QPushButton[default="true"]:hover {
-                background-color: #218838;
+                background-color: #3498db;
+                border-color: #74b9ff;
+            }
+            
+            QTabWidget::pane {
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+            }
+            
+            QTabBar::tab {
+                background-color: #34495e;
+                color: #bdc3c7;
+                padding: 12px 20px;
+                border: 2px solid #2c3e50;
+                border-bottom: none;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+                margin-right: 4px;
+                font-weight: bold;
+            }
+            
+            QTabBar::tab:selected {
+                background-color: #2980b9;
+                color: #ffffff;
+                border-color: #3498db;
+            }
+            
+            QTabBar::tab:hover:!selected {
+                background-color: #4a6741;
+                color: #ecf0f1;
+                border-color: #74b9ff;
+            }
+            
+            QScrollArea {
+                border: 2px solid #34495e;
+                border-radius: 8px;
+                background-color: #2c3e50;
+            }
+            
+            QScrollArea > QWidget > QWidget {
+                background-color: #2c3e50;
             }
         """)
     
@@ -623,8 +739,9 @@ def show_homologation_details(parent: Optional[QWidget] = None, homologation_dat
 if __name__ == "__main__":
     # Test de la vista de detalles
     import sys
+
+    from ..core.settings import setup_logging
     from PyQt6.QtWidgets import QApplication
-    from core.settings import setup_logging
     
     setup_logging()
     

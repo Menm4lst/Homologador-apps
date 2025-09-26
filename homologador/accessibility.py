@@ -12,24 +12,22 @@ Este módulo proporciona funcionalidades de accesibilidad incluyendo:
 
 import json
 import os
-from typing import Dict, List, Optional, Any, Callable
 from enum import Enum
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFrame,
-    QScrollArea, QComboBox, QCheckBox, QGroupBox, QSlider, QSpinBox,
-    QKeySequenceEdit, QListWidget, QListWidgetItem, QTabWidget,
-    QTextEdit, QLineEdit, QDialog, QMessageBox, QApplication,
-    QProgressBar, QButtonGroup, QRadioButton, QGridLayout
-)
-from PyQt6.QtCore import (
-    Qt, QTimer, QObject, pyqtSignal, QEvent, QSettings, QKeyCombination,
-    QPropertyAnimation, QEasingCurve, QRect, QPoint, QSize
-)
-from PyQt6.QtGui import (
-    QFont, QColor, QPalette, QKeySequence, QAction, QShortcut,
-    QFocusEvent, QPainter, QPen, QBrush, QIcon, QPixmap,
-    QAccessibleInterface, QAccessible
-)
+from typing import Any, Callable, Dict, List, Optional
+
+from PyQt6.QtCore import (QEasingCurve, QEvent, QKeyCombination, QObject,
+                          QPoint, QPropertyAnimation, QRect, QSettings, QSize,
+                          Qt, QTimer, pyqtSignal)
+from PyQt6.QtGui import (QAccessible, QAccessibleInterface, QAction, QBrush,
+                         QColor, QFocusEvent, QFont, QIcon, QKeySequence,
+                         QPainter, QPalette, QPen, QPixmap, QShortcut)
+from PyQt6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox,
+                             QDialog, QFrame, QGridLayout, QGroupBox,
+                             QHBoxLayout, QKeySequenceEdit, QLabel, QLineEdit,
+                             QListWidget, QListWidgetItem, QMessageBox,
+                             QProgressBar, QPushButton, QRadioButton,
+                             QScrollArea, QSlider, QSpinBox, QTabWidget,
+                             QTextEdit, QVBoxLayout, QWidget)
 
 
 class AccessibilityMode(Enum):

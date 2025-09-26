@@ -5,20 +5,19 @@ Diálogo para que el usuario actual cambie su propia contraseña.
 import re
 import secrets
 import string
-from typing import Optional, Dict, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLabel, QLineEdit, QPushButton, QCheckBox, QMessageBox,
-    QDialogButtonBox, QFrame, QProgressBar, QWidget
-)
+from PyQt6.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QFormLayout,
+                             QFrame, QHBoxLayout, QLabel, QLineEdit,
+                             QMessageBox, QProgressBar, QPushButton,
+                             QVBoxLayout, QWidget)
 
 if TYPE_CHECKING:
     from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QPalette, QColor
 
-from data.seed import get_auth_service
+from ..data.seed import get_auth_service
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QFont, QPalette
 
 
 class ChangeMyPasswordDialog(QDialog):

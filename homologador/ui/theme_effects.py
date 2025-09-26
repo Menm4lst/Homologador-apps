@@ -3,12 +3,13 @@ Configuraciones adicionales de tema y personalización visual.
 Permite ajustes finos del dark theme y efectos especiales.
 """
 
-from PyQt6.QtCore import QPropertyAnimation, QEasingCurve, QRect, QTimer, QParallelAnimationGroup
+from typing import Optional, Dict, Any
+from PyQt6.QtCore import (QEasingCurve, QParallelAnimationGroup,
+                          QPropertyAnimation, QRect, QTimer)
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import (
-    QWidget, QGraphicsDropShadowEffect, QGraphicsOpacityEffect,
-    QApplication, QMainWindow, QDialog
-)
+from PyQt6.QtWidgets import (QApplication, QDialog, QGraphicsDropShadowEffect,
+                             QGraphicsOpacityEffect, QMainWindow, QWidget)
+
 
 class ThemeEffects:
     """Efectos visuales adicionales para mejorar la experiencia del usuario."""
@@ -271,7 +272,7 @@ class ThemeTransitionManager:
         
         self.animations.start()
 
-def apply_theme_customizations(app, config: dict = None):
+def apply_theme_customizations(app: QApplication, config: Optional[Dict[str, Any]] = None):
     """Aplica personalizaciones adicionales del tema."""
     if config is None:
         config = DEFAULT_THEME_CONFIG
