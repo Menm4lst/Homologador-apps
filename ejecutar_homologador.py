@@ -4,10 +4,11 @@ Script para ejecutar la aplicación Homologador con todas las nuevas funcionalid
 Este script evita problemas de importaciones relativas.
 """
 
-import sys
-import os
 
 # Agregar el directorio principal al path
+
+import os
+import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)
@@ -24,9 +25,10 @@ def main():
         error_handler = get_error_handler()
         
         # Importar PyQt6
-        from PyQt6.QtWidgets import QApplication, QMessageBox
-        from PyQt6.QtCore import Qt
         
+
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtWidgets import QApplication, QMessageBox
         print("🚀 Iniciando Homologador de Aplicaciones...")
         print("📋 Con nuevas funcionalidades implementadas:")
         print("   ✓ Panel de métricas y estadísticas")
@@ -65,8 +67,9 @@ def main():
             sys.path.insert(0, os.path.join(project_root, 'homologador'))
             
             try:
-                from app import HomologadorApplication
                 
+
+                from app import HomologadorApplication
                 print("✓ HomologadorApplication importada con método alternativo")
                 
                 # Crear la aplicación con sistema de autenticación

@@ -2,32 +2,56 @@
 Formulario para crear y editar homologaciones de aplicaciones.
 """
 
+from __future__ import annotations
+
+from datetime import date, datetime
 import logging
 import sys
-from datetime import date, datetime
+from typing import Any, Dict, Optional, cast
 
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDateEdit, QDialog,
-                             QFormLayout, QFrame, QGroupBox, QHBoxLayout,
-                             QLabel, QLineEdit, QMessageBox, QPushButton,
-                             QScrollArea, QTextEdit, QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QDialog,
+    QFormLayout,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
+
 
 from .notification_system import send_error, send_warning
 from .theme import ThemeType, get_current_theme
-
 logger = logging.getLogger(__name__)
 
 class HomologationFormDialog(QDialog):
     """Dialog para crear o editar una homologación."""
     
-    def __init__(self, parent=None, homologation_data=None, user_info=None, repo=None):
+    def __init__(
+        self,
+        parent: Optional[QWidget] = None,
+        homologation_data: Optional[Dict[str, Any]] = None,
+        user_info: Optional[Dict[str, Any]] = None,
+        repo: Optional[Any] = None,
+    ):
         """Inicializa el formulario."""
         super().__init__(parent)
         
-        self.homologation_data = homologation_data
-        self.user_info = user_info
-        self.repo = repo
+        self.homologation_data: Optional[Dict[str, Any]] = homologation_data
+        self.user_info: Optional[Dict[str, Any]] = user_info
+        self.repo: Optional[Any] = repo
         
         # Determinar modo (crear/editar)
         self.is_edit_mode = homologation_data is not None
@@ -441,9 +465,10 @@ class HomologationFormDialog(QDialog):
     
     def load_data(self):
         """Carga los datos existentes en el formulario."""
-        data = self.homologation_data
-        if not data:
+        data_opt = self.homologation_data
+        if not data_opt:
             return
+        data = cast(Dict[str, Any], data_opt)
         
         # Campos básicos
         self.real_name_edit.setText(data.get('real_name', ''))

@@ -46,7 +46,6 @@ Solución completa para protección de datos.
 - 🔄 **Restauración selectiva** con respaldos de seguridad
 - ⏰ **Programación automática** de respaldos
 - 🗂️ **Gestión de retención** y limpieza automática
-- ✅ **Verificación de integridad**
 - 🔒 **Encriptación opcional**
 
 **Acceso:** `Administración → 💾 Sistema de Respaldos` o `Ctrl+B`

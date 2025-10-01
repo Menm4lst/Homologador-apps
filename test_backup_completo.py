@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# type: ignore
 """
 Prueba Completa del Sistema de Respaldos
 =========================================
@@ -8,11 +9,12 @@ incluyendo la funcionalidad del core, la interfaz de usuario y las
 operaciones de respaldo/restauración.
 """
 
-import os
-import sys
-from pathlib import Path
 
 # Agregar el directorio raíz al path
+
+from pathlib import Path
+import os
+import sys
 sys.path.append('.')
 
 def test_core_backup_system():
@@ -178,9 +180,10 @@ def test_backup_functionality():
     print("=" * 50)
     
     try:
-        from homologador.core.storage import get_database_manager
         
         # Test 1: Crear múltiples respaldos con diferentes tipos
+
+        from homologador.core.storage import get_database_manager
         print("\n1. Creando respaldos de prueba...")
         db_manager = get_database_manager()
         

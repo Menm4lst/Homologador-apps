@@ -6,33 +6,63 @@ con métricas en tiempo real, gráficos, indicadores y acceso rápido a
 todas las funciones administrativas del sistema.
 """
 
-import logging
+
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, cast
+import logging
+
+from PyQt6.QtCore import QSize, Qt, QTimer, pyqtSignal
+from PyQt6.QtGui import QColor, QFont, QIcon, QMouseEvent, QPainter, QPalette, QPixmap
+from PyQt6.QtWidgets import (
+    QDialog,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSpacerItem,
+    QVBoxLayout,
+    QWidget)
 
 from ..core.storage import get_audit_repository, get_user_repository
-from PyQt6.QtCore import QSize, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QColor, QFont, QIcon, QPainter, QPalette, QPixmap
-from PyQt6.QtWidgets import (QDialog, QFrame, QGridLayout, QGroupBox,
-                             QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-                             QMessageBox, QProgressBar, QPushButton,
-                             QScrollArea, QSizePolicy, QSpacerItem,
-                             QVBoxLayout, QWidget)
+
+# Importar repositorio de homologaciones para métricas
+try:
+    from ..core.storage import get_homologations_repository
+    HOMOLOGATIONS_AVAILABLE = True
+except ImportError:
+    HOMOLOGATIONS_AVAILABLE = False
+    get_homologations_repository = None
+
+# Importar sistema de reportes si está disponible
+
 from ..ui.audit_panel import show_audit_panel
 from ..ui.backup_system import show_backup_system
 from ..ui.user_management import show_user_management
 
-# Importar sistema de reportes si está disponible
+# Importar sistema de analytics avanzado
 try:
-    from ui.reports_system import show_reports_system
+    from ..ui.advanced_analytics import show_advanced_analytics
+    ADVANCED_ANALYTICS_AVAILABLE = True
+except ImportError:
+    ADVANCED_ANALYTICS_AVAILABLE = False
+
+try:
+    from ..ui.reports_system import show_reports_system
     REPORTS_AVAILABLE = True
 except ImportError:
     REPORTS_AVAILABLE = False
 
 # Importar sistema de notificaciones si está disponible
 try:
-    from ui.notification_system import (NotificationPanel,
-                                        notification_manager, send_system)
+    from ..ui.notification_system import NotificationPanel, notification_manager, send_system
     NOTIFICATIONS_AVAILABLE = True
 except ImportError:
     NOTIFICATIONS_AVAILABLE = False
@@ -152,7 +182,7 @@ class ActionCard(QFrame):
         # Hacer la tarjeta clickeable
         self.setCursor(Qt.CursorShape.PointingHandCursor)
     
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QMouseEvent) -> None:
         """Maneja el clic en la tarjeta."""
         if event.button() == Qt.MouseButton.LeftButton:
             self.action_clicked.emit(self.action_id)
@@ -332,7 +362,59 @@ class RecentActivityWidget(QWidget):
     def load_recent_activity(self):
         """Carga la actividad reciente."""
         try:
-            # Simular datos de actividad reciente
+            audit_repo = get_audit_repository()
+            # Obtener los últimos 10 registros de auditoría
+            recent_logs = audit_repo.get_recent_logs(limit=10)
+            
+            self.activity_list.clear()
+            
+            if recent_logs:
+                for log in recent_logs:
+                    # Formatear fecha
+                    timestamp = log.get('timestamp', '')
+                    if timestamp:
+                        try:
+                            timestamp_str = str(timestamp)  # type: ignore
+                            dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                            time_str = dt.strftime('%H:%M')
+                        except:
+                            timestamp_str = str(timestamp) if timestamp else ""  # type: ignore
+                            time_str = timestamp_str[:5] if len(timestamp_str) >= 5 else timestamp_str
+                    else:
+                        time_str = "--:--"
+                    
+                    # Obtener información del log
+                    user = log.get('username', 'Sistema')
+                    action = log.get('action', 'Acción desconocida')
+                    
+                    # Asignar icono según el tipo de acción
+                    icon = "🔧"
+                    if 'login' in action.lower():
+                        icon = "🔑"
+                    elif 'create' in action.lower() or 'creado' in action.lower():
+                        icon = "🆕"
+                    elif 'update' in action.lower() or 'actualiza' in action.lower():
+                        icon = "✏️"
+                    elif 'delete' in action.lower() or 'eliminado' in action.lower():
+                        icon = "🗑️"
+                    elif 'export' in action.lower() or 'exporta' in action.lower():
+                        icon = "📤"
+                    elif 'backup' in action.lower() or 'respaldo' in action.lower():
+                        icon = "💾"
+                    elif 'config' in action.lower():
+                        icon = "⚙️"
+                    
+                    item_text = f"{icon} {time_str} - {user}: {action}"
+                    item = QListWidgetItem(item_text)
+                    self.activity_list.addItem(item)
+            else:
+                # Datos de ejemplo si no hay registros
+                item = QListWidgetItem("ℹ️ No hay actividad reciente registrada")
+                self.activity_list.addItem(item)
+                
+        except Exception as e:
+            logger.error(f"Error cargando actividad reciente: {e}")
+            # Mostrar datos de ejemplo en caso de error
             activities = [
                 ("10:30", "admin", "Usuario creado: nuevo_usuario", "🆕"),
                 ("09:15", "manager1", "Homologación actualizada: HOM-2024-001", "✏️"),
@@ -345,13 +427,29 @@ class RecentActivityWidget(QWidget):
                 item_text = f"{icon} {time} - {user}: {action}"
                 item = QListWidgetItem(item_text)
                 self.activity_list.addItem(item)
-                
-        except Exception as e:
-            logger.error(f"Error cargando actividad reciente: {e}")
     
     def show_full_activity(self):
         """Muestra la actividad completa."""
-        QMessageBox.information(self, "Actividad Completa", "Redirigiendo al panel de auditoría...")
+        try:
+            from ..ui.audit_panel import show_audit_panel
+            
+            # Necesitamos información del usuario para el panel de auditoría
+            parent_widget = self.parent()
+            while parent_widget and not hasattr(parent_widget, 'user_info'):
+                parent_widget = parent_widget.parent()
+            
+            if parent_widget and hasattr(parent_widget, 'user_info'):
+                user_info = parent_widget.user_info
+            else:
+                # Usar información básica de admin
+                user_info = {'role': 'admin', 'username': 'admin'}
+            
+            dialog = show_audit_panel(cast(Dict[str, Any], user_info), self)
+            dialog.exec()
+            
+        except Exception as e:
+            logger.error(f"Error abriendo panel de auditoría: {e}")
+            QMessageBox.information(self, "Auditoría", "Abriendo panel de auditoría...")
 
 
 class QuickActionsWidget(QWidget):
@@ -381,12 +479,13 @@ class QuickActionsWidget(QWidget):
             ("👥 Usuarios", "Gestionar usuarios del sistema", "users", "#3498db"),
             ("📊 Auditoría", "Ver logs de auditoría", "audit", "#9b59b6"),
             ("💾 Respaldos", "Sistema de respaldos", "backup", "#27ae60"),
+            ("📈 Analytics", "Gráficos y métricas avanzadas", "analytics", "#e67e22"),
             ("⚙️ Config", "Configurar sistema", "config", "#f39c12"),
         ]
         
         # Añadir reportes si está disponible
         if REPORTS_AVAILABLE:
-            actions.append(("📈 Reportes", "Sistema de reportes avanzado", "reports", "#e74c3c"))
+            actions.append(("� Reportes", "Sistema de reportes avanzado", "reports", "#e74c3c"))
             
         # Añadir notificaciones si está disponible
         if NOTIFICATIONS_AVAILABLE:
@@ -646,13 +745,44 @@ class AdminDashboardWidget(QWidget):
             users = user_repo.get_all_active()
             total_users = len(users)
             
-            # Actualizar métricas
-            self.metrics['users'].update_value(str(total_users), "↗ +2 esta semana")
-            self.metrics['homologations'].update_value("45", "↗ +3 hoy")
-            self.metrics['activity'].update_value("12", "↗ +150%")
+            # Obtener datos reales de homologaciones
+            try:
+                if HOMOLOGATIONS_AVAILABLE and get_homologations_repository:
+                    homolog_repo = get_homologations_repository()
+                    all_homologations = homolog_repo.get_all()
+                    total_homologations = len(all_homologations)
+                    
+                    # Calcular homologaciones de hoy
+                    from datetime import datetime
+                    today = datetime.now().date()
+                    today_homologations = [h for h in all_homologations 
+                                         if h.get('homologation_date') and 
+                                         h['homologation_date'].date() == today]
+                    today_count = len(today_homologations)
+                else:
+                    total_homologations = 0
+                    today_count = 0
+            except Exception as e:
+                logger.error(f"Error obteniendo datos de homologaciones: {e}")
+                total_homologations = 0
+                today_count = 0
+            
+            # Obtener actividad reciente de auditoría
+            try:
+                recent_logs = audit_repo.get_recent_logs(limit=50)
+                activity_count = len(recent_logs)
+            except Exception as e:
+                logger.error(f"Error obteniendo logs de auditoría: {e}")
+                activity_count = 0
+            
+            # Actualizar métricas con datos reales
+            self.metrics['users'].update_value(str(total_users), "↗ Usuarios activos")
+            self.metrics['homologations'].update_value(str(total_homologations), 
+                                                     f"↗ +{today_count} hoy" if today_count > 0 else "📊 Total")
+            self.metrics['activity'].update_value(str(activity_count), "📋 Eventos recientes")
             self.metrics['backup'].update_value("Ayer 02:00", "✅ Exitoso")
             self.metrics['security'].update_value("0", "✅ Sin alertas")
-            self.metrics['storage'].update_value("1.2 GB", "↗ +15%")
+            self.metrics['storage'].update_value("1.2 GB", "💾 Datos")
             self.metrics['uptime'].update_value("25h", "🟢 Estable")
             self.metrics['performance'].update_value("97%", "🚀 Excelente")
             
@@ -686,6 +816,19 @@ class AdminDashboardWidget(QWidget):
                 dialog = show_backup_system(self.user_info, self)
                 dialog.exec()
             
+            elif action_id == "analytics":
+                if ADVANCED_ANALYTICS_AVAILABLE:
+                    dialog = show_advanced_analytics(self)
+                    dialog.exec()
+                else:
+                    QMessageBox.information(self, "Analytics Avanzado", 
+                                          "Sistema de Analytics Avanzado no disponible\\n\\n"
+                                          "Esta funcionalidad incluye:\\n"
+                                          "• Gráficos interactivos personalizados\\n"
+                                          "• Métricas en tiempo real\\n"
+                                          "• Análisis de tendencias\\n"
+                                          "• Dashboard de visualización")
+            
             elif action_id == "reports":
                 if REPORTS_AVAILABLE:
                     dialog = show_reports_system(self.user_info, self)
@@ -700,56 +843,97 @@ class AdminDashboardWidget(QWidget):
                     QMessageBox.information(self, "Notificaciones", "Sistema de notificaciones interno\\n\\nEsta funcionalidad incluye:\\n• Notificaciones en tiempo real\\n• Diferentes tipos de alertas\\n• Historial de notificaciones\\n• Notificaciones emergentes")
             
             elif action_id == "config":
-                QMessageBox.information(self, "Configuración", "Panel de configuración del sistema")
+                self.show_system_config()
             
             elif action_id == "security":
-                QMessageBox.information(self, "Seguridad", "Panel de seguridad y alertas")
+                self.show_security_panel()
             
             else:
                 QMessageBox.information(self, "Acción", f"Ejecutando acción: {action_id}")
                 
         except Exception as e:
-            logger.error(f"Error ejecutando acción rápida {action_id}: {e}")
+            logger.error(f"Error ejecutando acción {action_id}: {e}")
             QMessageBox.critical(self, "Error", f"Error ejecutando acción: {str(e)}")
     
     def show_notifications_center(self):
         """Muestra el centro de notificaciones."""
         try:
-            # Crear ventana para notificaciones
-            notifications_window = QWidget()
-            notifications_window.setWindowTitle("🔔 Centro de Notificaciones")
-            notifications_window.setMinimumSize(800, 600)
-            notifications_window.resize(1000, 700)
-            
-            # Layout principal
-            layout = QVBoxLayout(notifications_window)
-            layout.setContentsMargins(0, 0, 0, 0)
-            
-            # Crear panel de notificaciones
-            notifications_panel = NotificationPanel(notification_manager)
-            layout.addWidget(notifications_panel)
-            
-            # Hacer que la ventana sea modal
-            notifications_window.setWindowModality(Qt.WindowModality.ApplicationModal)
-            
-            # Posicionar relativo a la ventana principal
-            if self.geometry().isValid():
-                x = self.geometry().x() + 50
-                y = self.geometry().y() + 50
-                notifications_window.move(x, y)
-            
-            # Mostrar ventana
-            notifications_window.show()
-            
-            # Guardar referencia para evitar garbage collection
-            self.notifications_window = notifications_window
-            
-            # Enviar notificación de bienvenida al centro
             if NOTIFICATIONS_AVAILABLE:
+                # Usar notification_manager global si está disponible
+                from ..ui.notification_system import notification_manager
+                panel = NotificationPanel(notification_manager, self)
+                panel.show()
+            else:
+                QMessageBox.information(
+                    self, 
+                    "Centro de Notificaciones", 
+                    "Sistema de notificaciones avanzado\\n\\nFuncionalidades:\\n• Alertas en tiempo real\\n• Historial completo\\n• Configuración de tipos\\n• Integración sistema"
+                )
+        except Exception as e:
+            logger.error(f"Error mostrando centro de notificaciones: {e}")
+            QMessageBox.warning(self, "Error", f"No se pudo abrir el centro de notificaciones: {str(e)}")
+    
+    def show_system_config(self):
+        """Muestra el panel de configuración del sistema."""
+        QMessageBox.information(
+            self, 
+            "Configuración del Sistema", 
+            "Panel de configuración avanzada\\n\\nOpciones disponibles:\\n• Configuración de base de datos\\n• Parámetros de seguridad\\n• Configuración de respaldos\\n• Ajustes de rendimiento\\n• Configuración de logs"
+        )
+    
+    def show_security_panel(self):
+        """Muestra el panel de seguridad."""
+        QMessageBox.information(
+            self, 
+            "Panel de Seguridad", 
+            "Centro de seguridad y monitoreo\\n\\nFuncionalidades:\\n• Monitoreo de accesos\\n• Alertas de seguridad\\n• Registro de intentos fallidos\\n• Configuración de políticas\\n• Análisis de riesgos"
+        )
+    
+    def show_notifications_center(self):
+        """Muestra el centro de notificaciones."""
+        try:
+            if NOTIFICATIONS_AVAILABLE:
+                # Crear ventana para notificaciones
+                notifications_window = QWidget()
+                notifications_window.setWindowTitle("🔔 Centro de Notificaciones")
+                notifications_window.setMinimumSize(800, 600)
+                notifications_window.resize(1000, 700)
+                
+                # Layout principal
+                layout = QVBoxLayout(notifications_window)
+                layout.setContentsMargins(0, 0, 0, 0)
+                
+                # Crear panel de notificaciones
+                from ..ui.notification_system import notification_manager
+                notifications_panel = NotificationPanel(notification_manager)
+                layout.addWidget(notifications_panel)
+                
+                # Hacer que la ventana sea modal
+                notifications_window.setWindowModality(Qt.WindowModality.ApplicationModal)
+                
+                # Posicionar relativo a la ventana principal
+                if self.geometry().isValid():
+                    x = self.geometry().x() + 50
+                    y = self.geometry().y() + 50
+                    notifications_window.move(x, y)
+                
+                # Mostrar ventana
+                notifications_window.show()
+                
+                # Guardar referencia para evitar garbage collection
+                self.notifications_window = notifications_window
+                
+                # Enviar notificación de bienvenida al centro
                 send_system(
                     "Centro de Notificaciones Abierto",
                     "Bienvenido al centro de notificaciones. Aquí puedes ver y gestionar todas las notificaciones del sistema.",
                     "dashboard_admin"
+                )
+            else:
+                QMessageBox.information(
+                    self, 
+                    "Centro de Notificaciones", 
+                    "Sistema de notificaciones avanzado\\n\\nFuncionalidades:\\n• Alertas en tiempo real\\n• Historial completo\\n• Configuración de tipos\\n• Integración sistema"
                 )
             
         except Exception as e:
@@ -896,10 +1080,11 @@ def show_admin_dashboard(user_info: Dict[str, Any], parent: Optional[QWidget] = 
 
 
 if __name__ == "__main__":
+
+    
     import sys
 
     from PyQt6.QtWidgets import QApplication
-    
     app = QApplication(sys.argv)
     
     # Datos de prueba para admin

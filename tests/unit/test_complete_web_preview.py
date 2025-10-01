@@ -4,21 +4,24 @@ Prueba completa de la funcionalidad de previsualización web integrada
 Este script simula el uso de la función desde el menú contextual
 """
 
-import sys
-import os
 
 # Agregar el directorio padre al path
+
+import os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, 
     QMessageBox, QLabel, QHBoxLayout
 )
+
+
+
 from PyQt6.QtCore import Qt
 
 from homologador.core.storage import get_homologation_repository
 from homologador.ui.web_preview import show_web_preview
-
 class TestWebPreviewWindow(QMainWindow):
     def __init__(self):
         super().__init__()

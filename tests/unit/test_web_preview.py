@@ -3,15 +3,18 @@
 Script de prueba para la funcionalidad de previsualización web
 """
 
-import sys
-import os
 
 # Agregar el directorio padre al path para poder importar los módulos
+
+import os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QMessageBox
-from homologador.ui.web_preview import show_web_preview
 
+
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QMessageBox
+
+from homologador.ui.web_preview import show_web_preview
 class TestMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()

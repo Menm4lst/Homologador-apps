@@ -3,9 +3,10 @@
 Prueba específica del usuario prueba2
 """
 
-import sqlite3
-import sys
 import os
+import sys
+
+import sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def test_prueba2_user():
@@ -38,9 +39,10 @@ def test_prueba2_user():
         print(f"   Hash: {password_hash[:60]}...")
         
         # Importar función de verificación corregida
-        from homologador.core.auth import verify_password
         
         # Lista de contraseñas comunes para probar
+
+        from homologador.core.auth import verify_password
         test_passwords = [
             "admin123", 
             "prueba123", 

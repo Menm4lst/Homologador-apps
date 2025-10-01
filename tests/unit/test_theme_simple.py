@@ -3,10 +3,11 @@
 Script de prueba simple para verificar el nuevo tema negro-azul.
 """
 
-import sys
-import os
 
 # Agregar paths
+
+import os
+import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)
@@ -17,8 +18,9 @@ from PyQt6.QtWidgets import (
     QPushButton, QLabel, QLineEdit, QTableWidget, QTableWidgetItem,
     QComboBox, QTextEdit, QScrollArea
 )
-from PyQt6.QtCore import Qt
 
+
+from PyQt6.QtCore import Qt
 def main():
     """Función principal."""
     app = QApplication(sys.argv)

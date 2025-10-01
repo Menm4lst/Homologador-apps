@@ -5,12 +5,13 @@ Script de compilación final para Homologador
 Usa esquema embebido para evitar dependencias externas
 """
 
+
+from pathlib import Path
 import os
 import shutil
-import subprocess
 import sys
-from pathlib import Path
 
+import subprocess
 def clean_build_dirs():
     """Limpia directorios de compilación anteriores"""
     dirs_to_clean = ['build', 'dist', '__pycache__']

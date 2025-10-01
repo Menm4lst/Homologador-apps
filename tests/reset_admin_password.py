@@ -3,10 +3,11 @@
 Script para resetear la contraseña del usuario admin.
 """
 
-import sys
-import os
 
 # Agregar paths
+
+import os
+import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)
@@ -18,10 +19,11 @@ def reset_admin_password():
         print("🔧 Reseteando contraseña del usuario admin...")
         
         # Importar servicios
-        from homologador.data.seed import get_auth_service
-        from homologador.core.storage import get_database_manager
         
         # Inicializar base de datos
+
+        from homologador.core.storage import get_database_manager
+        from homologador.data.seed import get_auth_service
         db_manager = get_database_manager()
         
         # Obtener servicio de autenticación

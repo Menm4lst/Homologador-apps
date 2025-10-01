@@ -3,12 +3,13 @@
 Script de compilación corregido que incluye todos los archivos de datos necesarios.
 """
 
-import os
-import sys
-import shutil
-import subprocess
-from pathlib import Path
 
+from pathlib import Path
+import os
+import shutil
+import sys
+
+import subprocess
 def compile_with_data():
     """Compilación con archivos de datos incluidos."""
     

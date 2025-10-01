@@ -3,14 +3,16 @@ Sistema de iconos y recursos visuales para el Homologador de Aplicaciones.
 Proporciona iconos SVG y imágenes para una interfaz moderna.
 """
 
-import io
+
+# from PyQt6.QtSvg import QSvgRenderer  # Comentado temporalmente
+
+
 
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QBrush, QColor, QIcon, QPainter, QPen, QPixmap
-# from PyQt6.QtSvg import QSvgRenderer  # Comentado temporalmente
 from PyQt6.QtWidgets import QApplication
 
-
+import io
 class IconProvider:
     """Proveedor de iconos SVG para la aplicación."""
     

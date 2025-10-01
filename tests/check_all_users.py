@@ -3,10 +3,11 @@
 Script para verificar y diagnosticar usuarios en la base de datos.
 """
 
-import sys
-import os
 
 # Agregar paths
+
+import os
+import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)
@@ -19,10 +20,11 @@ def check_all_users():
         print("=" * 50)
         
         # Importar servicios
-        from homologador.data.seed import get_auth_service
-        from homologador.core.storage import get_database_manager
         
         # Inicializar base de datos
+
+        from homologador.core.storage import get_database_manager
+        from homologador.data.seed import get_auth_service
         db_manager = get_database_manager()
         auth_service = get_auth_service()
         user_repo = auth_service.user_repo
@@ -104,10 +106,11 @@ def reset_user_password(username, new_password):
     try:
         print(f"🔧 Reseteando contraseña para: {username}")
         
-        from homologador.data.seed import get_auth_service
-        from homologador.core.storage import get_database_manager
         
         # Servicios
+
+        from homologador.core.storage import get_database_manager
+        from homologador.data.seed import get_auth_service
         auth_service = get_auth_service()
         db_manager = get_database_manager()
         

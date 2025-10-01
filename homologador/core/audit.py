@@ -3,14 +3,18 @@ Módulo de auditoría avanzada para el Homologador de Aplicaciones.
 Funciones adicionales para logging y reporting de auditoría.
 """
 
-import json
-import logging
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+import json
+import logging
 
 from ..core.storage import get_audit_repository, get_user_repository
 
+if TYPE_CHECKING:
+    from .storage import AuditRepository, UserRepository
 logger = logging.getLogger(__name__)
 
 
@@ -33,8 +37,8 @@ class AuditLogger:
     """Logger especializado para eventos de auditoría."""
     
     def __init__(self):
-        self.audit_repo = get_audit_repository()
-        self.user_repo = get_user_repository()
+        self.audit_repo: AuditRepository = get_audit_repository()
+        self.user_repo: UserRepository = get_user_repository()
     
     def log_login_attempt(self, username: str, success: bool, ip_address: Optional[str] = None, 
                          failure_reason: Optional[str] = None):
@@ -111,14 +115,14 @@ class AuditReporter:
     """Generador de reportes de auditoría."""
     
     def __init__(self):
-        self.audit_repo = get_audit_repository()
-        self.user_repo = get_user_repository()
+        self.audit_repo: AuditRepository = get_audit_repository()
+        self.user_repo: UserRepository = get_user_repository()
     
     def get_login_report(self, days: int = 30) -> Dict[str, Any]:
         """Genera reporte de logins en los últimos N días."""
         date_from = (datetime.now() - timedelta(days=days)).isoformat()
         
-        filters = {
+        filters: Dict[str, Any] = {
             'action': 'LOGIN_SUCCESS',
             'date_from': date_from
         }
@@ -164,7 +168,7 @@ class AuditReporter:
         """Genera reporte de actividad de un usuario específico."""
         date_from = (datetime.now() - timedelta(days=days)).isoformat()
         
-        filters = {
+        filters: Dict[str, Any] = {
             'user_id': user_id,
             'date_from': date_from
         }
@@ -205,7 +209,7 @@ class AuditReporter:
         """Genera reporte de cambios en los datos."""
         date_from = (datetime.now() - timedelta(days=days)).isoformat()
         
-        filters = {
+        filters: Dict[str, Any] = {
             'table_name': table_name,
             'date_from': date_from
         }
@@ -257,7 +261,7 @@ class AuditReporter:
         date_from = (datetime.now() - timedelta(days=days)).isoformat()
         
         # Buscar intentos de login fallidos
-        failed_login_filters = {
+        failed_login_filters: Dict[str, Any] = {
             'action': 'LOGIN_FAILED',
             'date_from': date_from
         }
@@ -265,7 +269,7 @@ class AuditReporter:
         failed_logins = self.audit_repo.get_audit_trail(failed_login_filters)
         
         # Buscar accesos denegados
-        denied_filters = {
+        denied_filters: Dict[str, Any] = {
             'action': 'PERMISSION_DENIED',
             'date_from': date_from
         }
@@ -305,13 +309,13 @@ class AuditAnalyzer:
     """Analizador de patrones en los datos de auditoría."""
     
     def __init__(self):
-        self.audit_repo = get_audit_repository()
+        self.audit_repo: AuditRepository = get_audit_repository()
     
     def detect_unusual_activity(self, user_id: int, days: int = 7) -> List[Dict[str, Any]]:
         """Detecta actividad inusual para un usuario."""
         date_from = (datetime.now() - timedelta(days=days)).isoformat()
         
-        filters = {
+        filters: Dict[str, Any] = {
             'user_id': user_id,
             'date_from': date_from
         }
@@ -369,7 +373,7 @@ class AuditAnalyzer:
         """Analiza patrones de uso del sistema."""
         date_from = (datetime.now() - timedelta(days=days)).isoformat()
         
-        filters = {
+        filters: Dict[str, Any] = {
             'date_from': date_from
         }
         
@@ -449,9 +453,10 @@ def get_audit_analyzer() -> AuditAnalyzer:
 
 if __name__ == "__main__":
     # Test del sistema de auditoría
+    
+
     from core.settings import setup_logging
     from data.seed import create_seed_data
-    
     setup_logging()
     
     print("=== Test del Sistema de Auditoría Avanzada ===")

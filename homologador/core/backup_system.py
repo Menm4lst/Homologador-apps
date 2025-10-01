@@ -3,24 +3,26 @@ Sistema de Respaldos Automáticos para Homologador de Aplicaciones.
 Maneja respaldos programados, restauración y verificación de integridad.
 """
 
-import hashlib
+
+
+
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 import json
 import logging
 import os
 import shutil
-import sqlite3
-import zipfile
-from dataclasses import dataclass
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
 from PyQt6.QtCore import QObject, QThread, QTimer, pyqtSignal
 from PyQt6.QtWidgets import QMessageBox
 
 from .settings import get_settings
 from .storage import get_database_manager
-
+from dataclasses import dataclass
+import hashlib
+import sqlite3
+import zipfile
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -206,7 +208,7 @@ class BackupManager(QObject):
             for log_file in log_files:
                 try:
                     if log_file.stat().st_mtime > cutoff_date.timestamp():
-                        zipf.write(log_file, f"logs/{log_file.name}")
+                        zipf.write(str(log_file), f"logs/{log_file.name}")  # type: ignore[arg-type]
                 except (OSError, IOError):
                     continue  # Archivo no accesible, continuar
                     

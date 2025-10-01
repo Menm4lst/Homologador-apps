@@ -3,15 +3,17 @@ Sistema de tooltips informativos para la aplicación.
 Proporciona ayuda contextual y información adicional en tiempo real.
 """
 
-import logging
+
+
+
 from typing import Any, Dict, Optional
+import logging
 
 from PyQt6.QtCore import QPoint, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QPalette
 from PyQt6.QtWidgets import QApplication, QLabel, QToolTip, QWidget
 
 from .theme import ThemeType, get_current_theme
-
 logger = logging.getLogger(__name__)
 
 
@@ -144,9 +146,9 @@ class TooltipManager:
         """Actualiza los estilos de tooltips cuando cambia el tema."""
         self.setup_tooltip_styles()
     
-    def add_dynamic_tooltip(self, widget: QWidget, tooltip_key: str, **format_kwargs):
+    def add_dynamic_tooltip(self, widget: QWidget, tooltip_key: str, **format_kwargs: Any) -> None:
         """Agrega un tooltip dinámico que puede incluir variables."""
-        base_text = self.tooltips_data.get(tooltip_key, tooltip_key)
+        base_text = str(self.tooltips_data.get(tooltip_key, tooltip_key))
         
         if format_kwargs:
             try:

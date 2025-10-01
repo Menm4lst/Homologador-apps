@@ -5,24 +5,49 @@ Este módulo proporciona una interfaz completa para que los administradores
 puedan gestionar usuarios, permisos, contraseñas y accesos del sistema.
 """
 
-import logging
+
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, cast
+import logging
+
+from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QAction, QColor, QFont, QIcon, QPalette, QPixmap
+from PyQt6.QtWidgets import (
+    QButtonGroup,
+    QCalendarWidget,
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget)
 
 from ..core.auth import generate_password
 from ..core.storage import get_audit_repository, get_user_repository
 from ..data.seed import get_auth_service
-from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QAction, QColor, QFont, QIcon, QPalette, QPixmap
-from PyQt6.QtWidgets import (QButtonGroup, QCalendarWidget, QCheckBox,
-                             QComboBox, QDateEdit, QDialog, QDialogButtonBox,
-                             QFormLayout, QFrame, QGridLayout, QGroupBox,
-                             QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-                             QListWidget, QListWidgetItem, QMessageBox,
-                             QProgressBar, QPushButton, QRadioButton,
-                             QScrollArea, QSlider, QSpinBox, QSplitter,
-                             QTableWidget, QTableWidgetItem, QTabWidget,
-                             QTextEdit, QVBoxLayout, QWidget)
 
 logger = logging.getLogger(__name__)
 
@@ -30,25 +55,25 @@ logger = logging.getLogger(__name__)
 class UserRole:
     """Definición de roles de usuario."""
     ADMIN = "admin"
-    MANAGER = "manager"
     EDITOR = "editor"
     VIEWER = "viewer"
-    GUEST = "guest"
     
     ROLES = {
         ADMIN: "Administrador",
-        MANAGER: "Gerente", 
         EDITOR: "Editor",
-        VIEWER: "Visualizador",
-        GUEST: "Invitado"
+        VIEWER: "Visualizador"
     }
     
     PERMISSIONS = {
-        ADMIN: ["create", "read", "update", "delete", "manage_users", "export", "backup"],
-        MANAGER: ["create", "read", "update", "delete", "export"],
-        EDITOR: ["create", "read", "update"],
-        VIEWER: ["read"],
-        GUEST: ["read"]
+        ADMIN: ["create", "read", "update", "delete", "manage_users", "export", "backup", "audit", "config"],
+        EDITOR: ["create", "read", "update", "delete", "export"],
+        VIEWER: ["read", "export"]
+    }
+    
+    DESCRIPTIONS = {
+        ADMIN: "Acceso completo al sistema: gestión de usuarios, configuración, auditoría y respaldos",
+        EDITOR: "Puede crear, editar y eliminar homologaciones. Acceso a exportaciones",
+        VIEWER: "Solo lectura de homologaciones y capacidad de exportar datos"
     }
 
 
@@ -110,7 +135,8 @@ class CreateUserDialog(QDialog):
         self.role_combo = QComboBox()
         for role, description in UserRole.ROLES.items():
             self.role_combo.addItem(f"{description} ({role})", role)
-        self.role_combo.setCurrentIndex(3)  # Viewer por defecto
+        # Viewer por defecto (último índice)
+        self.role_combo.setCurrentIndex(len(UserRole.ROLES) - 1)
         self.role_combo.currentTextChanged.connect(self.update_permissions_preview)
         access_layout.addRow("Rol:", self.role_combo)
         
@@ -236,22 +262,55 @@ class CreateUserDialog(QDialog):
         
         role = self.role_combo.currentData()
         if role in UserRole.PERMISSIONS:
+            # Agregar descripción del rol
+            if role in UserRole.DESCRIPTIONS:
+                desc_item = QListWidgetItem(f"📋 {UserRole.DESCRIPTIONS[role]}")
+                desc_item.setForeground(QColor("#3498db"))
+                self.permissions_list.addItem(desc_item)
+                
+                # Separador
+                separator = QListWidgetItem("―" * 50)
+                separator.setForeground(QColor("#7f8c8d"))
+                self.permissions_list.addItem(separator)
+            
             permissions = UserRole.PERMISSIONS[role]
             
             permission_descriptions = {
-                "create": "✅ Crear nuevos registros",
-                "read": "👁️ Ver registros existentes", 
-                "update": "✏️ Modificar registros",
-                "delete": "🗑️ Eliminar registros",
-                "manage_users": "👥 Gestionar usuarios",
-                "export": "📤 Exportar datos",
-                "backup": "💾 Crear respaldos"
+                "create": "✅ Crear nuevos registros de homologaciones",
+                "read": "👁️ Ver y consultar registros existentes", 
+                "update": "✏️ Modificar y actualizar registros",
+                "delete": "🗑️ Eliminar registros (con confirmación)",
+                "manage_users": "👥 Gestionar usuarios del sistema",
+                "export": "📤 Exportar datos a CSV/Excel",
+                "backup": "💾 Crear y gestionar respaldos",
+                "audit": "🔍 Acceder a registros de auditoría",
+                "config": "⚙️ Configurar parámetros del sistema"
             }
             
             for permission in permissions:
                 if permission in permission_descriptions:
                     item = QListWidgetItem(permission_descriptions[permission])
+                    item.setForeground(QColor("#27ae60"))
                     self.permissions_list.addItem(item)
+            
+            # Mostrar lo que NO puede hacer
+            all_permissions = set(permission_descriptions.keys())
+            denied_permissions = all_permissions - set(permissions)
+            
+            if denied_permissions:
+                # Separador para permisos denegados
+                separator2 = QListWidgetItem("")
+                self.permissions_list.addItem(separator2)
+                
+                denied_header = QListWidgetItem("❌ Permisos restringidos:")
+                denied_header.setForeground(QColor("#e74c3c"))
+                self.permissions_list.addItem(denied_header)
+                
+                for denied in denied_permissions:
+                    if denied in permission_descriptions:
+                        item = QListWidgetItem(f"  {permission_descriptions[denied]}")
+                        item.setForeground(QColor("#95a5a6"))
+                        self.permissions_list.addItem(item)
     
     def validate_form(self):
         """Valida el formulario y habilita/deshabilita el botón crear."""
@@ -329,41 +388,57 @@ class CreateUserDialog(QDialog):
     def create_user(self):
         """Crea el nuevo usuario."""
         try:
+            username = self.username_edit.text().strip()
+            password = self.password_edit.text()
+            
             # Verificar que el usuario no exista
-            existing_user = self.user_repo.get_user_by_username(self.username_edit.text().strip())
-            if existing_user:
-                QMessageBox.warning(
-                    self,
-                    "Error",
-                    "Ya existe un usuario con ese nombre de usuario."
-                )
-                return
+            try:
+                existing_user = self.user_repo.get_by_username(username)
+                if existing_user:
+                    QMessageBox.warning(
+                        self,
+                        "Error",
+                        "Ya existe un usuario con ese nombre de usuario."
+                    )
+                    return
+            except:
+                # Si no existe el método, continuar
+                pass
             
-            # Crear datos del usuario
+            # Usar AuthService para crear el usuario
             auth_service = get_auth_service()
-            user_data = {
-                'username': self.username_edit.text().strip(),
-                'password': auth_service.hash_password(self.password_edit.text()),
-                'full_name': self.full_name_edit.text().strip(),
-                'email': self.email_edit.text().strip(),
-                'department': self.department_edit.text().strip(),
-                'role': self.role_combo.currentData(),
-                'is_active': self.active_check.isChecked(),
-                'force_password_change': self.force_password_change.isChecked(),
-                'created_at': datetime.now().isoformat(),
-                'last_login': None
-            }
             
-            # Crear usuario en la base de datos
-            user_id = self.user_repo.create_user(user_data)
+            user_id = auth_service.create_user(
+                username=username,
+                password=password,
+                role=self.role_combo.currentData(),
+                full_name=self.full_name_edit.text().strip() or None,
+                email=self.email_edit.text().strip() or None,
+                must_change_password=self.force_password_change.isChecked(),
+                creator_id=None  # Se puede pasar el ID del usuario actual
+            )
             
             if user_id:
+                # Crear diccionario con los datos para el evento
+                user_data = {
+                    'id': user_id,
+                    'username': username,
+                    'full_name': self.full_name_edit.text().strip(),
+                    'email': self.email_edit.text().strip(),
+                    'role': self.role_combo.currentData(),
+                    'is_active': self.active_check.isChecked(),
+                    'must_change_password': self.force_password_change.isChecked(),
+                    'created_at': datetime.now().isoformat()
+                }
+                
                 self.user_created.emit(user_data)
                 
                 QMessageBox.information(
                     self,
-                    "Usuario Creado",
-                    f"El usuario '{user_data['username']}' ha sido creado exitosamente."
+                    "✅ Usuario Creado",
+                    f"El usuario '{username}' ha sido creado exitosamente.\\n\\n"
+                    f"Rol: {UserRole.ROLES.get(self.role_combo.currentData(), 'Desconocido')}\\n"
+                    f"Estado: {'Activo' if self.active_check.isChecked() else 'Inactivo'}"
                 )
                 
                 self.accept()
@@ -379,7 +454,7 @@ class CreateUserDialog(QDialog):
             QMessageBox.critical(
                 self,
                 "Error",
-                f"Error creando usuario: {str(e)}"
+                f"Error creando usuario:\\n{str(e)}"
             )
 
 
@@ -1056,7 +1131,7 @@ class UserManagementWidget(QWidget):
             logger.error(f"Error cargando usuarios: {e}")
             QMessageBox.critical(self, "Error", f"Error cargando usuarios: {str(e)}")
     
-    def on_show_inactive_changed(self, state):
+    def on_show_inactive_changed(self, state: int) -> None:
         """Maneja el cambio del checkbox de mostrar inactivos."""
         include_inactive = state == 2  # Qt.CheckState.Checked = 2
         self.load_users(include_inactive=include_inactive)
@@ -1556,10 +1631,11 @@ def show_user_management(user_info: Dict[str, Any], parent: Optional[QWidget] = 
 
 
 if __name__ == "__main__":
+
+    
     import sys
 
     from PyQt6.QtWidgets import QApplication
-    
     app = QApplication(sys.argv)
     
     # Datos de prueba para admin

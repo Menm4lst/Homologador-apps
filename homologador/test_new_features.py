@@ -4,6 +4,7 @@ Script de prueba para verificar las nuevas funcionalidades implementadas.
 
 import os
 import sys
+from typing import Any, Dict, List
 
 # Agregar el directorio del proyecto al path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -43,7 +44,7 @@ def test_search_functionality():
         from advanced_search import SearchEngine
 
         # Datos de prueba
-        test_data = [
+        test_data: List[Dict[str, Any]] = [
             {
                 'id': 1,
                 'title': 'Implementar API REST',
@@ -60,7 +61,7 @@ def test_search_functionality():
                 'status': 'Completado',
                 'tags': ['frontend', 'css', 'responsive']
             }
-        ]
+    ]
         
         # Crear motor de búsqueda
         engine = SearchEngine()

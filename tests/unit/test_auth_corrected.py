@@ -3,13 +3,15 @@
 Script para probar la autenticación corregida con la estructura real de la BD
 """
 
-import sqlite3
-import sys
 import os
+import sys
+
+import sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from homologador.core.auth import verify_password
 
+
+from homologador.core.auth import verify_password
 def test_authentication_fixed():
     """Prueba la autenticación con todos los usuarios usando la estructura correcta"""
     

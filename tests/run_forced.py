@@ -3,10 +3,11 @@
 Ejecutor forzado de la aplicación Homologador - Versión que garantiza que se mantenga visible.
 """
 
-import sys
-import os
 
 # Agregar paths
+
+import os
+import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)
@@ -19,10 +20,11 @@ def force_run_homologador():
         print("=" * 50)
         
         # Importar PyQt6
-        from PyQt6.QtWidgets import QApplication, QMessageBox
-        from PyQt6.QtCore import QTimer, Qt
         
         # Crear aplicación Qt
+
+        from PyQt6.QtCore import QTimer, Qt
+        from PyQt6.QtWidgets import QApplication, QMessageBox
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(True)
         
@@ -35,8 +37,9 @@ def force_run_homologador():
         print("🎨 Tema negro-azul aplicado")
         
         # Importar y crear ventana de login
-        from homologador.ui.final_login import FinalLoginWindow
         
+
+        from homologador.ui.final_login import FinalLoginWindow
         login_window = FinalLoginWindow()
         
         print("🔐 Ventana de login creada")
@@ -54,8 +57,9 @@ def force_run_homologador():
                 login_window.close()
                 
                 # Importar y crear ventana principal
-                from homologador.ui.main_window import MainWindow
                 
+
+                from homologador.ui.main_window import MainWindow
                 main_window = MainWindow(user_info)
                 
                 # Aplicar efectos si están disponibles

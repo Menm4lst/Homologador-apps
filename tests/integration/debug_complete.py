@@ -3,11 +3,12 @@
 Script de diagnóstico avanzado para la aplicación Homologador.
 """
 
-import sys
-import os
-import traceback
 
 # Agregar paths
+
+import os
+import sys
+import traceback
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)

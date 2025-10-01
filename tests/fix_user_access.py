@@ -3,13 +3,15 @@
 Script para activar usuarios y verificar contraseñas
 """
 
-import sqlite3
-import sys
 import os
+import sys
+
+import sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from homologador.core.auth import verify_password
 
+
+from homologador.core.auth import verify_password
 def fix_user_access():
     """Activa usuarios y verifica acceso"""
     

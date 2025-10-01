@@ -4,11 +4,13 @@
 Script de prueba simple para validar que la aplicación funciona correctamente.
 """
 
-import os
-import sys
-from datetime import datetime
 
 # Agregar el directorio actual al path para importar módulos
+
+from datetime import datetime
+from typing import Any, Dict
+import os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def test_simple():
@@ -88,7 +90,7 @@ def test_simple():
         print(f"✅ Registros existentes: {initial_count}")
         
         # Crear un registro de prueba
-        test_data = {
+        test_data: Dict[str, Any] = {
             'real_name': 'Test App Validation',
             'logical_name': 'test-app-validation',
             'kb_url': 'https://example.com/kb/test-app',

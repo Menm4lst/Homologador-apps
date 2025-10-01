@@ -3,13 +3,14 @@
 Script de prueba para verificar la integración del sistema de respaldos.
 """
 
-import sys
 import os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+
 
 from homologador.core.backup_system import get_backup_manager
 from homologador.core.settings import get_settings
-
 def test_backup_system():
     """Prueba básica del sistema de respaldos."""
     print("=== Prueba del Sistema de Respaldos ===")

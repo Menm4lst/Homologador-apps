@@ -3,8 +3,9 @@
 Script de prueba para validar las expresiones regulares del cambio de contraseñas.
 """
 
-import re
 
+
+import re
 def test_password_patterns():
     """Prueba los patrones de regex para validación de contraseñas."""
     

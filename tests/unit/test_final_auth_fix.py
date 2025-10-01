@@ -3,14 +3,16 @@
 Script para probar que la corrección de autenticación funciona
 """
 
-import sqlite3
-import sys
 import os
+import sys
+
+import sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+
 
 from homologador.core.auth import verify_password
 from homologador.data.seed import get_auth_service
-
 def test_fixed_authentication():
     """Prueba la autenticación corregida"""
     

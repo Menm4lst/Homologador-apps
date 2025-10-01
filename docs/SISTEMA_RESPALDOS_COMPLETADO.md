@@ -17,7 +17,6 @@
   - 📊 **Estadísticas**: Métricas del sistema de respaldos
 - **Integración en Menú**: Acceso desde menú de Administración
 - **Herramientas Rápidas**: Respaldo rápido desde menú Herramientas
-- **Verificación de Integridad**: Herramientas de diagnóstico
 
 ### 🔐 **Seguridad y Control de Acceso**
 - **Solo Administradores**: Acceso restringido a funciones de respaldo
@@ -53,7 +52,6 @@ backups/
 
 ### 🛡️ **Robustez y Confiabilidad**
 - Manejo de errores comprehensivo
-- Verificación de integridad
 - Progreso visual para operaciones largas
 - Recuperación ante fallos
 
@@ -67,8 +65,7 @@ backups/
 
 ### 🔧 **Menú Herramientas** (Para todos los usuarios logueados)
 - **💾 Crear Respaldo Rápido** (Solo administradores) - `Ctrl+Shift+B`
-- **🔍 Verificar Integridad de Datos** - `Ctrl+Shift+V`
-- **📤 Exportar Datos** - `Ctrl+E`
+- ** Exportar Datos** - `Ctrl+E`
 
 ### 👑 **Menú Administración** (Solo administradores)
 - **💾 Sistema de Respaldos** - `Ctrl+B`

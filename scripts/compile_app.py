@@ -4,12 +4,13 @@ Script de compilación para el Homologador de Aplicaciones.
 Crea un ejecutable independiente con todas las dependencias.
 """
 
-import os
-import sys
-import shutil
-import subprocess
-from pathlib import Path
 
+from pathlib import Path
+import os
+import shutil
+import sys
+
+import subprocess
 def compile_application():
     """Compila la aplicación usando PyInstaller."""
     

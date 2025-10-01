@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Entry point for the Homologador application."""
 
-import sys
-import os
-from pathlib import Path
 
 # Agregar el directorio padre al path para imports absolutos
+
+from pathlib import Path
+import os
+import sys
 current_dir = Path(__file__).parent
 parent_dir = current_dir.parent
 sys.path.insert(0, str(parent_dir))

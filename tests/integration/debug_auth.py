@@ -3,10 +3,11 @@
 Script para verificar y corregir el sistema de autenticación.
 """
 
-import sys
-import os
 
 # Agregar paths
+
+import os
+import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)
@@ -18,10 +19,11 @@ def check_authentication():
         print("🔍 Verificando sistema de autenticación...")
         
         # Importar servicios
-        from homologador.data.seed import get_auth_service, create_seed_data
-        from homologador.core.storage import get_database_manager
         
         # Inicializar base de datos
+
+        from homologador.core.storage import get_database_manager
+        from homologador.data.seed import get_auth_service, create_seed_data
         print("📁 Inicializando base de datos...")
         db_manager = get_database_manager()
         
@@ -63,10 +65,11 @@ def fix_authentication():
     try:
         print("🔧 Reparando sistema de autenticación...")
         
-        from homologador.data.seed import create_seed_data
-        from homologador.core.storage import get_database_manager
         
         # Reinicializar base de datos
+
+        from homologador.core.storage import get_database_manager
+        from homologador.data.seed import create_seed_data
         db_manager = get_database_manager()
         
         # Recrear datos semilla

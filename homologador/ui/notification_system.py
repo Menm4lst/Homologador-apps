@@ -5,24 +5,50 @@ Este módulo proporciona un sistema de notificaciones simple y elegante
 que funciona únicamente dentro de la aplicación, sin envío de emails.
 """
 
+
+from datetime import datetime, timedelta
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
-from PyQt6.QtCore import (QEasingCurve, QParallelAnimationGroup,
-                          QPropertyAnimation, QRect, QSize, Qt, QThread,
-                          QTimer, pyqtSignal)
+from PyQt6.QtCore import (
+    QEasingCurve,
+    QParallelAnimationGroup,
+    QPropertyAnimation,
+    QRect,
+    QSize,
+    Qt,
+    QThread,
+    QTimer,
+    pyqtSignal)
 from PyQt6.QtGui import QColor, QFont, QIcon, QPainter, QPalette, QPixmap
-from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                             QFormLayout, QFrame, QGroupBox, QHBoxLayout,
-                             QHeaderView, QLabel, QLineEdit, QListWidget,
-                             QListWidgetItem, QMessageBox, QPushButton,
-                             QScrollArea, QSizePolicy, QSplitter, QTableWidget,
-                             QTableWidgetItem, QTabWidget, QTextEdit,
-                             QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget)
 
 # Configurar logging
 logger = logging.getLogger(__name__)
@@ -63,7 +89,7 @@ class Notification:
 class NotificationToast(QWidget):
     """Widget de notificación emergente (toast)."""
     
-    def __init__(self, notification: Notification, parent=None):
+    def __init__(self, notification: Notification, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.notification = notification
         self.setup_ui()
@@ -281,7 +307,7 @@ class NotificationBadge(QLabel):
     """Badge que muestra el número de notificaciones no leídas."""
     
     def __init__(self, notification_manager: NotificationManager, parent=None):
-        super().__init__(parent)
+        super().__init__(parent)  # type: ignore[arg-type]
         self.notification_manager = notification_manager
         self.setup_ui()
         self.update_count()
@@ -321,7 +347,7 @@ class NotificationPanel(QWidget):
     """Panel principal del sistema de notificaciones."""
     
     def __init__(self, notification_manager: NotificationManager, parent=None):
-        super().__init__(parent)
+        super().__init__(parent)  # type: ignore[arg-type]
         self.notification_manager = notification_manager
         self.current_toast = None
         self.setup_ui()
@@ -534,8 +560,11 @@ class NotificationPanel(QWidget):
         
     def on_notification_clicked(self, item):
         """Maneja el clic en una notificación."""
+        if not item:
+            return
+            
         # Encontrar la notificación correspondiente
-        row = self.notifications_list.row(item)
+        row = self.notifications_list.row(item)  # type: ignore[arg-type]
         notifications = self.notification_manager.get_notifications()
         
         # Aplicar los mismos filtros para obtener la notificación correcta

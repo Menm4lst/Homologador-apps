@@ -4,18 +4,20 @@ Prueba específica del sistema de cambio de contraseñas.
 Este script abre directamente el diálogo de cambio sin necesidad de la app completa.
 """
 
-import sys
 import os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from PyQt6.QtWidgets import QApplication, QMessageBox
-from PyQt6.QtCore import Qt
 
+
+
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMessageBox
+
+from homologador.data.seed import create_seed_data
 from homologador.ui.change_password_dialog import ChangeMyPasswordDialog
 from homologador.ui.theme import apply_dark_theme
-from homologador.data.seed import create_seed_data
-
-
 def test_password_change():
     """Prueba directa del cambio de contraseñas."""
     

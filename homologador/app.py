@@ -8,13 +8,14 @@ Versión: 1.0.0
 Fecha: 2024
 """
 
+
+# Agregar el directorio actual al path para imports relativos
+
+from typing import Any, Dict, Optional, cast
 import logging
 import os
 import sys
 import traceback
-from typing import Any, Dict, Optional, cast
-
-# Agregar el directorio actual al path para imports relativos
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
@@ -25,6 +26,8 @@ except ImportError as e:
     print("Error: PyQt6 no está instalado.")
     print("Instale las dependencias con: pip install -r requirements.txt")
     sys.exit(1)
+
+
 
 from .core.audit import get_audit_logger
 from .core.backup_system import get_backup_manager
@@ -38,7 +41,6 @@ from .ui.icons import apply_icons_to_application
 from .ui.main_window import MainWindow
 from .ui.theme import apply_dark_theme
 from .ui.theme_effects import WindowCustomizer, apply_theme_customizations
-
 logger = logging.getLogger(__name__)
 
 # Información de la aplicación
@@ -52,10 +54,10 @@ class HomologadorApplication:
     """Clase principal de la aplicación."""
     
     def __init__(self):
-        self.app = None
-        self.login_window = None
-        self.main_window = None
-        self.current_user = None
+        self.app: Optional[QApplication] = None
+        self.login_window: Optional[FinalLoginWindow] = None
+        self.main_window: Optional[MainWindow] = None
+        self.current_user: Optional[Dict[str, Any]] = None
         self.settings = get_settings()
         self.audit_logger = get_audit_logger()
         self.backup_manager = None
@@ -198,7 +200,7 @@ class HomologadorApplication:
             logger.error(error_msg)
             QMessageBox.critical(None, "Error", error_msg)
     
-    def on_login_successful(self, user_info):
+    def on_login_successful(self, user_info: Dict[str, Any]) -> None:
         """Maneja login exitoso."""
         try:
             self.current_user = user_info
@@ -217,10 +219,14 @@ class HomologadorApplication:
             logger.error(error_msg)
             QMessageBox.critical(None, "Error", error_msg)
     
-    def show_main_window(self):
+    def show_main_window(self) -> None:
         """Muestra la ventana principal."""
         try:
-            self.main_window = MainWindow(self.current_user)
+            if self.current_user is None:
+                logger.error("No hay usuario autenticado para abrir la ventana principal")
+                return
+
+            self.main_window = MainWindow(cast(Dict[str, Any], self.current_user))
             
             # Conectar integraciones entre ventanas
             self.setup_main_window_connections()

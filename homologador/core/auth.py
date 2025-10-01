@@ -8,13 +8,14 @@ Proporciona funciones para:
 - Gestión de sesiones de usuario
 """
 
-import hashlib
-import logging
-import secrets
-import string
+
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, cast
+import logging
 
+import hashlib
+import secrets
+import string
 logger = logging.getLogger(__name__)
 
 
@@ -136,7 +137,7 @@ def validate_password_strength(password: str) -> Dict[str, Any]:
     Returns:
         Diccionario con información de validación
     """
-    result = {
+    result: Dict[str, Any] = {
         'valid': False,
         'score': 0,
         'strength': 'Muy Débil',

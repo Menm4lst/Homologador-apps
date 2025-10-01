@@ -3,20 +3,22 @@ Core de almacenamiento para el Homologador de Aplicaciones.
 Maneja la base de datos SQLite con WAL mode, file locking y backups automáticos.
 """
 
+
+
+
+from contextlib import contextmanager
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, Iterator, List, Optional, Tuple, cast
 import json
 import logging
 import os
 import shutil
-import sqlite3
-from contextlib import contextmanager
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, cast
 
 import portalocker
 
 from .settings import get_settings
-
+import sqlite3
 logger = logging.getLogger(__name__)
 
 
@@ -35,7 +37,7 @@ class DatabaseManager:
         self._lock_file = None
         self._connection = None
         
-    def initialize_database(self):
+    def initialize_database(self) -> None:
         """Inicializa la base de datos creando el esquema si no existe."""
         try:
             # Crear backup antes de cualquier operación
@@ -66,7 +68,7 @@ class DatabaseManager:
             logger.error(f"Error inicializando base de datos: {e}")
             raise DatabaseError(f"Error inicializando base de datos: {e}")
     
-    def _apply_migrations(self, conn):
+    def _apply_migrations(self, conn: sqlite3.Connection) -> None:
         """Aplica las migraciones disponibles en la carpeta de migraciones de forma inteligente."""
         try:
             migrations_dir = Path(__file__).parent.parent / "data" / "migrations"
@@ -173,7 +175,7 @@ class DatabaseManager:
             return False
     
     @contextmanager
-    def get_connection(self):
+    def get_connection(self) -> Iterator[sqlite3.Connection]:
         """Context manager para obtener una conexión con lock automático."""
         lock_acquired = False
         conn = None
@@ -705,6 +707,26 @@ class AuditRepository:
         
         return self.db.execute_insert(query, params)
     
+    def get_recent_logs(self, limit: int = 10) -> List[sqlite3.Row]:
+        """Obtiene los logs más recientes de auditoría."""
+        query = """
+        SELECT 
+            al.id,
+            al.timestamp,
+            al.action,
+            al.table_name,
+            al.record_id,
+            al.ip_address,
+            COALESCE(u.username, 'Sistema') as username,
+            COALESCE(u.full_name, 'Sistema') as full_name
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.id
+        ORDER BY al.timestamp DESC 
+        LIMIT ?
+        """
+        
+        return self.db.execute_query(query, (limit,))
+    
     def get_audit_trail(self, filters: Optional[Dict[str, Any]] = None) -> List[sqlite3.Row]:
         """Obtiene el trail de auditoría con filtros opcionales."""
         query = "SELECT * FROM v_audit_with_user"
@@ -960,8 +982,9 @@ def get_audit_repository() -> AuditRepository:
 
 if __name__ == "__main__":
     # Test del sistema de almacenamiento
-    from .settings import setup_logging
     
+
+    from .settings import setup_logging
     setup_logging()
     
     print("=== Test del Sistema de Almacenamiento ===")

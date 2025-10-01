@@ -4,18 +4,20 @@ Proporciona estilos light y dark theme consistentes para toda la aplicación.
 Incluye detección automática del tema del sistema operativo.
 """
 
-import ctypes
+
+
+
 import json
 import os
-import platform
 import sys
-from enum import Enum
 
 from PyQt6.QtCore import QObject, QSettings, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QPalette
 from PyQt6.QtWidgets import QApplication, QMessageBox, QWidget
 
-
+from enum import Enum
+import ctypes
+import platform
 class ThemeType(Enum):
     """Tipos de temas disponibles."""
     DARK = "dark"
@@ -1440,7 +1442,7 @@ def apply_light_palette(app):
     
     app.setPalette(palette)
 
-def set_widget_style_class(widget, style_class: str):
+def set_widget_style_class(widget: QWidget, style_class: str) -> None:
     """Asigna una clase de estilo a un widget."""
     if not isinstance(style_class, str) or style_class not in ["dark", "light"]:
         style_class = "dark"  # Default to dark theme
@@ -1459,16 +1461,15 @@ def set_widget_style_class(widget, style_class: str):
             apply_light_palette(app)
             app.setStyleSheet(LightTheme.get_stylesheet())
 
-def toggle_theme(widget):
+def toggle_theme(widget: QWidget) -> str:
     """Cambia el tema del widget y retorna el nuevo tema."""
     current_theme = widget.property("styleClass") or "dark"
     new_theme = "light" if current_theme == "dark" else "dark"
     
     # Usar transición suave si está disponible
     try:
-        from .theme_effects import ThemeTransitionManager
-
         # Crear gestor de transición
+        from .theme_effects import ThemeTransitionManager
         transition = ThemeTransitionManager(duration=300)
         transition.prepare_transition(widget, new_theme)
         
@@ -1533,7 +1534,7 @@ def get_current_theme():
     
     return user_preference
 
-def apply_theme_from_settings(widget):
+def apply_theme_from_settings(widget: QWidget) -> None:
     """Aplica el tema según las configuraciones guardadas."""
     theme = get_current_theme()
     set_widget_style_class(widget, "light" if theme == ThemeType.LIGHT else "dark")

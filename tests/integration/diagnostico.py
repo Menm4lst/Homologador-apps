@@ -3,11 +3,11 @@
 Script de diagnóstico para identificar problemas en la ejecución del Homologador.
 """
 
-import sys
-import os
-import traceback
-from pathlib import Path
 
+from pathlib import Path
+import os
+import sys
+import traceback
 def print_separator(title):
     """Imprimir separador con título."""
     print("\n" + "="*60)
@@ -25,8 +25,8 @@ def diagnose_environment():
     
     # Verificar PyQt6
     try:
-        import PyQt6
         from PyQt6 import QtCore
+        import PyQt6
         print(f"PyQt6 version: {QtCore.PYQT_VERSION_STR}")
         print("PyQt6: OK")
     except ImportError as e:
@@ -108,10 +108,11 @@ def test_minimal_app():
     print_separator("PRUEBA DE APLICACION MINIMA")
     
     try:
-        from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel
-        from PyQt6.QtCore import Qt
         
         # Crear aplicación mínima
+
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel
         app = QApplication(sys.argv)
         
         window = QMainWindow()
@@ -141,10 +142,10 @@ def create_simple_launcher():
 Launcher simple para el Homologador.
 """
 
-import sys
-import os
-from pathlib import Path
 
+from pathlib import Path
+import os
+import sys
 def main():
     print("Iniciando Homologador...")
     

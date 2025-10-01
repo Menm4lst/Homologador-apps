@@ -3,21 +3,40 @@ Filtros avanzados para la tabla de homologaciones.
 Proporciona filtros más específicos y opciones de búsqueda mejoradas.
 """
 
-import logging
+
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
+import logging
 
-from ..core.storage import get_homologation_repository
 from PyQt6.QtCore import QDate, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDateEdit,
-                             QFormLayout, QFrame, QGridLayout, QGroupBox,
-                             QHBoxLayout, QLabel, QLineEdit, QProgressBar,
-                             QPushButton, QRadioButton, QScrollArea, QSlider,
-                             QSpinBox, QTabWidget, QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QFormLayout,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget)
+
+from ..core.storage import get_homologation_repository
+
+
 
 from .theme import ThemeType, get_current_theme
-
 logger = logging.getLogger(__name__)
 
 
@@ -27,7 +46,7 @@ class AdvancedFilterWidget(QFrame):
     filter_changed = pyqtSignal(dict)
     
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super().__init__(parent)  # type: ignore[arg-type]
         self.repo = get_homologation_repository()
         self.filter_timer = QTimer()
         self.filter_timer.setSingleShot(True)
@@ -323,11 +342,11 @@ class AdvancedFilterWidget(QFrame):
                     creators.add(h['created_by_username'])
             
             # Llenar comboboxes
-            for repo in sorted(repositories):
-                self.repo_filter.addItem(repo, repo)
+            for repo in sorted(repositories):  # type: ignore[arg-type]
+                self.repo_filter.addItem(repo, repo)  # type: ignore[arg-type]
             
-            for creator in sorted(creators):
-                self.creator_filter.addItem(creator, creator)
+            for creator in sorted(creators):  # type: ignore[arg-type]
+                self.creator_filter.addItem(creator, creator)  # type: ignore[arg-type]
                 
         except Exception as e:
             logger.error(f"Error cargando opciones de filtro: {e}")

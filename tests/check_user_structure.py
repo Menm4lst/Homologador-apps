@@ -3,8 +3,9 @@
 Verificar estructura de la tabla users y probar prueba2
 """
 
-import sqlite3
 
+
+import sqlite3
 def check_user_structure():
     """Verifica la estructura y prueba el usuario prueba2"""
     

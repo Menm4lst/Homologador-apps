@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
+# type: ignore
 """
 Script de prueba rápida para validar la funcionalidad de cambio de contraseñas.
 """
 
-import sys
 import os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel
+
+
+
+
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel
 
-from ui.change_password_dialog import ChangeMyPasswordDialog
-from ui.theme import apply_dark_theme
-
-
+from homologador.ui.change_password_dialog import ChangeMyPasswordDialog
+from homologador.ui.theme import apply_dark_theme
 class TestPasswordWindow(QMainWindow):
     """Ventana de prueba para el cambio de contraseñas."""
     

@@ -3,11 +3,12 @@
 Script para ejecutar la aplicación Homologador de forma visible y persistente.
 """
 
-import sys
+
 import os
-import subprocess
+import sys
 import time
 
+import subprocess
 def main():
     """Ejecuta la aplicación y espera."""
     project_root = "C:\\Users\\Antware\\OneDrive\\Desktop\\PROYECTOS DEV\\APP HOMOLOGACIONES"

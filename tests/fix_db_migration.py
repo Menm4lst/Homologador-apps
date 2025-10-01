@@ -1,7 +1,9 @@
-import sqlite3
-import os
 
 # Conectar a la base de datos
+
+import os
+
+import sqlite3
 db_path = os.path.expanduser('~/OneDrive/homologador.db')
 conn = sqlite3.connect(db_path)
 

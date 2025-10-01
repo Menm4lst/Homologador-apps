@@ -9,24 +9,64 @@ Este módulo proporciona funcionalidades avanzadas de búsqueda incluyendo:
 - Historial y sugerencias inteligentes
 """
 
-import json
-import re
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple, cast
+import json
 
-from PyQt6.QtCore import (QDate, QEasingCurve, QPropertyAnimation, QRect,
-                          QRegularExpression, QSize, QStringListModel, Qt,
-                          QThread, QTimer, pyqtSignal)
-from PyQt6.QtGui import (QColor, QFont, QIcon, QPainter, QPalette, QPixmap,
-                         QSyntaxHighlighter, QTextCharFormat, QTextCursor,
-                         QTextDocument)
-from PyQt6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QCompleter,
-                             QDateEdit, QFrame, QGroupBox, QHBoxLayout, QLabel,
-                             QLineEdit, QListWidget, QListWidgetItem,
-                             QProgressBar, QPushButton, QRadioButton,
-                             QScrollArea, QSlider, QSpinBox, QSplitter,
-                             QTabWidget, QTextEdit, QTreeWidget,
-                             QTreeWidgetItem, QVBoxLayout, QWidget)
+import re
+from PyQt6.QtCore import (
+    QDate,
+    QEasingCurve,
+    QPropertyAnimation,
+    QRect,
+    QSize,
+    QStringListModel,
+    Qt,
+    QThread,
+    QTimer,
+    QRegularExpression,
+    pyqtSignal,
+)
+from PyQt6.QtGui import (
+    QColor,
+    QFont,
+    QIcon,
+    QPainter,
+    QPalette,
+    QPixmap,
+    QSyntaxHighlighter,
+    QTextCharFormat,
+    QTextCursor,
+    QTextDocument)
+from PyQt6.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QCompleter,
+    QDialog,
+    QDateEdit,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QSplitter,
+    QTabWidget,
+    QTextEdit,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QVBoxLayout,
+    QWidget)
 
 
 class SearchSyntaxHighlighter(QSyntaxHighlighter):
@@ -34,11 +74,12 @@ class SearchSyntaxHighlighter(QSyntaxHighlighter):
     
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(cast(QWidget, parent))
+        self.highlighting_rules: List[Tuple[QRegularExpression, QTextCharFormat]] = []
         self.setup_highlighting_rules()
     
-    def setup_highlighting_rules(self):
+    def setup_highlighting_rules(self) -> None:
         """Configura las reglas de resaltado."""
-        self.highlighting_rules = []
+        self.highlighting_rules.clear()
         
         # Operadores
         operator_format = QTextCharFormat()
@@ -64,7 +105,7 @@ class SearchSyntaxHighlighter(QSyntaxHighlighter):
         wildcard_format.setForeground(QColor("#96CEB4"))
         self.highlighting_rules.append((QRegularExpression(r'\*|\?'), wildcard_format))
     
-    def highlightBlock(self, text):
+    def highlightBlock(self, text: str) -> None:
         """Aplica el resaltado al bloque de texto."""
         for pattern, format_obj in self.highlighting_rules:
             expression = pattern
@@ -80,10 +121,10 @@ class SearchEngine:
     """Motor de búsqueda avanzada."""
     
     def __init__(self):
-        self.data = []
-        self.search_fields = ['title', 'description', 'tags', 'repository', 'status']
-        self.search_history = []
-        self.suggestions = set()
+        self.data: List[Dict[str, Any]] = []
+        self.search_fields: List[str] = ['title', 'description', 'tags', 'repository', 'status']
+        self.search_history: List[str] = []
+        self.suggestions: Set[str] = set()
     
     def set_data(self, data: List[Dict[str, Any]]):
         """Establece los datos para la búsqueda."""
@@ -806,9 +847,6 @@ class AdvancedSearchWidget(QWidget):
     
     def show_syntax_help(self):
         """Muestra la ayuda de sintaxis."""
-        from PyQt6.QtWidgets import (QDialog, QPushButton, QTextEdit,
-                                     QVBoxLayout)
-        
         dialog = QDialog(self)
         dialog.setWindowTitle("Ayuda de Sintaxis de Búsqueda")
         dialog.setModal(True)
@@ -863,10 +901,11 @@ class AdvancedSearchWidget(QWidget):
 
 
 if __name__ == "__main__":
+
+    
     import sys
 
     from PyQt6.QtWidgets import QApplication
-    
     app = QApplication(sys.argv)
     
     # Datos de prueba

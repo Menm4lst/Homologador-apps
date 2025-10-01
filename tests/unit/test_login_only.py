@@ -3,10 +3,11 @@
 Script para detectar y solucionar el problema de la aplicación.
 """
 
-import sys
-import os
 
 # Agregar el directorio principal al path
+
+import os
+import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)
@@ -15,10 +16,12 @@ sys.path.insert(0, homologador_path)
 def test_login_window():
     """Prueba solo la ventana de login."""
     try:
+        
+
         from PyQt6.QtWidgets import QApplication
+
         from homologador.ui.final_login import FinalLoginWindow
         from homologador.ui.theme import apply_dark_theme
-        
         print("🧪 Creando aplicación de prueba...")
         app = QApplication(sys.argv)
         

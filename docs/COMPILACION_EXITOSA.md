@@ -43,7 +43,6 @@ C:\Users\Antware\OneDrive\Desktop\PROYECTOS DEV\HOMOLOGADOR_COMPILADO\
 - 👥 Gestión de usuarios (admin)
 - 💾 Sistema de respaldos automáticos
 - 📤 Exportación de datos
-- 🔍 Verificación de integridad
 - 🎨 Interfaz moderna tema oscuro
 
 ### 🗃️ **Datos del Sistema:**

@@ -3,10 +3,10 @@
 Script para reemplazar el metrics_panel.py con la versión completamente optimizada
 """
 
+
+from datetime import datetime
 import os
 import shutil
-from datetime import datetime
-
 def backup_and_replace():
     """Crea backup del archivo original y lo reemplaza con la versión optimizada."""
     
@@ -26,22 +26,26 @@ Panel de métricas y estadísticas optimizado para el dashboard.
 Versión completamente corregida con consultas SQL optimizadas y mejor rendimiento.
 """
 
-import logging
+
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
-import sqlite3
+import logging
 
 from PyQt6.QtWidgets import (
+
+import sqlite3
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, 
     QFrame, QScrollArea, QGroupBox, QPushButton, QComboBox,
     QProgressBar, QTableWidget, QTableWidgetItem, QHeaderView
 )
+
+
+
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QThread, pyqtSlot
 from PyQt6.QtGui import QFont, QPalette, QColor
 
-from core.storage import get_homologation_repository
 from .theme import get_current_theme, ThemeType
-
+from core.storage import get_homologation_repository
 logger = logging.getLogger(__name__)
 
 

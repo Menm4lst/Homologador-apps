@@ -2,13 +2,15 @@
 Script de prueba para el sistema de notificaciones interno.
 """
 
-import sys
 import os
+import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QHBoxLayout
-from PyQt6.QtCore import Qt, QTimer
+
 from datetime import datetime
+
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QHBoxLayout
 
 from homologador.ui.notification_system import (
     NotificationPanel, notification_manager, NotificationBadge,

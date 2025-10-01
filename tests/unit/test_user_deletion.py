@@ -3,11 +3,12 @@
 Script de prueba para verificar la funcionalidad de eliminación de usuarios.
 """
 
-import sys
-import os
-from datetime import datetime
 
 # Configurar paths
+
+from datetime import datetime
+import os
+import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
@@ -18,9 +19,10 @@ def test_user_deletion():
     
     try:
         # Importar módulos necesarios
-        from homologador.core.storage import DatabaseManager, UserRepository
         
         # Conectar a la base de datos
+
+        from homologador.core.storage import DatabaseManager, UserRepository
         db = DatabaseManager()
         user_repo = UserRepository(db)
         

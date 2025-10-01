@@ -3,13 +3,15 @@
 Script para probar la corrección de autenticación con múltiples tipos de hash
 """
 
-import sqlite3
-import sys
 import os
+import sys
+
+import sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from homologador.core.auth import verify_password
 
+
+from homologador.core.auth import verify_password
 def test_authentication():
     """Prueba la autenticación con todos los usuarios de la base de datos"""
     

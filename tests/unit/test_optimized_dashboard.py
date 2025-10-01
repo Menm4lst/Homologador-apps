@@ -4,13 +4,14 @@ Script de prueba para el dashboard optimizado
 Verifica que todas las métricas se calculen correctamente
 """
 
-import sys
 import os
+import sys
 sys.path.insert(0, os.getcwd())
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel
-from PyQt6.QtCore import Qt
 
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel
 def test_optimized_dashboard():
     """Prueba el dashboard optimizado."""
     
@@ -79,8 +80,9 @@ def test_optimized_dashboard():
         def open_dashboard(self):
             """Abre el dashboard optimizado."""
             try:
-                from homologador.ui.metrics_panel import MetricsPanel
                 
+
+                from homologador.ui.metrics_panel import MetricsPanel
                 if self.dashboard_window:
                     self.dashboard_window.close()
                 

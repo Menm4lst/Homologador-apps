@@ -3,14 +3,16 @@ Sistema de autenticación y gestión de usuarios para el Homologador.
 Maneja roles, contraseñas con Argon2 y seed de datos inicial.
 """
 
-import logging
+
+
 from datetime import datetime
 from typing import Any, Dict, Optional, cast
+import logging
 
 from argon2 import PasswordHasher
 from argon2.exceptions import HashingError, VerifyMismatchError
-from ..core.storage import get_audit_repository, get_user_repository
 
+from ..core.storage import get_audit_repository, get_user_repository
 logger = logging.getLogger(__name__)
 
 
@@ -312,8 +314,9 @@ def get_auth_service() -> AuthService:
 
 if __name__ == "__main__":
     # Test del sistema de autenticación
-    from core.settings import setup_logging
     
+
+    from core.settings import setup_logging
     setup_logging()
     
     print("=== Test del Sistema de Autenticación ===")

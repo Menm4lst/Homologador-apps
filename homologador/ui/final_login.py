@@ -36,7 +36,7 @@ class FinalLoginWindow(QWidget):
     
     def setup_ui(self):
         """Configura la interfaz de usuario."""
-        self.setWindowTitle("Homologador - Login")
+        self.setWindowTitle("EL OMO LOGADOR 🥵 - Login")
         self.resize(450, 350)
         
         # Layout principal
@@ -45,15 +45,16 @@ class FinalLoginWindow(QWidget):
         main_layout.setContentsMargins(30, 30, 30, 30)
         
         # Título
-        title = QLabel("HOMOLOGADOR DE APLICACIONES")
-        title.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        title = QLabel("EL OMO LOGADOR 🥵")
+        title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(title)
         
         # Subtítulo
-        subtitle = QLabel("Sistema de Gestión")
+        subtitle = QLabel("Homologador de Aplicaciones")
         subtitle.setFont(QFont("Arial", 10))
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        main_layout.addWidget(title)
         main_layout.addWidget(subtitle)
         
         # Separador

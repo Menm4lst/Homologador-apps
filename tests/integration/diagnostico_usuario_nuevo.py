@@ -3,14 +3,15 @@
 Script para diagnosticar problemas con la creación de usuarios nuevos.
 """
 
-import sys
 import os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+
+
 
 from homologador.core.auth import hash_password, verify_password
 from homologador.data.seed import get_auth_service, create_seed_data
-
-
 def test_user_creation():
     """Prueba el proceso completo de creación de usuario."""
     

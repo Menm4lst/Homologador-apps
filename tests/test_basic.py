@@ -3,22 +3,25 @@
 Test básico para validar que la aplicación se importa correctamente
 """
 
-import pytest
-import sys
-from pathlib import Path
 
 # Agregar el directorio padre al path
+
+from pathlib import Path
+import sys
+
+import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 def test_imports():
     """Test que las importaciones básicas funcionen"""
     try:
         # Test de importaciones críticas
+        
+        # Verificar que los singletons funcionen
+
         from homologador.core.settings import get_settings
         from homologador.core.storage import get_database_manager  
         from homologador.data.seed import get_auth_service
-        
-        # Verificar que los singletons funcionen
         settings = get_settings()
         assert settings is not None
         
@@ -38,11 +41,13 @@ def test_imports():
 def test_pyqt6_available():
     """Test que PyQt6 esté disponible"""
     try:
-        from PyQt6.QtWidgets import QApplication
-        from PyQt6.QtCore import Qt
         
         # Crear aplicación temporal (sin mostrar)
+
         import sys
+
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtWidgets import QApplication
         if not QApplication.instance():
             app = QApplication([])
             app.setQuitOnLastWindowClosed(False)

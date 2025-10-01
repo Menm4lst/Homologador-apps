@@ -3,13 +3,15 @@
 Script para verificar la estructura de la base de datos y corregir autenticación
 """
 
-import sqlite3
-import sys
 import os
+import sys
+
+import sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from homologador.core.auth import verify_password
 
+
+from homologador.core.auth import verify_password
 def check_database_structure():
     """Verifica la estructura de la base de datos"""
     

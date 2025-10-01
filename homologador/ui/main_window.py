@@ -3,96 +3,221 @@ Ventana principal del Homologador de Aplicaciones.
 Interfaz principal con tabla de homologaciones, filtros y gestión según roles.
 """
 
+from __future__ import annotations
+
+from datetime import date, datetime
 import csv
 import logging
 import sys
-from datetime import date, datetime
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, cast
+
+from PyQt6.QtCore import QDate, QPoint, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QAction, QFont, QIcon
+from PyQt6.QtWidgets import (
+    QAbstractItemView,
+    QApplication,
+    QComboBox,
+    QDateEdit,
+    QDialog,
+    QFileDialog,
+    QFormLayout,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QMenuBar,
+    QMenu,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QSpinBox,
+    QSplitter,
+    QStatusBar,
+    QTableWidget,
+    QTableWidgetItem,
+    QToolBar,
+    QVBoxLayout,
+    QWidget)
 
 from ..core.storage import get_audit_repository, get_homologation_repository
 from ..data.seed import get_auth_service
-from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
-from PyQt6.QtGui import QAction, QFont, QIcon
-from PyQt6.QtWidgets import (QAbstractItemView, QApplication, QComboBox,
-                             QDateEdit, QDialog, QFileDialog, QFormLayout,
-                             QFrame, QGridLayout, QGroupBox, QHBoxLayout,
-                             QHeaderView, QLabel, QLineEdit, QMainWindow,
-                             QMenuBar, QMessageBox, QProgressBar, QPushButton,
-                             QSizePolicy, QSpacerItem, QSpinBox, QSplitter,
-                             QStatusBar, QTableWidget, QTableWidgetItem,
-                             QToolBar, QVBoxLayout, QWidget)
 
 from .change_password_dialog import ChangeMyPasswordDialog
 from .details_view import show_homologation_details
 from .homologation_form import HomologationFormDialog
 from .metrics_panel import MetricsPanel
-from .notification_system import (send_error, send_info, send_success,
-                                  send_warning)
-from .theme import (ThemeType, apply_theme_from_settings, get_current_theme,
-                    get_theme_monitor, set_widget_style_class, toggle_theme)
+from .notification_system import (
+    send_error,
+    send_info,
+    send_success,
+    send_warning)
+from .theme import (
+    ThemeType,
+    apply_theme_from_settings,
+    get_current_theme,
+    get_theme_monitor,
+    set_widget_style_class,
+    toggle_theme)
+
+
 from .tooltips import get_help_system, setup_tooltips, setup_widget_tooltips
 from .user_guide import UserGuideManager, start_user_tour
 from .web_preview import show_web_preview
-
 logger = logging.getLogger(__name__)
 
-# Importar módulos de administración
-try:
-    from .user_management import show_user_management
-    USER_MANAGEMENT_AVAILABLE = True
-except ImportError:
-    USER_MANAGEMENT_AVAILABLE = False
-    logger.warning("Módulo de administración de usuarios no disponible")
+# Sistema optimizado de carga de módulos opcionales
+class OptionalModules:
+    """Gestor centralizado de módulos opcionales con lazy loading."""
+    
+    def __init__(self) -> None:
+        self._modules: Dict[str, Any] = {}
+        self._availability: Dict[str, bool] = {}
+    
+    def get_module(self, module_name: str, import_path: str, fallback: Any = None) -> Any:
+        """Obtiene un módulo con lazy loading."""
+        if module_name not in self._modules:
+            try:
+                if import_path.startswith('.'):
+                    # Import relativo desde el paquete ui
+                    if import_path == '.user_management':
+                        from . import user_management
+                        module = user_management
+                    elif import_path == '.audit_panel':
+                        from . import audit_panel
+                        module = audit_panel
+                    elif import_path == '.admin_dashboard':
+                        from . import admin_dashboard
+                        module = admin_dashboard
+                    elif import_path == '.reports_system':
+                        from . import reports_system
+                        module = reports_system
+                    elif import_path == '.notification_system':
+                        from . import notification_system
+                        module = notification_system
+                    elif import_path == '.backup_system':
+                        from . import backup_system
+                        module = backup_system
+                    else:
+                        raise ImportError(f"Módulo {import_path} no reconocido")
+                        
+                else:
+                    # Import absoluto
+                    module = __import__(import_path, fromlist=[''])
+                
+                self._modules[module_name] = module
+                self._availability[module_name] = True
+                
+            except ImportError as e:
+                logger.debug(f"Módulo opcional {module_name} no disponible: {e}")
+                self._modules[module_name] = fallback
+                self._availability[module_name] = False
+        
+        return self._modules[module_name]
+    
+    def is_available(self, module_name: str) -> bool:
+        """Verifica si un módulo está disponible."""
+        return self._availability.get(module_name, False)
 
-try:
-    from .audit_panel import show_audit_panel
-    AUDIT_PANEL_AVAILABLE = True
-except ImportError:
-    AUDIT_PANEL_AVAILABLE = False
-    logger.warning("Panel de auditoría no disponible")
+# Instancia global del gestor
+_optional_modules = OptionalModules()
 
-try:
-    from .backup_panel import BackupPanel
-    BACKUP_SYSTEM_AVAILABLE = True
-except ImportError:
-    BACKUP_SYSTEM_AVAILABLE = False
-    logger.warning("Sistema de respaldos no disponible")
+# Definición de módulos opcionales
+OPTIONAL_MODULES = {
+    'user_management': '.user_management',
+    'audit_panel': '.audit_panel', 
+    'backup_panel': '.backup_system',  # Corregido: backup_system en lugar de backup_panel
+    'admin_dashboard': '.admin_dashboard',
+    'reports_system': '.reports_system',
+    'advanced_search': 'advanced_search',
+    'accessibility': 'accessibility',
+    'notification_system': '.notification_system'
+}
 
-try:
-    from .admin_dashboard import show_admin_dashboard
-    ADMIN_DASHBOARD_AVAILABLE = True
-except ImportError:
-    ADMIN_DASHBOARD_AVAILABLE = False
-    logger.warning("Dashboard administrativo no disponible")
+# Funciones de acceso optimizadas
+def get_user_management() -> Optional[Callable[..., Any]]:
+    module = _optional_modules.get_module('user_management', OPTIONAL_MODULES['user_management'])
+    return getattr(module, 'show_user_management', None) if module else None
 
-try:
-    from .reports_system import show_reports_system
-    REPORTS_SYSTEM_AVAILABLE = True
-except ImportError:
-    REPORTS_SYSTEM_AVAILABLE = False
-    logger.warning("Sistema de reportes no disponible")
+def get_audit_panel() -> Optional[Callable[..., Any]]:
+    module = _optional_modules.get_module('audit_panel', OPTIONAL_MODULES['audit_panel'])
+    return getattr(module, 'show_audit_panel', None) if module else None
 
-try:
-    from advanced_search import AdvancedSearchWidget
-    ADVANCED_SEARCH_AVAILABLE = True
-except ImportError:
-    ADVANCED_SEARCH_AVAILABLE = False
-    logger.warning("Módulo de búsqueda avanzada no disponible")
+def get_backup_panel() -> Optional[Any]:
+    module = _optional_modules.get_module('backup_panel', OPTIONAL_MODULES['backup_panel'])
+    return getattr(module, 'show_backup_system', None) if module else None
 
-try:
-    from accessibility import AccessibilityManager
-    ACCESSIBILITY_AVAILABLE = True
-except ImportError:
-    ACCESSIBILITY_AVAILABLE = False
-    logger.warning("Módulo de accesibilidad no disponible")
+def get_admin_dashboard() -> Optional[Callable[..., Any]]:
+    module = _optional_modules.get_module('admin_dashboard', OPTIONAL_MODULES['admin_dashboard'])
+    return getattr(module, 'show_admin_dashboard', None) if module else None
 
-try:
-    from .notification_system import (NotificationBadge, NotificationPanel,
-                                      notification_manager)
-    NOTIFICATIONS_AVAILABLE = True
-except ImportError:
-    NOTIFICATIONS_AVAILABLE = False
-    logger.warning("Sistema de notificaciones no disponible")
+def get_reports_system() -> Optional[Callable[..., Any]]:
+    module = _optional_modules.get_module('reports_system', OPTIONAL_MODULES['reports_system'])
+    return getattr(module, 'show_reports_system', None) if module else None
+
+def get_advanced_search() -> Optional[Any]:
+    module = _optional_modules.get_module('advanced_search', OPTIONAL_MODULES['advanced_search'])
+    return getattr(module, 'AdvancedSearchWidget', None) if module else None
+
+def get_accessibility_manager() -> Optional[Any]:
+    module = _optional_modules.get_module('accessibility', OPTIONAL_MODULES['accessibility'])
+    return getattr(module, 'AccessibilityManager', None) if module else None
+
+def get_notification_system() -> Optional[Dict[str, Any]]:
+    module = _optional_modules.get_module('notification_system', OPTIONAL_MODULES['notification_system'])
+    if module:
+        return {
+            'badge': getattr(module, 'NotificationBadge', None),
+            'panel': getattr(module, 'NotificationPanel', None),
+            'manager': getattr(module, 'notification_manager', None)
+        }
+    return None
+
+# Compatibilidad con código existente
+def USER_MANAGEMENT_AVAILABLE() -> bool:
+    """Verifica si el módulo de gestión de usuarios está disponible."""
+    _optional_modules.get_module('user_management', OPTIONAL_MODULES['user_management'])
+    return _optional_modules.is_available('user_management')
+
+def AUDIT_PANEL_AVAILABLE() -> bool:
+    """Verifica si el panel de auditoría está disponible."""
+    _optional_modules.get_module('audit_panel', OPTIONAL_MODULES['audit_panel'])
+    return _optional_modules.is_available('audit_panel')
+
+def BACKUP_SYSTEM_AVAILABLE() -> bool:
+    """Verifica si el sistema de respaldos está disponible."""
+    _optional_modules.get_module('backup_panel', OPTIONAL_MODULES['backup_panel'])
+    return _optional_modules.is_available('backup_panel')
+
+def ADMIN_DASHBOARD_AVAILABLE() -> bool:
+    """Verifica si el dashboard administrativo está disponible."""
+    _optional_modules.get_module('admin_dashboard', OPTIONAL_MODULES['admin_dashboard'])
+    return _optional_modules.is_available('admin_dashboard')
+
+def REPORTS_SYSTEM_AVAILABLE() -> bool:
+    """Verifica si el sistema de reportes está disponible."""
+    _optional_modules.get_module('reports_system', OPTIONAL_MODULES['reports_system'])
+    return _optional_modules.is_available('reports_system')
+
+def ADVANCED_SEARCH_AVAILABLE() -> bool:
+    """Verifica si la búsqueda avanzada está disponible."""
+    _optional_modules.get_module('advanced_search', OPTIONAL_MODULES['advanced_search'])
+    return _optional_modules.is_available('advanced_search')
+
+def ACCESSIBILITY_AVAILABLE() -> bool:
+    """Verifica si el gestor de accesibilidad está disponible."""
+    _optional_modules.get_module('accessibility', OPTIONAL_MODULES['accessibility'])
+    return _optional_modules.is_available('accessibility')
+
+def NOTIFICATIONS_AVAILABLE() -> bool:
+    """Verifica si el sistema de notificaciones está disponible."""
+    _optional_modules.get_module('notification_system', OPTIONAL_MODULES['notification_system'])
+    return _optional_modules.is_available('notification_system')
 
 
 class DataLoadWorker(QThread):
@@ -364,10 +489,8 @@ class HomologationTableWidget(QTableWidget):
         end_idx = start_idx + len(self.record_data) - 1
         return (start_idx, end_idx)
     
-    def show_context_menu(self, position):
+    def show_context_menu(self, position: QPoint) -> None:
         """Muestra el menú contextual de la tabla."""
-        from PyQt6.QtGui import QAction
-        from PyQt6.QtWidgets import QMenu
 
         # Verificar que hay un registro seleccionado
         record = self.get_selected_record()
@@ -399,10 +522,11 @@ class HomologationTableWidget(QTableWidget):
         context_menu.addSeparator()
         
         # Acción Eliminar (solo para admin/manager)
-        if (hasattr(self.main_window, 'current_user') and 
-            self.main_window.current_user and
-            self.main_window.current_user.get('role') in ['admin', 'manager']):
-            
+        if (
+            hasattr(self.main_window, 'current_user')
+            and self.main_window.current_user
+            and self.main_window.current_user.get('role') in ['admin', 'manager']
+        ):
             delete_action = QAction("🗑️ Eliminar", self)
             delete_action.triggered.connect(self.main_window.delete_homologation)
             # Estilo rojo para indicar acción destructiva
@@ -410,7 +534,8 @@ class HomologationTableWidget(QTableWidget):
             context_menu.addAction(delete_action)
         
         # Mostrar menú en la posición del cursor
-        context_menu.exec(self.mapToGlobal(position))
+        global_pos = self.mapToGlobal(position)
+        context_menu.exec(global_pos)
         
 
 class PaginationWidget(QWidget):
@@ -766,17 +891,18 @@ class FilterWidget(QFrame):
 class MainWindow(QMainWindow):
     """Ventana principal del Homologador."""
     
-    def __init__(self, user_info=None):
+    def __init__(self, user_info: Optional[Dict[str, Any]] = None):
         super().__init__()
-        self.user_info = user_info
+        self.user_info: Optional[Dict[str, Any]] = user_info
+        self.current_user: Optional[Dict[str, Any]] = user_info
         self.repo = get_homologation_repository()
         self.audit_repo = get_audit_repository()
-        self.data_worker = None
-        self.current_filters = {}
+        self.data_worker: Optional[DataLoadWorker] = None
+        self.current_filters: Dict[str, Any] = {}
         
         # Inicializar nuevas funcionalidades
-        self.advanced_search_widget = None
-        self.accessibility_manager = None
+        self.advanced_search_widget: Optional[QWidget] = None
+        self.accessibility_manager: Optional[Any] = None
         
         # Aplicar tema desde configuraciones guardadas
         apply_theme_from_settings(self)
@@ -798,13 +924,35 @@ class MainWindow(QMainWindow):
         
     def setup_ui(self):
         """Configura la interfaz de usuario."""
-        self.setWindowTitle("Homologador de Aplicaciones")
+        self.setWindowTitle("EL OMO LOGADOR 🥵 - Homologador de Aplicaciones")
         self.resize(1200, 700)
         
         # Widget central
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
+        
+        # Título principal del software
+        title_label = QLabel("EL OMO LOGADOR 🥵")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_font = QFont()
+        title_font.setPointSize(28)
+        title_font.setBold(True)
+        title_label.setFont(title_font)
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #ff6b6b;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                    stop:0 #ff6b6b, stop:0.5 #ffd93d, stop:1 #6bcf7f);
+                -webkit-background-clip: text;
+                padding: 20px;
+                margin: 10px;
+                border: 2px solid #ff6b6b;
+                border-radius: 15px;
+                background-color: rgba(255, 107, 107, 0.1);
+            }
+        """)
+        main_layout.addWidget(title_label)
         
         # Splitter para dividir filtros y tabla
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -1068,12 +1216,6 @@ class MainWindow(QMainWindow):
                     quick_backup_action.triggered.connect(self.create_quick_backup)
                     tools_menu.addAction(quick_backup_action)
                 
-                # Verificar integridad de datos
-                verify_data_action = QAction("🔍 Verificar Integridad de Datos", self)
-                verify_data_action.setShortcut("Ctrl+Shift+V")
-                verify_data_action.triggered.connect(self.verify_data_integrity)
-                tools_menu.addAction(verify_data_action)
-                
                 tools_menu.addSeparator()
                 
                 # Exportar datos
@@ -1092,8 +1234,14 @@ class MainWindow(QMainWindow):
                     dashboard_action.setShortcut("Ctrl+D")
                     dashboard_action.triggered.connect(self.show_admin_dashboard)
                     admin_menu.addAction(dashboard_action)
+                
+                # Analytics Avanzado
+                analytics_action = QAction("📊 Analytics Avanzado", self)
+                analytics_action.setShortcut("Ctrl+Shift+A")
+                analytics_action.triggered.connect(self.show_advanced_analytics)
+                admin_menu.addAction(analytics_action)
                     
-                    admin_menu.addSeparator()
+                admin_menu.addSeparator()
                 
                 # Gestión de usuarios
                 if USER_MANAGEMENT_AVAILABLE:
@@ -1103,7 +1251,7 @@ class MainWindow(QMainWindow):
                     admin_menu.addAction(user_management_action)
                 
                 # Panel de auditoría
-                if AUDIT_PANEL_AVAILABLE:
+                if AUDIT_PANEL_AVAILABLE():
                     audit_action = QAction("📋 Panel de Auditoría", self)
                     audit_action.setShortcut("Ctrl+A")
                     audit_action.triggered.connect(self.show_audit_panel)
@@ -1424,29 +1572,38 @@ class MainWindow(QMainWindow):
     def setup_advanced_features(self):
         """Configura las funcionalidades avanzadas."""
         # Configurar búsqueda avanzada
-        if ADVANCED_SEARCH_AVAILABLE:
+        if ADVANCED_SEARCH_AVAILABLE():
             try:
-                self.advanced_search_widget = AdvancedSearchWidget()
-                self.advanced_search_widget.search_requested.connect(self.on_advanced_search)
-                self.advanced_search_widget.result_selected.connect(self.on_search_result_selected)
-                # Ocultar por defecto
-                self.advanced_search_widget.hide()
-                logger.info("Búsqueda avanzada configurada correctamente")
+                AdvancedSearchWidget = get_advanced_search()
+                if AdvancedSearchWidget:
+                    self.advanced_search_widget = AdvancedSearchWidget()
+                    self.advanced_search_widget.search_requested.connect(self.on_advanced_search)
+                    self.advanced_search_widget.result_selected.connect(self.on_search_result_selected)
+                    # Ocultar por defecto
+                    self.advanced_search_widget.hide()
+                    logger.info("Búsqueda avanzada configurada correctamente")
+                else:
+                    logger.warning("No se pudo cargar el widget de búsqueda avanzada")
             except Exception as e:
                 logger.error(f"Error configurando búsqueda avanzada: {e}")
                 self.advanced_search_widget = None
         
         # Configurar accesibilidad
-        if ACCESSIBILITY_AVAILABLE:
+        if ACCESSIBILITY_AVAILABLE():
             try:
-                app_instance = QApplication.instance()
-                if app_instance and isinstance(app_instance, QApplication):
-                    self.accessibility_manager = AccessibilityManager(
-                        app_instance, self
-                    )
-                    logger.info("Gestor de accesibilidad configurado correctamente")
+                AccessibilityManager = get_accessibility_manager()
+                if AccessibilityManager:
+                    app_instance = QApplication.instance()
+                    if app_instance and isinstance(app_instance, QApplication):
+                        self.accessibility_manager = AccessibilityManager(
+                            app_instance, self
+                        )
+                        logger.info("Gestor de accesibilidad configurado correctamente")
+                    else:
+                        logger.warning("No se pudo obtener la instancia de QApplication")
+                        self.accessibility_manager = None
                 else:
-                    logger.warning("No se pudo obtener la instancia de QApplication")
+                    logger.warning("No se pudo cargar el gestor de accesibilidad")
                     self.accessibility_manager = None
             except Exception as e:
                 logger.error(f"Error configurando accesibilidad: {e}")
@@ -1687,8 +1844,18 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         
         # Crear panel de notificaciones
-        notifications_panel = NotificationPanel(notification_manager)
-        layout.addWidget(notifications_panel)
+        notification_system = get_notification_system()
+        if notification_system and notification_system.get('panel') and notification_system.get('manager'):
+            NotificationPanel = notification_system['panel']
+            notification_manager = notification_system['manager']
+            notifications_panel = NotificationPanel(notification_manager)
+            layout.addWidget(notifications_panel)
+        else:
+            # Fallback si el sistema de notificaciones no está disponible
+            from PyQt6.QtWidgets import QLabel
+            fallback_label = QLabel("Sistema de notificaciones no disponible")
+            fallback_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(fallback_label)
         
         # Hacer que la ventana sea modal
         notifications_window.setWindowModality(Qt.WindowModality.ApplicationModal)
@@ -1707,7 +1874,7 @@ class MainWindow(QMainWindow):
     
     def show_user_management(self):
         """Muestra el módulo de administración de usuarios."""
-        if not USER_MANAGEMENT_AVAILABLE:
+        if not USER_MANAGEMENT_AVAILABLE():
             QMessageBox.warning(
                 self,
                 "Módulo No Disponible",
@@ -1724,7 +1891,16 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            dialog = show_user_management(cast(Dict[str, Any], self.user_info), self)
+            show_user_management_func = get_user_management()
+            if not show_user_management_func:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "El módulo de administración de usuarios no se pudo cargar."
+                )
+                return
+            
+            dialog = show_user_management_func(cast(Dict[str, Any], self.user_info), self)
             dialog.exec()
         except Exception as e:
             logger.error(f"Error abriendo administración de usuarios: {e}")
@@ -1754,9 +1930,10 @@ class MainWindow(QMainWindow):
         if theme not in ["dark", "light", "system"]:
             return
         
-        from .theme import ThemeSettings, detect_system_theme
 
         # Si es "system", guardamos la preferencia y aplicamos el tema detectado
+
+        from .theme import ThemeSettings, detect_system_theme
         if theme == "system":
             ThemeSettings.save_theme_preference(ThemeType.SYSTEM)
             # Detectar el tema del sistema y aplicarlo
@@ -1765,9 +1942,10 @@ class MainWindow(QMainWindow):
             
             # Usar transición suave si está disponible
             try:
-                from .theme_effects import ThemeTransitionManager
 
                 # Crear gestor de transición
+
+                from .theme_effects import ThemeTransitionManager
                 transition = ThemeTransitionManager(duration=300)
                 transition.prepare_transition(self, actual_theme)
                 
@@ -1790,9 +1968,10 @@ class MainWindow(QMainWindow):
         if current_theme != theme:
             # Usar transición suave si está disponible
             try:
-                from .theme_effects import ThemeTransitionManager
 
                 # Crear gestor de transición
+
+                from .theme_effects import ThemeTransitionManager
                 transition = ThemeTransitionManager(duration=300)
                 transition.prepare_transition(self, theme)
                 
@@ -1828,9 +2007,10 @@ class MainWindow(QMainWindow):
             if actual_theme != current_theme:
                 # Usar transición suave si está disponible
                 try:
-                    from .theme_effects import ThemeTransitionManager
 
                     # Crear gestor de transición
+
+                    from .theme_effects import ThemeTransitionManager
                     transition = ThemeTransitionManager(duration=300)
                     transition.prepare_transition(self, actual_theme)
                     
@@ -1862,8 +2042,9 @@ class MainWindow(QMainWindow):
         self.advanced_search_widget.set_data(dict_data)
         
         # Mostrar en un diálogo
-        from PyQt6.QtWidgets import QDialog, QVBoxLayout
         
+
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout
         dialog = QDialog(self)
         dialog.setWindowTitle("🔍 Búsqueda Avanzada")
         dialog.setModal(False)  # No modal para permitir interacción con la ventana principal
@@ -1967,7 +2148,7 @@ class MainWindow(QMainWindow):
     def show_admin_dashboard(self):
         """Muestra el dashboard administrativo."""
         try:
-            if not ADMIN_DASHBOARD_AVAILABLE:
+            if not ADMIN_DASHBOARD_AVAILABLE():
                 QMessageBox.warning(
                     self,
                     "Función No Disponible",
@@ -1983,8 +2164,17 @@ class MainWindow(QMainWindow):
                 )
                 return
             
+            show_admin_dashboard_func = get_admin_dashboard()
+            if not show_admin_dashboard_func:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "El módulo del dashboard administrativo no se pudo cargar."
+                )
+                return
+            
             logger.info(f"Abriendo dashboard administrativo para usuario: {self.user_info.get('username')}")
-            dialog = show_admin_dashboard(self.user_info, self)
+            dialog = show_admin_dashboard_func(self.user_info, self)
             dialog.exec()
             
         except Exception as e:
@@ -1995,10 +2185,48 @@ class MainWindow(QMainWindow):
                 f"Error abriendo dashboard administrativo: {str(e)}"
             )
     
+    def show_advanced_analytics(self):
+        """Muestra el sistema de analytics avanzado."""
+        try:
+            if not self.user_info or self.user_info.get('role') != 'admin':
+                QMessageBox.warning(
+                    self,
+                    "Acceso Denegado",
+                    "Solo los administradores pueden acceder al sistema de analytics avanzado."
+                )
+                return
+            
+            try:
+                from .advanced_analytics import show_advanced_analytics
+                dialog = show_advanced_analytics(self)
+                dialog.exec()
+            except ImportError:
+                QMessageBox.information(
+                    self,
+                    "Analytics Avanzado",
+                    "Sistema de Analytics Avanzado - EL OMO LOGADOR 🥵\\n\\n"
+                    "Esta funcionalidad incluye:\\n"
+                    "• 📊 Gráficos interactivos personalizados\\n"
+                    "• 📈 Métricas en tiempo real\\n"
+                    "• 📉 Análisis de tendencias\\n"
+                    "• 🎯 Dashboard de visualización\\n"
+                    "• 📋 Reportes automáticos"
+                )
+            
+            logger.info(f"Abriendo analytics avanzado para usuario: {self.user_info.get('username')}")
+            
+        except Exception as e:
+            logger.error(f"Error abriendo analytics avanzado: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"Error abriendo analytics avanzado: {str(e)}"
+            )
+    
     def show_audit_panel(self):
         """Muestra el panel de auditoría."""
         try:
-            if not AUDIT_PANEL_AVAILABLE:
+            if not AUDIT_PANEL_AVAILABLE():
                 QMessageBox.warning(
                     self,
                     "Función No Disponible",
@@ -2014,8 +2242,17 @@ class MainWindow(QMainWindow):
                 )
                 return
             
+            show_audit_panel_func = get_audit_panel()
+            if not show_audit_panel_func:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "El módulo de auditoría no se pudo cargar."
+                )
+                return
+            
             logger.info(f"Abriendo panel de auditoría para usuario: {self.user_info.get('username')}")
-            dialog = show_audit_panel(self.user_info, self)
+            dialog = show_audit_panel_func(self.user_info, self)
             dialog.exec()
             
         except Exception as e:
@@ -2053,9 +2290,19 @@ class MainWindow(QMainWindow):
             dialog.setModal(True)
             dialog.resize(900, 700)
             
+            # Obtener clase BackupPanel del módulo
+            BackupPanelClass = get_backup_panel()
+            if not BackupPanelClass:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "El módulo de respaldos no se pudo cargar."
+                )
+                return
+            
             # Crear el panel de respaldos y agregarlo al diálogo
             layout = QVBoxLayout()
-            backup_panel = BackupPanel(dialog)
+            backup_panel = BackupPanelClass(dialog)
             layout.addWidget(backup_panel)
             
             # Botón de cerrar
@@ -2139,7 +2386,7 @@ class MainWindow(QMainWindow):
     def show_reports_system(self):
         """Muestra el sistema de reportes avanzado."""
         try:
-            if not REPORTS_SYSTEM_AVAILABLE:
+            if not REPORTS_SYSTEM_AVAILABLE():
                 QMessageBox.warning(
                     self,
                     "Función No Disponible",
@@ -2155,8 +2402,17 @@ class MainWindow(QMainWindow):
                 )
                 return
             
+            show_reports_system_func = get_reports_system()
+            if not show_reports_system_func:
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "El módulo de reportes no se pudo cargar."
+                )
+                return
+            
             logger.info(f"Abriendo sistema de reportes para usuario: {self.user_info.get('username')}")
-            dialog = show_reports_system(self.user_info, self)
+            dialog = show_reports_system_func(self.user_info, self)
             dialog.exec()
             
         except Exception as e:
@@ -2228,7 +2484,7 @@ class MainWindow(QMainWindow):
             return
         
         try:
-            dialog = ChangeMyPasswordDialog(self.user_info, self)
+            dialog = ChangeMyPasswordDialog(cast(Dict[str, Any], self.user_info), self)
             dialog.password_changed.connect(self.on_password_changed)
             dialog.exec()
         except Exception as e:
@@ -2369,114 +2625,7 @@ class MainWindow(QMainWindow):
                 f"Error al iniciar respaldo rápido:\n{str(e)}"
             )
 
-    def verify_data_integrity(self):
-        """Verifica la integridad de los datos del sistema."""
-        try:
-            logger.info(f"Verificando integridad de datos - Usuario: {self.user_info.get('username', 'Unknown')}")
-            
-            # Crear diálogo de progreso
-            progress_dialog = QMessageBox(self)
-            progress_dialog.setWindowTitle("Verificando Integridad")
-            progress_dialog.setText("Verificando la integridad de los datos...")
-            progress_dialog.setStandardButtons(QMessageBox.StandardButton.NoButton)
-            progress_dialog.show()
-            QApplication.processEvents()
-            
-            # Realizar verificaciones básicas
-            issues: List[str] = []
-            total_records = 0
-            
-            try:
-                # Verificar conexión a base de datos
-                from ..core.storage import get_database_manager
-                db_manager = get_database_manager()
-                
-                with db_manager.get_connection() as conn:
-                    cursor = conn.cursor()
-                    
-                    # Verificar tabla principal de homologaciones
-                    cursor.execute("SELECT COUNT(*) FROM homologations")
-                    total_records = cursor.fetchone()[0]
-                    
-                    # Verificar registros con datos faltantes críticos
-                    cursor.execute("""
-                        SELECT COUNT(*) FROM homologations 
-                        WHERE real_name IS NULL OR real_name = '' 
-                        OR logical_name IS NULL OR logical_name = ''
-                    """)
-                    missing_critical = cursor.fetchone()[0]
-                    
-                    if missing_critical > 0:
-                        issues.append(f"• {missing_critical} registros con datos críticos faltantes")
-                    
-                    # Verificar registros sin fecha de homologación
-                    cursor.execute("""
-                        SELECT COUNT(*) FROM homologations 
-                        WHERE homologation_date IS NULL
-                    """)
-                    missing_dates = cursor.fetchone()[0]
-                    
-                    if missing_dates > 0:
-                        issues.append(f"• {missing_dates} registros sin fecha de homologación")
-                    
-                    # Verificar duplicados potenciales (mismo nombre real)
-                    cursor.execute("""
-                        SELECT real_name, COUNT(*) as count 
-                        FROM homologations 
-                        GROUP BY real_name 
-                        HAVING count > 1
-                    """)
-                    duplicates = cursor.fetchall()
-                    
-                    if duplicates:
-                        issues.append(f"• {len(duplicates)} posibles aplicaciones duplicadas")
-                    
-                    # Verificar usuarios inactivos como creadores
-                    cursor.execute("""
-                        SELECT COUNT(DISTINCT h.id) 
-                        FROM homologations h 
-                        JOIN users u ON h.created_by = u.id 
-                        WHERE u.is_active = 0
-                    """)
-                    inactive_creators = cursor.fetchone()[0]
-                    
-                    if inactive_creators > 0:
-                        issues.append(f"• {inactive_creators} registros creados por usuarios inactivos")
-                
-            except Exception as db_error:
-                issues.append(f"• Error verificando base de datos: {str(db_error)}")
-            
-            progress_dialog.close()
-            
-            # Mostrar resultados
-            if not issues:
-                QMessageBox.information(
-                    self,
-                    "Verificación Completada",
-                    f"✅ Verificación de integridad completada exitosamente.\n\n"
-                    f"Total de registros: {total_records}\n"
-                    f"No se encontraron problemas de integridad."
-                )
-            else:
-                issue_text = "\n".join(issues)
-                QMessageBox.warning(
-                    self,
-                    "Problemas de Integridad Detectados",
-                    f"⚠️ Se encontraron {len(issues)} problema(s) de integridad:\n\n"
-                    f"{issue_text}\n\n"
-                    f"Total de registros verificados: {total_records}\n\n"
-                    f"Se recomienda revisar y corregir estos problemas."
-                )
-                
-        except Exception as e:
-            if 'progress_dialog' in locals():
-                progress_dialog.close()
-            logger.error(f"Error verificando integridad de datos: {e}")
-            QMessageBox.critical(
-                self,
-                "Error en Verificación",
-                f"Error al verificar la integridad de datos:\n{str(e)}"
-            )
+
 
     def export_data_dialog(self):
         """Muestra el diálogo de exportación de datos."""
@@ -2538,11 +2687,12 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     # Test de la ventana principal
+
+    
     import sys
 
     from core.settings import setup_logging
     from data.seed import create_seed_data
-    
     setup_logging()
     
     app = QApplication(sys.argv)
@@ -2551,7 +2701,7 @@ if __name__ == "__main__":
     create_seed_data()
     
     # Datos de usuario de prueba
-    user_info = {
+    user_info: Dict[str, Any] = {
         'user_id': 1,
         'username': 'admin',
         'role': 'admin'

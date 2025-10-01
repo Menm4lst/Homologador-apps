@@ -3,13 +3,14 @@ Sistema de configuración para el Homologador de Aplicaciones.
 Maneja la configuración desde múltiples fuentes: CLI, ENV, config.json, autodetección.
 """
 
-import argparse
+
+from pathlib import Path
+from typing import Any, Dict, Optional, cast
 import json
 import logging
 import os
-from pathlib import Path
-from typing import Any, Dict, Optional, cast
 
+import argparse
 logger = logging.getLogger(__name__)
 
 

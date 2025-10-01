@@ -3,9 +3,10 @@
 Diagnóstico específico del problema de autenticación de usuarios creados por admin
 """
 
-import sqlite3
-import sys
 import os
+import sys
+
+import sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def diagnose_user_authentication():
@@ -107,8 +108,9 @@ def diagnose_user_authentication():
         # Importar función de verificación
         try:
             # Intentar usar la función corregida
-            from homologador.core.auth import verify_password
             
+
+            from homologador.core.auth import verify_password
             print(f"\n🔍 Probando contraseñas para '{username}':")
             
             for password in test_passwords:

@@ -1,16 +1,18 @@
 #!/usr/bin/env python
+# type: ignore
 """
 Script de análisis y optimización del código del dashboard
 Identifica problemas de rendimiento, errores lógicos y oportunidades de mejora
 """
 
-import sys
 import os
+import sys
 sys.path.insert(0, os.getcwd())
 
-from datetime import datetime, timedelta
-import homologador.core.storage as storage
 
+from datetime import datetime, timedelta
+
+import homologador.core.storage as storage
 def analyze_dashboard_issues():
     """Analiza los problemas específicos del dashboard"""
     
@@ -55,9 +57,10 @@ def analyze_dashboard_issues():
     
     try:
         # Simular cálculo de métricas manualmente
-        from datetime import datetime, timedelta
         
         # Obtener datos
+
+        from datetime import datetime, timedelta
         all_homologations_raw = repo.get_all()
         all_homologations = [dict(h) for h in all_homologations_raw]
         

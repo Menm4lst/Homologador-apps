@@ -10,24 +10,67 @@ Este módulo proporciona funcionalidades de accesibilidad incluyendo:
 - Indicadores visuales de foco
 """
 
+
+from typing import Any, Callable, Dict, List, Optional
 import json
 import os
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
 
-from PyQt6.QtCore import (QEasingCurve, QEvent, QKeyCombination, QObject,
-                          QPoint, QPropertyAnimation, QRect, QSettings, QSize,
-                          Qt, QTimer, pyqtSignal)
-from PyQt6.QtGui import (QAccessible, QAccessibleInterface, QAction, QBrush,
-                         QColor, QFocusEvent, QFont, QIcon, QKeySequence,
-                         QPainter, QPalette, QPen, QPixmap, QShortcut)
-from PyQt6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox,
-                             QDialog, QFrame, QGridLayout, QGroupBox,
-                             QHBoxLayout, QKeySequenceEdit, QLabel, QLineEdit,
-                             QListWidget, QListWidgetItem, QMessageBox,
-                             QProgressBar, QPushButton, QRadioButton,
-                             QScrollArea, QSlider, QSpinBox, QTabWidget,
-                             QTextEdit, QVBoxLayout, QWidget)
+from dataclasses import dataclass
+from enum import Enum
+from PyQt6.QtCore import (
+    QEasingCurve,
+    QEvent,
+    QKeyCombination,
+    QObject,
+    QPropertyAnimation,
+    QPoint,
+    QRect,
+    QSettings,
+    QSize,
+    Qt,
+    QTimer,
+    pyqtSignal)
+from PyQt6.QtGui import (
+    QAccessible,
+    QAccessibleInterface,
+    QAction,
+    QBrush,
+    QColor,
+    QFocusEvent,
+    QFont,
+    QIcon,
+    QKeySequence,
+    QPainter,
+    QPalette,
+    QPen,
+    QPixmap,
+    QShortcut)
+from PyQt6.QtWidgets import (
+    QApplication,
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QKeySequenceEdit,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget)
 
 
 class AccessibilityMode(Enum):
@@ -42,14 +85,14 @@ class AccessibilityMode(Enum):
 class FocusIndicator(QWidget):
     """Indicador visual de foco mejorado."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         
-        self.target_widget = None
+        self.target_widget: Optional[QWidget] = None
         self.animation = QPropertyAnimation(self, b"geometry")
         self.animation.setDuration(200)
         self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
@@ -116,12 +159,15 @@ class KeyboardNavigationManager(QObject):
     
     focus_changed = pyqtSignal(QWidget)
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QObject] = None):
         super().__init__(parent)
-        self.app = QApplication.instance()
+        app = QApplication.instance()
+        if app is None:
+            raise RuntimeError("QApplication instance required for KeyboardNavigationManager")
+        self.app: QApplication = app
         self.focus_indicator = FocusIndicator()
-        self.navigation_history = []
-        self.current_focus_index = -1
+        self.navigation_history: List[QWidget] = []
+        self.current_focus_index: int = -1
         
         # Instalar filtro de eventos global
         self.app.installEventFilter(self)
@@ -133,7 +179,7 @@ class KeyboardNavigationManager(QObject):
         """Filtra eventos para mejorar la navegación."""
         if event.type() == QEvent.Type.KeyPress:
             return self.handle_key_press(obj, event)
-        elif event.type() == QEvent.Type.FocusIn:
+        elif event.type() == QEvent.Type.FocusIn and isinstance(obj, QWidget):
             self.update_focus_indicator(obj)
         
         return super().eventFilter(obj, event)
@@ -223,7 +269,7 @@ class KeyboardNavigationManager(QObject):
     
     def get_focusable_widgets(self) -> List[QWidget]:
         """Obtiene todos los widgets focusables visibles."""
-        focusable = []
+        focusable: List[QWidget] = []
         
         for window in self.app.topLevelWidgets():
             if window.isVisible():
@@ -233,7 +279,7 @@ class KeyboardNavigationManager(QObject):
     
     def _get_focusable_children(self, widget: QWidget) -> List[QWidget]:
         """Obtiene recursivamente todos los widgets focusables hijos."""
-        focusable = []
+        focusable: List[QWidget] = []
         
         if (widget.isVisible() and 
             widget.isEnabled() and 
@@ -462,36 +508,51 @@ class ThemeManager:
             self.apply_normal_theme(app)
 
 
+@dataclass
+class RegisteredAction:
+    action: QAction
+    description: str
+    callback: Callable[[], None]
+    default_shortcut: str
+
+
 class ShortcutManager:
     """Gestor de atajos de teclado personalizables."""
     
     def __init__(self, parent_widget: QWidget):
         self.parent = parent_widget
-        self.shortcuts = {}
-        self.actions = {}
+        self.shortcuts: Dict[str, QShortcut] = {}
+        self.actions: Dict[str, RegisteredAction] = {}
         self.settings = QSettings()
         
         self.load_shortcuts()
     
-    def register_action(self, name: str, description: str, callback: Callable, 
-                       default_shortcut: str = ""):
+    def register_action(
+        self,
+        name: str,
+        description: str,
+        callback: Callable[[], None],
+        default_shortcut: str = ""
+    ) -> None:
         """Registra una acción con su atajo."""
         action = QAction(description, self.parent)
-        action.triggered.connect(callback)
+        action.triggered.connect(lambda checked=False: callback())
         
-        self.actions[name] = {
-            'action': action,
-            'description': description,
-            'callback': callback,
-            'default_shortcut': default_shortcut
-        }
+        self.actions[name] = RegisteredAction(
+            action=action,
+            description=description,
+            callback=callback,
+            default_shortcut=default_shortcut,
+        )
         
         # Cargar atajo personalizado o usar el por defecto
-        shortcut = self.settings.value(f"shortcuts/{name}", default_shortcut)
-        if shortcut:
-            self.set_shortcut(name, shortcut)
+        shortcut_value = self.settings.value(f"shortcuts/{name}", default_shortcut)
+        if isinstance(shortcut_value, str) and shortcut_value:
+            self.set_shortcut(name, shortcut_value)
+        elif default_shortcut:
+            self.set_shortcut(name, default_shortcut)
     
-    def set_shortcut(self, action_name: str, shortcut: str):
+    def set_shortcut(self, action_name: str, shortcut: str) -> bool:
         """Establece un atajo para una acción."""
         if action_name not in self.actions:
             return False
@@ -503,7 +564,7 @@ class ShortcutManager:
         # Crear nuevo atajo
         if shortcut:
             shortcut_obj = QShortcut(QKeySequence(shortcut), self.parent)
-            shortcut_obj.activated.connect(self.actions[action_name]['callback'])
+            shortcut_obj.activated.connect(self.actions[action_name].callback)
             self.shortcuts[action_name] = shortcut_obj
             
             # Guardar en configuración
@@ -515,18 +576,19 @@ class ShortcutManager:
     
     def get_shortcut(self, action_name: str) -> str:
         """Obtiene el atajo actual de una acción."""
-        if action_name in self.shortcuts:
-            return self.shortcuts[action_name].key().toString()
+        shortcut = self.shortcuts.get(action_name)
+        if shortcut is not None:
+            return shortcut.key().toString()
         return ""
     
     def get_all_shortcuts(self) -> Dict[str, Dict[str, str]]:
         """Obtiene todos los atajos registrados."""
-        result = {}
+        result: Dict[str, Dict[str, str]] = {}
         for name, action_data in self.actions.items():
             result[name] = {
-                'description': action_data['description'],
+                'description': action_data.description,
                 'shortcut': self.get_shortcut(name),
-                'default_shortcut': action_data['default_shortcut']
+                'default_shortcut': action_data.default_shortcut,
             }
         return result
     
@@ -538,8 +600,8 @@ class ShortcutManager:
     def reset_to_defaults(self):
         """Restaura todos los atajos a sus valores por defecto."""
         for name, action_data in self.actions.items():
-            default_shortcut = action_data['default_shortcut']
-            self.set_shortcut(name, default_shortcut)
+            if action_data.default_shortcut:
+                self.set_shortcut(name, action_data.default_shortcut)
 
 
 class AccessibilitySettingsWidget(QWidget):
@@ -547,7 +609,7 @@ class AccessibilitySettingsWidget(QWidget):
     
     settings_changed = pyqtSignal(dict)
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.theme_manager = ThemeManager()
         self.settings = QSettings()
@@ -1154,8 +1216,8 @@ class AccessibilityManager:
 
 
 if __name__ == "__main__":
-    import sys
     
+    import sys
     app = QApplication(sys.argv)
     
     # Crear ventana principal de prueba

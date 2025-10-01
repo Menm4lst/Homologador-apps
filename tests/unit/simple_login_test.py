@@ -3,10 +3,11 @@
 Script simple para ejecutar la ventana de login de forma persistente.
 """
 
-import sys
-import os
 
 # Agregar paths
+
+import os
+import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 homologador_path = os.path.join(project_root, 'homologador')
 sys.path.insert(0, project_root)
@@ -18,10 +19,11 @@ def run_login_simple():
         print("🚀 Iniciando ventana de login...")
         
         # Importar PyQt6
-        from PyQt6.QtWidgets import QApplication
-        from PyQt6.QtCore import Qt
         
         # Crear aplicación
+
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtWidgets import QApplication
         app = QApplication(sys.argv)
         app.setQuitOnLastWindowClosed(True)
         
@@ -34,9 +36,10 @@ def run_login_simple():
         print("🔐 Creando ventana de login...")
         
         # Importar ventana de login
-        from homologador.ui.final_login import FinalLoginWindow
         
         # Crear ventana de login
+
+        from homologador.ui.final_login import FinalLoginWindow
         login_window = FinalLoginWindow()
         
         # Configurar ventana para que se mantenga visible

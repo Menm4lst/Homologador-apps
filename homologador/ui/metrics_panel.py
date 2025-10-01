@@ -6,7 +6,7 @@ Versión completamente corregida con consultas SQL optimizadas y mejor rendimien
 import logging
 import sqlite3
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QColor, QFont, QPalette
@@ -130,7 +130,7 @@ class MetricsDataWorker(QThread):
         
         return {'Sin datos': 0}
     
-    def _calculate_repository_stats(self, db) -> List[tuple]:
+    def _calculate_repository_stats(self, db) -> List[Tuple[str, int]]:
         """Calcula estadísticas de repositorio usando el campo correcto."""
         
         repo_query = """
@@ -145,11 +145,13 @@ class MetricsDataWorker(QThread):
         LIMIT 5
         """
         
-        result = db.execute_query(repo_query)
-        repo_stats = []
+        result: List[Dict[str, Any]] = db.execute_query(repo_query)
+        repo_stats: List[Tuple[str, int]] = []
         
-        for row in result:
-            repo_name = row['repository_location']
+        for raw_row in result:
+            row = cast(Dict[str, Any], raw_row)
+            repo_name_obj = row.get('repository_location', '')
+            repo_name = str(repo_name_obj) if repo_name_obj is not None else ''
             # Extraer nombre limpio
             if '/' in repo_name:
                 repo_name = repo_name.split('/')[-1]
@@ -158,7 +160,15 @@ class MetricsDataWorker(QThread):
             
             repo_name = repo_name.replace('.git', '').strip()
             if repo_name:
-                repo_stats.append((repo_name, row['count']))
+                count_value = row.get('count', 0)
+                if isinstance(count_value, (int, float)):
+                    count = int(count_value)
+                else:
+                    try:
+                        count = int(str(count_value))
+                    except (TypeError, ValueError):
+                        count = 0
+                repo_stats.append((repo_name, count))
         
         return repo_stats
     
@@ -312,9 +322,9 @@ class StatusChart(QWidget):
 class TopRepositoriesWidget(QWidget):
     """Widget para mostrar los repositorios más utilizados."""
     
-    def __init__(self, repo_data: List[tuple]):
+    def __init__(self, repo_data: List[Tuple[str, int]]):
         super().__init__()
-        self.repo_data = repo_data
+        self.repo_data: List[Tuple[str, int]] = repo_data
         self.setup_ui()
     
     def setup_ui(self):
@@ -352,9 +362,9 @@ class TopRepositoriesWidget(QWidget):
 class MetricsPanel(QWidget):
     """Panel principal de métricas optimizado."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.metrics_worker = None
+        self.metrics_worker: Optional[MetricsDataWorker] = None
         self.setup_ui()
         self.load_metrics()
         

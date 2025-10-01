@@ -3,8 +3,9 @@
 Crear usuario de prueba con el nuevo sistema y probar login
 """
 
-import sqlite3
 
+
+import sqlite3
 def create_test_user_and_verify():
     """Crea un usuario de prueba y verifica que funcione"""
     

@@ -3,26 +3,57 @@ Sistema de exportación avanzada para homologaciones.
 Permite exportar datos en múltiples formatos con opciones personalizadas.
 """
 
-import csv
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any, Dict, List, Optional, TypedDict
 import json
 import logging
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
-                             QFileDialog, QFormLayout, QFrame, QGridLayout,
-                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                             QMessageBox, QProgressBar, QPushButton,
-                             QRadioButton, QSpinBox, QTabWidget, QTextEdit,
-                             QVBoxLayout, QWidget)
+import csv
+from PyQt6.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QFormLayout,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QSpinBox,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
-from .notification_system import send_error, send_info, send_success
+
+
+from .notification_system import send_error, send_success
 from .theme import ThemeType, get_current_theme
-
 logger = logging.getLogger(__name__)
+
+
+Record = Dict[str, Any]
+
+
+class ExportConfig(TypedDict):
+    file_path: str
+    format: str
+    selected_fields: List[str]
+    include_headers: bool
+    include_metadata: bool
+    date_filter_enabled: bool
 
 
 class ExportWorker(QThread):
@@ -31,11 +62,11 @@ class ExportWorker(QThread):
     progress_updated = pyqtSignal(int, str)
     export_completed = pyqtSignal(str)
     export_failed = pyqtSignal(str)
-    
-    def __init__(self, data: List[Dict], export_config: Dict[str, Any]):
+
+    def __init__(self, data: List[Record], export_config: ExportConfig):
         super().__init__()
-        self.data = data
-        self.config = export_config
+        self.data: List[Record] = data
+        self.config: ExportConfig = export_config
     
     def run(self):
         """Ejecuta la exportación en segundo plano."""
@@ -66,9 +97,9 @@ class ExportWorker(QThread):
             logger.error(f"Error en exportación: {e}")
             self.export_failed.emit(str(e))
     
-    def filter_data(self) -> List[Dict]:
+    def filter_data(self) -> List[Record]:
         """Filtra los datos según la configuración."""
-        filtered = []
+        filtered: List[Record] = []
         
         for item in self.data:
             # Aplicar filtros si están configurados
@@ -77,7 +108,7 @@ class ExportWorker(QThread):
                 pass
             
             # Seleccionar solo campos requeridos
-            filtered_item = {}
+            filtered_item: Record = {}
             for field in self.config['selected_fields']:
                 filtered_item[field] = item.get(field, '')
             
@@ -85,7 +116,7 @@ class ExportWorker(QThread):
         
         return filtered
     
-    def export_csv(self, data: List[Dict], file_path: str):
+    def export_csv(self, data: List[Record], file_path: str) -> None:
         """Exporta datos a formato CSV."""
         self.progress_updated.emit(50, "Generando archivo CSV...")
         
@@ -106,7 +137,7 @@ class ExportWorker(QThread):
                 progress = 50 + int((i / total) * 40)
                 self.progress_updated.emit(progress, f"Escribiendo registro {i+1}/{total}")
     
-    def export_json(self, data: List[Dict], file_path: str):
+    def export_json(self, data: List[Record], file_path: str) -> None:
         """Exporta datos a formato JSON."""
         self.progress_updated.emit(50, "Generando archivo JSON...")
         
@@ -124,12 +155,13 @@ class ExportWorker(QThread):
         
         self.progress_updated.emit(90, "Archivo JSON generado")
     
-    def export_excel(self, data: List[Dict], file_path: str):
+    def export_excel(self, data: List[Record], file_path: str) -> None:
         """Exporta datos a formato Excel (requiere openpyxl)."""
         try:
-            import openpyxl
-            from openpyxl.styles import Alignment, Font, PatternFill
             
+
+            from openpyxl.styles import Alignment, Font, PatternFill
+            import openpyxl
             self.progress_updated.emit(50, "Generando archivo Excel...")
             
             wb = openpyxl.Workbook()
@@ -176,21 +208,19 @@ class ExportWorker(QThread):
         except ImportError:
             raise Exception("Para exportar a Excel, instale: pip install openpyxl")
     
-    def export_pdf(self, data: List[Dict], file_path: str):
+    def export_pdf(self, data: List[Record], file_path: str) -> None:
         """Exporta datos a formato PDF (requiere reportlab)."""
         try:
             from reportlab.lib import colors
-            from reportlab.lib.pagesizes import A4, letter
-            from reportlab.lib.styles import (ParagraphStyle,
-                                              getSampleStyleSheet)
+            from reportlab.lib.pagesizes import A4
+            from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
             from reportlab.lib.units import inch
-            from reportlab.platypus import (Paragraph, SimpleDocTemplate,
-                                            Spacer, Table, TableStyle)
+            from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
             
             self.progress_updated.emit(50, "Generando archivo PDF...")
             
             doc = SimpleDocTemplate(file_path, pagesize=A4)
-            elements = []
+            elements: List[Any] = []
             
             # Estilos
             styles = getSampleStyleSheet()
@@ -208,18 +238,21 @@ class ExportWorker(QThread):
             elements.append(Spacer(1, 12))
             
             # Información del reporte
-            info_text = f"Generado el: {datetime.now().strftime('%d/%m/%Y %H:%M')}<br/>Total de registros: {len(data)}"
+            info_text = (
+                f"Generado el: {datetime.now().strftime('%d/%m/%Y %H:%M')}<br/>"
+                f"Total de registros: {len(data)}"
+            )
             info = Paragraph(info_text, styles['Normal'])
             elements.append(info)
             elements.append(Spacer(1, 20))
             
             if data:
                 # Preparar datos para la tabla
-                headers = list(data[0].keys())
-                table_data = [headers]
+                headers: List[str] = [str(header) for header in data[0].keys()]
+                table_data: List[List[str]] = [headers]
                 
                 for row in data:
-                    table_row = [str(row.get(header, ''))[:50] for header in headers]  # Limitar longitud
+                    table_row = [str(row.get(header, ''))[:50] for header in headers]
                     table_data.append(table_row)
                 
                 # Crear tabla
@@ -247,10 +280,10 @@ class ExportWorker(QThread):
 class ExportDialog(QDialog):
     """Dialog para configurar y ejecutar exportaciones."""
     
-    def __init__(self, parent=None, data: List[Dict] = None):
+    def __init__(self, parent: Optional[QWidget] = None, data: Optional[List[Record]] = None):
         super().__init__(parent)
-        self.data = data or []
-        self.export_worker = None
+        self.data: List[Record] = data or []
+        self.export_worker: Optional[ExportWorker] = None
         self.setup_ui()
         self.apply_theme_styles()
     
@@ -517,7 +550,7 @@ class ExportDialog(QDialog):
             QMessageBox.warning(self, "Advertencia", "Seleccione un archivo de destino")
             return
         
-        selected_fields = [
+        selected_fields: List[str] = [
             field for field, checkbox in self.field_checkboxes.items()
             if checkbox.isChecked()
         ]
@@ -528,15 +561,17 @@ class ExportDialog(QDialog):
         
         # Configurar exportación
         format_id = self.format_group.checkedId()
-        format_names = ['csv', 'json', 'excel', 'pdf']
-        
-        export_config = {
-            'file_path': self.file_path_edit.text(),
-            'format': format_names[format_id],
+        format_names: List[str] = ['csv', 'json', 'excel', 'pdf']
+        format_index = format_id if 0 <= format_id < len(format_names) else 0
+        export_format = format_names[format_index]
+
+        export_config: ExportConfig = {
+            'file_path': str(self.file_path_edit.text()),
+            'format': export_format,
             'selected_fields': selected_fields,
             'include_headers': self.include_headers_cb.isChecked(),
             'include_metadata': self.include_metadata_cb.isChecked(),
-            'date_filter_enabled': self.date_filter_cb.isChecked()
+            'date_filter_enabled': self.date_filter_cb.isChecked(),
         }
         
         # Deshabilitar interfaz durante exportación

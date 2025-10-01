@@ -3,13 +3,15 @@
 PRUEBA FINAL DE AUTENTICACIÓN - Verificar correcciones
 """
 
-import sqlite3
-import sys
 import os
+import sys
+
+import sqlite3
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from homologador.core.auth import verify_password
 
+
+from homologador.core.auth import verify_password
 def final_authentication_test():
     """Prueba final de todas las correcciones de autenticación"""
     

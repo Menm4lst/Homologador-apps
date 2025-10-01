@@ -2,39 +2,52 @@
 Panel de gestión de respaldos para la aplicación Homologador.
 """
 
-import os
+
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import os
 
 from PyQt6.QtCore import QDateTime, Qt, QThread, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QIcon, QPalette
-from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDateTimeEdit, QDialog,
-                             QDialogButtonBox, QFileDialog, QFormLayout,
-                             QFrame, QGroupBox, QHBoxLayout, QHeaderView,
-                             QInputDialog, QLabel, QLineEdit, QMessageBox,
-                             QProgressBar, QPushButton, QScrollArea, QSpinBox,
-                             QSplitter, QTableWidget, QTableWidgetItem,
-                             QTabWidget, QTextEdit, QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDateTimeEdit,
+    QDialog,
+    QDialogButtonBox,
+    QFileDialog,
+    QFormLayout,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QSpinBox,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget)
 
-from ..core.backup_system import BackupInfo, get_backup_manager
 
-try:
-    from ..ui.notifications import (send_error, send_info, send_success,
-                                    send_warning)
-except ImportError:
-    # Fallback si no existe el módulo de notificaciones
-    def send_success(title, message, category): pass
-    def send_error(title, message, category): pass
-    def send_info(title, message, category): pass
-    def send_warning(title, message, category): pass
 
-try:
-    from ..ui.theme import DarkTheme
-except ImportError:
-    class DarkTheme:
-        @staticmethod
-        def apply_to_widget(widget): pass
+from ..core.backup_system import BackupInfo, BackupManager, get_backup_manager
+from .notification_system import (
+    send_error,
+    send_info,
+    send_success,
+    send_warning,
+)
+from .theme import DarkTheme
 
 class BackupWorker(QThread):
     """Worker thread para operaciones de respaldo en background."""
@@ -104,11 +117,11 @@ class RestoreWorker(QThread):
 class BackupPanel(QWidget):
     """Panel principal de gestión de respaldos."""
     
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.backup_manager = get_backup_manager()
-        self.backup_worker = None
-        self.restore_worker = None
+        self.backup_manager: BackupManager = get_backup_manager()
+        self.backup_worker: Optional[BackupWorker] = None
+        self.restore_worker: Optional[RestoreWorker] = None
         
         self.init_ui()
         self.load_backup_list()
@@ -676,9 +689,10 @@ class BackupPanel(QWidget):
             )
             
             if file_path:
-                import shutil
 
                 # Copiar archivo al directorio de respaldos
+
+                import shutil
                 filename = Path(file_path).name
                 destination = self.backup_manager.backup_dir / filename
                 
@@ -797,10 +811,11 @@ class BackupPanel(QWidget):
         """Guarda la configuración actual."""
         try:
             # Actualizar settings
-            self.backup_manager.settings['auto_backup_enabled'] = self.auto_backup_enabled.isChecked()
-            self.backup_manager.settings['backup_interval_hours'] = self.backup_interval.value()
-            self.backup_manager.settings['max_backups'] = self.max_backups.value()
-            self.backup_manager.settings['backup_directory'] = str(self.backup_manager.backup_dir)
+            settings = self.backup_manager.settings
+            settings.config['auto_backup'] = self.auto_backup_enabled.isChecked()
+            settings.config['backup_interval_hours'] = self.backup_interval.value()
+            settings.config['backup_retention_days'] = self.max_backups.value()
+            settings.config['backups_dir'] = str(self.backup_manager.backup_dir)
             
             send_success("Configuración", "Configuración de respaldos guardada exitosamente", "backup_system")
             

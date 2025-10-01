@@ -3,12 +3,13 @@
 Script simplificado de compilación para el Homologador.
 """
 
-import os
-import sys
-import shutil
-import subprocess
-from pathlib import Path
 
+from pathlib import Path
+import os
+import shutil
+import sys
+
+import subprocess
 def simple_compile():
     """Compilación simple con PyInstaller."""
     

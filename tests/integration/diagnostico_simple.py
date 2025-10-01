@@ -3,12 +3,14 @@
 Script simple para diagnosticar problemas con usuarios nuevos.
 """
 
-import sys
-import os
-import sqlite3
-import hashlib
 
 # Agregar el directorio del proyecto al path
+
+import os
+import sys
+
+import hashlib
+import sqlite3
 project_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_dir)
 sys.path.insert(0, os.path.join(project_dir, 'homologador'))

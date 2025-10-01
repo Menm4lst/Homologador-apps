@@ -7,10 +7,11 @@ Este archivo identifica y configura funcionalidades adicionales
 que podrían mejorar la experiencia del usuario y la seguridad del sistema.
 """
 
-import os
-import json
-from pathlib import Path
 
+from pathlib import Path
+from typing import Any, Dict, List, cast
+import json
+import os
 def setup_advanced_configurations():
     """Configura opciones avanzadas para la aplicación."""
     
@@ -115,7 +116,7 @@ def setup_advanced_configurations():
         "created": "2025-09-26"
     }
 
-def save_advanced_config():
+def save_advanced_config() -> bool:
     """Guarda la configuración avanzada en archivo JSON."""
     
     try:
@@ -138,13 +139,13 @@ def save_advanced_config():
         print(f"❌ Error guardando configuración: {e}")
         return False
 
-def check_missing_features():
+def check_missing_features() -> List[Dict[str, Any]]:
     """Identifica funcionalidades que podrían implementarse."""
     
     print("\n🔍 FUNCIONALIDADES RECOMENDADAS PARA IMPLEMENTAR:")
     print("-" * 50)
     
-    recommendations = [
+    recommendations: List[Dict[str, Any]] = [
         {
             "category": "🔐 Seguridad",
             "items": [
@@ -208,13 +209,14 @@ def check_missing_features():
     
     return recommendations
 
-def generate_implementation_plan():
+
+def generate_implementation_plan() -> List[Dict[str, Any]]:
     """Genera un plan de implementación de mejoras."""
     
     print("\n📋 PLAN DE IMPLEMENTACIÓN RECOMENDADO:")
     print("=" * 50)
     
-    phases = [
+    phases: List[Dict[str, Any]] = [
         {
             "phase": "Fase 1 - Crítico (Inmediato)",
             "priority": "🔴 Alta",
@@ -262,15 +264,19 @@ def main():
         print("\n✅ Archivo de configuración avanzada creado exitosamente")
     
     # Analizar funcionalidades faltantes
-    recommendations = check_missing_features()
+    recommendations: List[Dict[str, Any]] = check_missing_features()
     
     # Generar plan de implementación
-    plan = generate_implementation_plan()
+    plan: List[Dict[str, Any]] = generate_implementation_plan()
     
     # Resumen final
     print(f"\n📊 RESUMEN:")
     print(f"✅ Configuración base: COMPLETA")
-    print(f"⚠️ Mejoras identificadas: {sum(len(r['items']) for r in recommendations)}")
+    total_improvements = sum(
+        len(cast(List[str], rec.get('items', [])))
+        for rec in recommendations
+    )
+    print(f"⚠️ Mejoras identificadas: {total_improvements}")
     print(f"📋 Fases de implementación: {len(plan)}")
     
     print(f"\n💡 RECOMENDACIÓN:")

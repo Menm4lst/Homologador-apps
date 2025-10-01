@@ -2,26 +2,44 @@
 Formulario para crear y editar homologaciones.
 Interfaz completa con validaciones y manejo de datos.
 """
+
 import logging
 import tempfile
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, List
 
-from ..core.storage import get_homologation_repository
-from ..data.seed import get_auth_service
 from PyQt6.QtCore import QDate, Qt, QThread, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDateEdit, QDialog,
-                             QDialogButtonBox, QFormLayout, QFrame,
-                             QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                             QLineEdit, QMessageBox, QPushButton, QScrollArea,
-                             QSizePolicy, QSpacerItem, QTextEdit, QVBoxLayout,
-                             QWidget)
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSizePolicy,
+    QSpacerItem,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget)
+
+from ..core.storage import get_homologation_repository
+from ..data.seed import get_auth_service
+
+
 
 from .autosave_manager import AutoSaveManager
 from .theme import set_widget_style_class
-
 logger = logging.getLogger(__name__)
 
 
@@ -710,7 +728,7 @@ class HomologationFormDialog(QDialog):
             try:
                 from datetime import datetime
                 date_obj = datetime.strptime(data['homologation_date'], '%Y-%m-%d').date()
-                self.homologation_date_edit.setDate(QDate(date_obj))
+                self.homologation_date_edit.setDate(QDate(date_obj))  # type: ignore[arg-type]
             except ValueError:
                 pass  # Usar fecha actual por defecto
         
@@ -769,7 +787,7 @@ class HomologationFormDialog(QDialog):
     
     def showEvent(self, event):
         """Se ejecuta cuando se muestra el formulario."""
-        super().showEvent(event)
+        super().showEvent(event)  # type: ignore[arg-type]
         # Aplicar estilos según el tema actual
         self.apply_theme_styles()
     
@@ -893,18 +911,20 @@ class HomologationFormDialog(QDialog):
 
 def show_homologation_form(parent=None, homologation_data=None, user_info=None):
     """Función utilitaria para mostrar el formulario de homologación."""
-    dialog = HomologationFormDialog(parent, homologation_data, user_info)
+    dialog = HomologationFormDialog(parent, homologation_data, user_info)  # type: ignore[arg-type]
     return dialog
 
 
 if __name__ == "__main__":
     # Test del formulario
+
+    
     import sys
+
+    from PyQt6.QtWidgets import QApplication
 
     from core.settings import setup_logging
     from data.seed import create_seed_data
-    from PyQt6.QtWidgets import QApplication
-    
     setup_logging()
     
     app = QApplication(sys.argv)

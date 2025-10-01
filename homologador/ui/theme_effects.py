@@ -3,19 +3,31 @@ Configuraciones adicionales de tema y personalización visual.
 Permite ajustes finos del dark theme y efectos especiales.
 """
 
-from typing import Optional, Dict, Any
-from PyQt6.QtCore import (QEasingCurve, QParallelAnimationGroup,
-                          QPropertyAnimation, QRect, QTimer)
+from __future__ import annotations
+
+from typing import Optional, Dict, Any, List
+
+from PyQt6.QtCore import (
+    QEasingCurve,
+    QParallelAnimationGroup,
+    QPropertyAnimation,
+    QRect,
+    QTimer)
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import (QApplication, QDialog, QGraphicsDropShadowEffect,
-                             QGraphicsOpacityEffect, QMainWindow, QWidget)
+from PyQt6.QtWidgets import (
+    QApplication,
+    QDialog,
+    QGraphicsDropShadowEffect,
+    QGraphicsOpacityEffect,
+    QMainWindow,
+    QWidget)
 
 
 class ThemeEffects:
     """Efectos visuales adicionales para mejorar la experiencia del usuario."""
     
     @staticmethod
-    def add_shadow_effect(widget: QWidget, blur_radius: int = 10, offset_x: int = 0, offset_y: int = 2):
+    def add_shadow_effect(widget: QWidget, blur_radius: int = 10, offset_x: int = 0, offset_y: int = 2) -> None:
         """Agrega efecto de sombra a un widget."""
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(blur_radius)
@@ -25,7 +37,7 @@ class ThemeEffects:
         widget.setGraphicsEffect(shadow)
     
     @staticmethod
-    def add_glow_effect(widget: QWidget, color: str = "#0078d4", blur_radius: int = 15):
+    def add_glow_effect(widget: QWidget, color: str = "#0078d4", blur_radius: int = 15) -> None:
         """Agrega efecto de resplandor a un widget."""
         glow = QGraphicsDropShadowEffect()
         glow.setBlurRadius(blur_radius)
@@ -35,7 +47,7 @@ class ThemeEffects:
         widget.setGraphicsEffect(glow)
     
     @staticmethod
-    def create_fade_animation(widget: QWidget, duration: int = 250):
+    def create_fade_animation(widget: QWidget, duration: int = 250) -> QPropertyAnimation:
         """Crea animación de fade in/out."""
         opacity_effect = QGraphicsOpacityEffect()
         widget.setGraphicsEffect(opacity_effect)
@@ -159,7 +171,7 @@ class WindowCustomizer:
     """Personalización específica para ventanas."""
     
     @staticmethod
-    def setup_login_window_effects(window):
+    def setup_login_window_effects(window: QWidget) -> None:
         """Configura efectos especiales para la ventana de login."""
         # Sombra para la ventana
         ThemeEffects.add_shadow_effect(window, blur_radius=20, offset_y=5)
@@ -169,13 +181,13 @@ class WindowCustomizer:
         fade_animation.start()
     
     @staticmethod
-    def setup_main_window_effects(window):
+    def setup_main_window_effects(window: QWidget) -> None:
         """Configura efectos para la ventana principal."""
         # Efecto de sombra sutil
         ThemeEffects.add_shadow_effect(window, blur_radius=15, offset_y=3)
     
     @staticmethod
-    def setup_dialog_effects(dialog):
+    def setup_dialog_effects(dialog: QDialog) -> None:
         """Configura efectos para diálogos."""
         # Sombra más pronunciada para diálogos
         ThemeEffects.add_shadow_effect(dialog, blur_radius=25, offset_y=8)
@@ -197,7 +209,7 @@ DEFAULT_THEME_CONFIG = {
 class ThemeTransitionManager:
     """Gestiona transiciones suaves entre temas."""
     
-    def __init__(self, duration=300):
+    def __init__(self, duration: int = 300):
         """Inicializa el gestor de transiciones.
         
         Args:
@@ -205,11 +217,11 @@ class ThemeTransitionManager:
         """
         self.duration = duration
         self.animations = QParallelAnimationGroup()
-        self.widgets = []
-        self.current_theme = None
-        self.target_theme = None
+        self.widgets: list[QWidget] = []
+        self.current_theme: Optional[str] = None
+        self.target_theme: Optional[str] = None
     
-    def prepare_transition(self, widget, target_theme):
+    def prepare_transition(self, widget: QWidget, target_theme: str) -> None:
         """Prepara la transición de tema para un widget.
         
         Args:
@@ -235,15 +247,18 @@ class ThemeTransitionManager:
         # Al terminar el fade out, aplicamos el tema
         self.animations.finished.connect(self._apply_theme_and_fade_in)
     
-    def _apply_theme_and_fade_in(self):
+    def _apply_theme_and_fade_in(self) -> None:
         """Aplica el tema y realiza la animación de fade in."""
         # Desconectar para evitar recursión
         self.animations.finished.disconnect(self._apply_theme_and_fade_in)
         
         # Aplicar el nuevo tema a todos los widgets
         from .theme import set_widget_style_class
+        target_theme = self.target_theme
+        if target_theme is None:
+            return
         for widget in self.widgets:
-            set_widget_style_class(widget, self.target_theme)
+            set_widget_style_class(widget, target_theme)
         
         # Crear grupo de animaciones para fade in
         fade_in_group = QParallelAnimationGroup()
@@ -265,14 +280,14 @@ class ThemeTransitionManager:
         self.widgets = []
         self.target_theme = None
     
-    def start_transition(self):
+    def start_transition(self) -> None:
         """Inicia la transición de tema."""
         if not self.widgets or not self.target_theme:
             return
         
         self.animations.start()
 
-def apply_theme_customizations(app: QApplication, config: Optional[Dict[str, Any]] = None):
+def apply_theme_customizations(app: QApplication, config: Optional[Dict[str, Any]] = None) -> None:
     """Aplica personalizaciones adicionales del tema."""
     if config is None:
         config = DEFAULT_THEME_CONFIG
@@ -284,7 +299,7 @@ def apply_theme_customizations(app: QApplication, config: Optional[Dict[str, Any
     current_stylesheet = app.styleSheet()
     app.setStyleSheet(current_stylesheet + custom_styles)
 
-def create_glass_effect_stylesheet():
+def create_glass_effect_stylesheet() -> str:
     """Crea efecto de vidrio/cristal para ciertos elementos."""
     return """
     /* Efecto de vidrio para frames especiales */
